@@ -89,6 +89,8 @@ const ChatPage = () => {
     }
   }
 
+
+
   // Фильтрация чатов
   const filteredChats = (() => {
     if (filter === 'archived') {
@@ -202,7 +204,7 @@ const ChatPage = () => {
         {loading ? (
           <div className="flex-1 flex items-center justify-center h-64">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
                 <i className="fas fa-comments text-2xl text-white"></i>
               </div>
               <div className="text-text-secondary">Loading conversations...</div>
@@ -211,7 +213,7 @@ const ChatPage = () => {
         ) : sortedChats.length === 0 ? (
           <div className="flex-1 flex items-center justify-center h-64">
             <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
                 <i className="fas fa-comments text-3xl text-white"></i>
               </div>
               <h2 className="text-2xl font-bold text-text-primary mb-4">

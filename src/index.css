@@ -249,7 +249,7 @@
   }
 
   .startup-card {
-    @apply absolute w-full h-full bg-bg-secondary rounded-3xl overflow-hidden shadow-heavy;
+    @apply absolute w-full h-full bg-bg-secondary rounded-3xl overflow-hidden;
     cursor: grab;
     position: absolute;
     touch-action: none;
@@ -262,6 +262,10 @@
     box-sizing: border-box;
     top: 0;
     left: 0;
+    /* Убираем квадратные края у теней */
+    border-radius: 24px;
+    /* Кастомная тень с округлениями */
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   }
 
   /* ВРЕМЕННО УБИРАЕМ ВСЕ POINTER-EVENTS ДЛЯ ДИАГНОСТИКИ */
@@ -297,7 +301,7 @@
   }
 
   .company-logo {
-    @apply absolute top-6 left-6 w-16 h-16 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center text-2xl text-white;
+    @apply absolute top-6 left-6 w-16 h-16 bg-white/20 backdrop-blur-xl flex items-center justify-center text-2xl text-white;
   }
 
   .card-badges {
@@ -396,6 +400,8 @@
       opacity: .5;
     }
   }
+
+
 
   @keyframes float {
 
@@ -550,12 +556,18 @@
 
   @media (min-width: 1024px) {
     .mobile-container {
-      @apply max-w-xl;
+      @apply max-w-none rounded-none;
+      padding: 0;
     }
   }
 
   /* Улучшения для больших экранов */
   @media (min-width: 768px) {
+    .mobile-container {
+      @apply max-w-none rounded-none;
+      padding: 0;
+    }
+
     .startup-card {
       @apply w-full;
     }
@@ -565,13 +577,52 @@
     }
 
     .bottom-nav {
-      @apply rounded-t-3xl mx-4 bottom-4 left-0 right-0;
-      width: calc(100% - 2rem);
+      @apply rounded-none mx-0 bottom-0 left-0 right-0;
+      width: 100%;
     }
 
     .header {
-      @apply rounded-b-3xl mx-4 top-4 left-0 right-0;
-      width: calc(100% - 2rem);
+      @apply rounded-none mx-0 top-0 left-0 right-0;
+      width: 100%;
+    }
+
+    /* Оставляем округления для карточек на всех устройствах */
+    .startup-card-container {
+      border-radius: 24px;
+    }
+
+    .flip-front,
+    .flip-back {
+      border-radius: 24px;
+    }
+
+    .company-logo {
+      @apply rounded-none;
+    }
+
+    .badge {
+      @apply rounded-none;
+    }
+
+    .card-category,
+    .card-stage,
+    .card-location,
+    .card-team-size {
+      @apply rounded-none;
+    }
+
+    .role-badge {
+      @apply rounded-none;
+    }
+
+    .more-btn {
+      @apply rounded-none;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-accent {
+      @apply rounded-none;
     }
   }
 
@@ -599,6 +650,8 @@
 
     .startup-card {
       @apply w-full;
+      /* Убираем квадратные края на мобильных */
+      border-radius: 24px !important;
     }
 
     .card-stack {
@@ -665,6 +718,8 @@
     }
   }
 
+
+
   /* Поддержка высокого контраста */
   @media (prefers-contrast: high) {
     .mobile-container {
@@ -682,7 +737,7 @@
   /* Card Flip Animation Styles */
   .startup-card-container {
     perspective: 1000px;
-    @apply absolute w-[90%] h-[95%] top-[2.5%] bg-transparent rounded-3xl overflow-hidden;
+    @apply absolute w-[90%] h-[95%] top-[2.5%] bg-transparent overflow-hidden;
     cursor: grab;
     position: absolute;
     left: 0;
@@ -732,7 +787,7 @@
     height: 100%;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    @apply bg-bg-secondary rounded-3xl overflow-hidden shadow-heavy;
+    @apply bg-bg-secondary overflow-hidden shadow-heavy;
     /* Исправляем смещение компонентов */
     box-sizing: border-box;
     top: 0;

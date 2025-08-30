@@ -637,7 +637,7 @@ const ChatDetailPage = () => {
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-pulse">
-            <i className="fas fa-spinner fa-spin text-4xl text-accent-primary"></i>
+            <i className="fas fa-spinner fa-spin text-4xl text-blue-400"></i>
           </div>
         </div>
       </div>
@@ -864,7 +864,7 @@ const ChatDetailPage = () => {
                   </div>
 
                   {message.sender === 'user' && (
-                    <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center ml-3 flex-shrink-0 shadow-lg">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center ml-3 flex-shrink-0 shadow-lg">
                       <span className="text-white text-sm font-bold">YOU</span>
                     </div>
                   )}
@@ -1025,7 +1025,7 @@ const ChatDetailPage = () => {
                 {newMessage.trim() ? (
                   <button
                     type="submit"
-                    className="w-10 h-10 rounded-2xl bg-gradient-primary text-white flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl hover:shadow-accent-primary/30 ml-1"
+                    className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-300 to-blue-700 text-white flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl hover:shadow-blue-700/30 ml-1"
                     title="Send message"
                   >
                     <i className="fas fa-paper-plane text-lg"></i>

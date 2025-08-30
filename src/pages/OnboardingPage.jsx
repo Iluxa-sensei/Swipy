@@ -81,7 +81,7 @@ const OnboardingPage = () => {
 
   const renderStep1 = () => (
     <div className="text-center">
-      <div className="w-24 h-24 bg-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-6">
+      <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
         <i className="fas fa-user text-3xl text-white"></i>
       </div>
       <h2 className="text-2xl font-bold text-text-primary mb-4">Welcome to NextVentures!</h2>
@@ -118,7 +118,7 @@ const OnboardingPage = () => {
               <button
                 key={level}
                 className={`w-full p-4 rounded-2xl border transition-all duration-200 text-left ${userData.experience === level
-                  ? 'bg-accent-primary border-accent-primary text-white'
+                  ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white'
                   : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                   }`}
                 onClick={() => handleInputChange('experience', level)}
@@ -136,7 +136,7 @@ const OnboardingPage = () => {
               <button
                 key={skill}
                 className={`p-3 rounded-2xl border transition-all duration-200 text-sm ${userData.skills.includes(skill)
-                  ? 'bg-accent-primary border-accent-primary text-white'
+                  ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white'
                   : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                   }`}
                 onClick={() => handleSkillToggle(skill)}
@@ -163,7 +163,7 @@ const OnboardingPage = () => {
               <button
                 key={interest}
                 className={`p-3 rounded-2xl border transition-all duration-200 text-sm ${userData.interests.includes(interest)
-                  ? 'bg-accent-primary border-accent-primary text-white'
+                  ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white'
                   : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                   }`}
                 onClick={() => handleInterestToggle(interest)}

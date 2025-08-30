@@ -10,7 +10,8 @@ export const startups = [
     gradient: "bg-gradient-secondary",
     funding: "$2.5M",
     teamSize: "12",
-    location: "San Francisco, CA"
+    location: "San Francisco, CA",
+    website: "https://techflow.ai"
   },
   {
     id: 2,
@@ -23,7 +24,8 @@ export const startups = [
     gradient: "bg-gradient-tertiary",
     funding: "$500K",
     teamSize: "8",
-    location: "Austin, TX"
+    location: "Austin, TX",
+    website: "https://ecosmart.io"
   },
   {
     id: 3,
@@ -36,7 +38,8 @@ export const startups = [
     gradient: "bg-gradient-primary",
     funding: "$15M",
     teamSize: "25",
-    location: "Boston, MA"
+    location: "Boston, MA",
+    website: "https://healthsync.com"
   },
   {
     id: 4,
@@ -49,7 +52,8 @@ export const startups = [
     gradient: "bg-gradient-secondary",
     funding: "$8M",
     teamSize: "18",
-    location: "New York, NY"
+    location: "New York, NY",
+    website: "https://finflow.com"
   },
   {
     id: 5,
@@ -62,7 +66,8 @@ export const startups = [
     gradient: "bg-gradient-tertiary",
     funding: "$1.2M",
     teamSize: "10",
-    location: "Seattle, WA"
+    location: "Seattle, WA",
+    website: "https://edutech.ai"
   }
 ]
 

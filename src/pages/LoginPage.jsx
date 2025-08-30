@@ -127,20 +127,20 @@ const LoginPage = () => {
                 id="agreeToTerms"
                 checked={formData.agreeToTerms}
                 onChange={(e) => handleInputChange('agreeToTerms', e.target.checked)}
-                className="mt-1 w-5 h-5 text-accent-primary bg-glass-bg border-glass-border rounded focus:ring-accent-primary focus:ring-2"
+                className="mt-1 w-5 h-5 text-blue-400 bg-glass-bg border-glass-border rounded focus:ring-blue-400 focus:ring-2"
               />
               <label htmlFor="agreeToTerms" className="text-sm text-text-secondary">
                 I agree to the{' '}
-                <a href="#" className="text-accent-primary hover:underline">Terms of Service</a>
+                <a href="#" className="text-blue-400 hover:underline">Terms of Service</a>
                 {' '}and{' '}
-                <a href="#" className="text-accent-primary hover:underline">Privacy Policy</a>
+                <a href="#" className="text-blue-400 hover:underline">Privacy Policy</a>
               </label>
             </div>
           )}
 
           {isLogin && (
             <div className="text-right">
-              <a href="#" className="text-accent-primary text-sm hover:underline">
+              <a href="#" className="text-blue-400 text-sm hover:underline">
                 Forgot Password?
               </a>
             </div>
@@ -148,7 +148,7 @@ const LoginPage = () => {
 
           <button
             type="submit"
-            className="btn-primary w-full"
+            className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white w-full font-semibold rounded-2xl py-4 shadow-lg hover:shadow-xl transition-all duration-200"
           >
             <i className={`fas ${isLogin ? 'fa-sign-in-alt' : 'fa-user-plus'} mr-2`}></i>
             {isLogin ? 'Sign In' : 'Create Account'}
@@ -185,7 +185,7 @@ const LoginPage = () => {
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               onClick={toggleMode}
-              className="text-accent-primary hover:underline font-medium"
+              className="text-blue-400 hover:underline font-medium"
             >
               {isLogin ? 'Sign up' : 'Sign in'}
             </button>

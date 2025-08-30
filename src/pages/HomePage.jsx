@@ -18,6 +18,23 @@ const HomePage = () => {
   const lastTapRef = useRef(0)
   const navigate = useNavigate()
 
+  // Функция для извлечения основного цвета из градиента
+  const getGradientColor = (gradientClass) => {
+    const gradientMap = {
+      'bg-gradient-primary': '#1565c0',
+      'bg-gradient-secondary': '#f093fb',
+      'bg-gradient-tertiary': '#4facfe',
+      'bg-gradient-quaternary': '#43e97b',
+      'bg-gradient-quinary': '#fa709a',
+      'bg-gradient-senary': '#a8edea',
+      'bg-gradient-septenary': '#ff9a9e',
+      'bg-gradient-octonary': '#ffecd2',
+      'bg-gradient-nonary': '#ff9a9e',
+      'bg-gradient-denary': '#a18cd1'
+    }
+    return gradientMap[gradientClass] || '#2196f3'
+  }
+
   // Простой тестовый рендер для отладки
   console.log('HomePage component rendering...')
 
@@ -206,7 +223,7 @@ const HomePage = () => {
 
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-24 h-24 bg-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-6 animate-float animate-glow">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-float animate-glow">
               <i className="fas fa-heart text-3xl text-white"></i>
             </div>
             <h2 className="text-2xl font-bold text-text-primary mb-4">No More Startups</h2>
@@ -322,12 +339,16 @@ const HomePage = () => {
                 // Цветовые эффекты
                 if (deltaX > 50) {
                   cardContainer.style.boxShadow = `0 0 30px rgba(34, 197, 94, ${Math.min(0.6, Math.abs(deltaX) / 200)})`
+                  cardContainer.style.borderRadius = '24px'
                 } else if (deltaX < -50) {
                   cardContainer.style.boxShadow = `0 0 30px rgba(239, 68, 68, ${Math.min(0.6, Math.abs(deltaX) / 200)})`
+                  cardContainer.style.borderRadius = '24px'
                 } else if (deltaY > 50) {
                   cardContainer.style.boxShadow = `0 0 30px rgba(59, 130, 246, ${Math.min(0.6, Math.abs(deltaY) / 200)})`
+                  cardContainer.style.borderRadius = '24px'
                 } else {
                   cardContainer.style.boxShadow = ''
+                  cardContainer.style.borderRadius = '24px'
                 }
 
                 setCurrentPos({ x: e.clientX, y: e.clientY })
@@ -377,6 +398,7 @@ const HomePage = () => {
                     cardContainer.style.transform = 'translateY(100vh) rotate(10deg) scale(0.8)'
                     cardContainer.style.opacity = '0'
                     cardContainer.style.boxShadow = '0 0 30px rgba(59, 130, 246, 0.5)'
+                    cardContainer.style.borderRadius = '24px'
                     setTimeout(() => {
                       navigate(`/startup/${currentStartup.id}`)
                     }, 400)
@@ -385,12 +407,14 @@ const HomePage = () => {
                     cardContainer.style.transition = 'all 0.3s ease'
                     cardContainer.style.transform = 'translateY(0px) rotate(0deg)'
                     cardContainer.style.boxShadow = 'none'
+                    cardContainer.style.borderRadius = '24px'
                   }
                 } else {
                   // Возвращаем карточку на место
                   cardContainer.style.transition = 'all 0.3s ease'
                   cardContainer.style.transform = 'translateY(0px) rotate(0deg)'
                   cardContainer.style.boxShadow = 'none'
+                  cardContainer.style.borderRadius = '24px'
                 }
               }
             }}
@@ -444,8 +468,24 @@ const HomePage = () => {
                     )}
                     <div className="gradient-overlay"></div>
                     <div className="card-badges">
-                      <span className="badge funding">{currentStartup.funding}</span>
-                      <span className="badge stage">{currentStartup.stage}</span>
+                      <span
+                        className="badge funding"
+                        style={{
+                          backgroundColor: getGradientColor(currentStartup.gradient),
+                          color: 'white'
+                        }}
+                      >
+                        {currentStartup.funding}
+                      </span>
+                      <span
+                        className="badge stage"
+                        style={{
+                          backgroundColor: getGradientColor(currentStartup.gradient),
+                          color: 'white'
+                        }}
+                      >
+                        {currentStartup.stage}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -498,18 +538,34 @@ const HomePage = () => {
                 {/* Header */}
                 <div className="p-4 border-b border-glass-border">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-accent-primary/20 rounded-xl flex items-center justify-center">
-                      <span className="text-accent-primary font-bold text-lg">{currentStartup.logo}</span>
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center"
+                      style={{
+                        backgroundColor: `${getGradientColor(currentStartup.gradient)}20`,
+                      }}
+                    >
+                      <span
+                        className="font-bold text-lg"
+                        style={{ color: getGradientColor(currentStartup.gradient) }}
+                      >
+                        {currentStartup.logo}
+                      </span>
                     </div>
                     <div className="flex-1">
                       <h3 className="text-xl font-bold text-text-primary mb-1">{currentStartup.name}</h3>
                       <div className="flex items-center gap-3 text-sm text-text-secondary">
                         <span className="flex items-center gap-1">
-                          <i className="fas fa-tag text-accent-primary"></i>
+                          <i
+                            className="fas fa-tag"
+                            style={{ color: getGradientColor(currentStartup.gradient) }}
+                          ></i>
                           {currentStartup.category}
                         </span>
                         <span className="flex items-center gap-1">
-                          <i className="fas fa-chart-line text-accent-primary"></i>
+                          <i
+                            className="fas fa-chart-line"
+                            style={{ color: getGradientColor(currentStartup.gradient) }}
+                          ></i>
                           {currentStartup.stage}
                         </span>
                       </div>
@@ -522,7 +578,10 @@ const HomePage = () => {
                   {/* About */}
                   <div className="bg-black/30 border border-white/20 rounded-xl p-4">
                     <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
-                      <i className="fas fa-info-circle text-accent-primary"></i>
+                      <i
+                        className="fas fa-info-circle"
+                        style={{ color: getGradientColor(currentStartup.gradient) }}
+                      ></i>
                       About
                     </h4>
                     <p className="text-text-secondary text-sm leading-relaxed">{currentStartup.description}</p>
@@ -531,11 +590,19 @@ const HomePage = () => {
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-black/30 border border-white/20 rounded-xl p-4 text-center">
-                      <div className="text-accent-primary font-bold text-lg">{currentStartup.funding}</div>
+                      <div
+                        className="font-bold text-lg"
+                        style={{ color: getGradientColor(currentStartup.gradient) }}
+                      >
+                        {currentStartup.funding}
+                      </div>
                       <div className="text-text-secondary text-xs mt-1">Funding</div>
                     </div>
                     <div className="bg-black/30 border border-white/20 rounded-xl p-4 text-center">
-                      <div className="text-accent-primary font-bold text-lg flex items-center justify-center gap-2">
+                      <div
+                        className="font-bold text-lg flex items-center justify-center gap-2"
+                        style={{ color: getGradientColor(currentStartup.gradient) }}
+                      >
                         <i className="fas fa-users text-sm"></i>
                         {currentStartup.teamSize || '5-10'}
                       </div>
@@ -546,14 +613,22 @@ const HomePage = () => {
                   {/* Open Positions */}
                   <div className="bg-black/30 border border-white/20 rounded-xl p-4">
                     <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
-                      <i className="fas fa-users text-accent-primary"></i>
+                      <i
+                        className="fas fa-users"
+                        style={{ color: getGradientColor(currentStartup.gradient) }}
+                      ></i>
                       Open Positions
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {currentStartup.roles.map((role, index) => (
                         <span
                           key={index}
-                          className="px-3 py-1.5 bg-accent-primary/20 text-accent-primary rounded-lg text-xs font-medium border border-accent-primary/30"
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium"
+                          style={{
+                            backgroundColor: `${getGradientColor(currentStartup.gradient)}20`,
+                            color: getGradientColor(currentStartup.gradient),
+                            border: `1px solid ${getGradientColor(currentStartup.gradient)}30`
+                          }}
                         >
                           {role}
                         </span>
@@ -565,19 +640,28 @@ const HomePage = () => {
                   {(currentStartup.location || currentStartup.website) && (
                     <div className="bg-black/30 border border-white/20 rounded-xl p-4">
                       <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
-                        <i className="fas fa-map-marker-alt text-accent-primary"></i>
+                        <i
+                          className="fas fa-map-marker-alt"
+                          style={{ color: getGradientColor(currentStartup.gradient) }}
+                        ></i>
                         Details
                       </h4>
                       <div className="space-y-2">
                         {currentStartup.location && (
                           <div className="flex items-center gap-3 text-sm text-text-secondary">
-                            <i className="fas fa-map-marker-alt text-accent-primary w-4"></i>
+                            <i
+                              className="fas fa-map-marker-alt w-4"
+                              style={{ color: getGradientColor(currentStartup.gradient) }}
+                            ></i>
                             <span>{currentStartup.location}</span>
                           </div>
                         )}
                         {currentStartup.website && (
                           <div className="flex items-center gap-3 text-sm text-text-secondary">
-                            <i className="fas fa-globe text-accent-primary w-4"></i>
+                            <i
+                              className="fas fa-globe w-4"
+                              style={{ color: getGradientColor(currentStartup.gradient) }}
+                            ></i>
                             <span className="truncate">{currentStartup.website}</span>
                           </div>
                         )}
@@ -589,7 +673,7 @@ const HomePage = () => {
                 {/* Footer */}
                 <div className="p-4 border-t border-glass-border">
                   <button
-                    className="w-full text-text-secondary hover:text-accent-primary transition-colors duration-200 text-sm flex items-center justify-center gap-2"
+                    className="w-full text-text-secondary hover:text-blue-700 transition-colors duration-200 text-sm flex items-center justify-center gap-2"
                     onClick={(e) => {
                       e.stopPropagation()
                       e.preventDefault()

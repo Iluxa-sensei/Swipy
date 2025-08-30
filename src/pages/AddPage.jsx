@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import CustomSelect from '../components/CustomSelect'
+import CustomDropdown from '../components/CustomDropdown'
 
 const AddPage = () => {
   const navigate = useNavigate()
   const [showPreview, setShowPreview] = useState(false)
+  const [previewFlipped, setPreviewFlipped] = useState(false)
   const [customCategory, setCustomCategory] = useState('')
   const [showCustomCategory, setShowCustomCategory] = useState(false)
   const fileInputRef = useRef(null)
@@ -19,6 +20,7 @@ const AddPage = () => {
       fundingAmount: '',
       teamSize: '',
       location: '',
+      website: '',
       positions: ['', '', ''],
       image: null,
       logo: '',
@@ -52,16 +54,16 @@ const AddPage = () => {
   ]
 
   const gradientOptions = [
-    { value: 'bg-gradient-primary', label: 'Blue-Green', preview: 'bg-gradient-primary' },
-    { value: 'bg-gradient-secondary', label: 'Purple-Blue', preview: 'bg-gradient-secondary' },
-    { value: 'bg-gradient-tertiary', label: 'Pink-Red', preview: 'bg-gradient-tertiary' },
-    { value: 'bg-gradient-quaternary', label: 'Red-Cyan', preview: 'bg-gradient-quaternary' },
-    { value: 'bg-gradient-quinary', label: 'Cyan-Pink', preview: 'bg-gradient-quinary' },
-    { value: 'bg-gradient-senary', label: 'Orange-Blue', preview: 'bg-gradient-senary' },
-    { value: 'bg-gradient-septenary', label: 'Hot Pink', preview: 'bg-gradient-septenary' },
-    { value: 'bg-gradient-octonary', label: 'Purple-Blue', preview: 'bg-gradient-octonary' },
-    { value: 'bg-gradient-nonary', label: 'Blue-Cyan', preview: 'bg-gradient-nonary' },
-    { value: 'bg-gradient-denary', label: 'Green-Cyan', preview: 'bg-gradient-denary' }
+    { value: 'bg-gradient-primary', label: 'White-Blue', preview: 'bg-gradient-primary' },
+    { value: 'bg-gradient-secondary', label: 'Pink-Red', preview: 'bg-gradient-secondary' },
+    { value: 'bg-gradient-tertiary', label: 'Blue-Cyan', preview: 'bg-gradient-tertiary' },
+    { value: 'bg-gradient-quaternary', label: 'Green-Cyan', preview: 'bg-gradient-quaternary' },
+    { value: 'bg-gradient-quinary', label: 'Pink-Yellow', preview: 'bg-gradient-quinary' },
+    { value: 'bg-gradient-senary', label: 'Cyan-Pink', preview: 'bg-gradient-senary' },
+    { value: 'bg-gradient-septenary', label: 'Pink-Purple', preview: 'bg-gradient-septenary' },
+    { value: 'bg-gradient-octonary', label: 'Orange-Pink', preview: 'bg-gradient-octonary' },
+    { value: 'bg-gradient-nonary', label: 'Pink-Orange', preview: 'bg-gradient-nonary' },
+    { value: 'bg-gradient-denary', label: 'Purple-Pink', preview: 'bg-gradient-denary' }
   ]
 
   const handleInputChange = (section, field, value) => {
@@ -104,23 +106,6 @@ const AddPage = () => {
     }))
   }
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      setFormData(prev => ({
-        ...prev,
-        startup: {
-          ...prev.startup,
-          image: reader.result
-        }
-      }))
-    }
-    reader.readAsDataURL(file)
-  }
-
   const handleCategoryChange = (value) => {
     if (value === 'Other (Custom)') {
       setShowCustomCategory(true)
@@ -137,6 +122,27 @@ const AddPage = () => {
     }
   }
 
+  const handleStageChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      startup: { ...prev.startup, stage: value }
+    }))
+  }
+
+  const handleFundingChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      startup: { ...prev.startup, funding: value }
+    }))
+  }
+
+  const handleLocationChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      startup: { ...prev.startup, location: value }
+    }))
+  }
+
   const addCustomCategory = () => {
     if (customCategory.trim()) {
       setFormData(prev => ({
@@ -146,6 +152,40 @@ const AddPage = () => {
       setShowCustomCategory(false)
       setCustomCategory('')
     }
+  }
+
+  // Функция для извлечения основного цвета из градиента
+  const getGradientColor = (gradientClass) => {
+    const gradientMap = {
+      'bg-gradient-primary': '#1565c0',
+      'bg-gradient-secondary': '#f093fb',
+      'bg-gradient-tertiary': '#4facfe',
+      'bg-gradient-quaternary': '#43e97b',
+      'bg-gradient-quinary': '#fa709a',
+      'bg-gradient-senary': '#a8edea',
+      'bg-gradient-septenary': '#ff9a9e',
+      'bg-gradient-octonary': '#ffecd2',
+      'bg-gradient-nonary': '#ff9a9e',
+      'bg-gradient-denary': '#a18cd1'
+    }
+    return gradientMap[gradientClass] || '#2196f3'
+  }
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      setFormData(prev => ({
+        ...prev,
+        startup: {
+          ...prev.startup,
+          image: reader.result
+        }
+      }))
+    }
+    reader.readAsDataURL(file)
   }
 
   return (
@@ -166,9 +206,6 @@ const AddPage = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-20">
-        {/* Title */}
-
-
         <div className="p-6 space-y-6">
           {/* Image Upload Section */}
           <div className="form-group">
@@ -234,44 +271,44 @@ const AddPage = () => {
             />
           </div>
 
-          <div className="form-group">
-            <label className="block text-text-primary font-medium mb-2">Category *</label>
-            <CustomSelect
-              options={categories}
-              value={formData.startup.category}
-              onChange={handleCategoryChange}
-              placeholder="Select a category"
-            />
-            {showCustomCategory && (
-              <div className="mt-3 flex gap-2">
-                <input
-                  type="text"
-                  className="flex-1 p-3 bg-glass-bg border border-glass-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300"
-                  placeholder="Enter custom category"
-                  value={customCategory}
-                  onChange={(e) => setCustomCategory(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="btn-primary py-3 px-4"
-                  onClick={addCustomCategory}
-                  disabled={!customCategory.trim()}
-                >
-                  Add
-                </button>
-              </div>
-            )}
-          </div>
+          {/* Custom Category Dropdown */}
+          <CustomDropdown
+            label="Category *"
+            options={categories}
+            value={formData.startup.category}
+            onChange={handleCategoryChange}
+            placeholder="Select a category"
+            type="category"
+          />
+          {showCustomCategory && (
+            <div className="mt-3 flex gap-2">
+              <input
+                type="text"
+                className="flex-1 p-3 bg-glass-bg border border-glass-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300"
+                placeholder="Enter custom category"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+              />
+              <button
+                type="button"
+                className="btn-primary py-3 px-4"
+                onClick={addCustomCategory}
+                disabled={!customCategory.trim()}
+              >
+                Add
+              </button>
+            </div>
+          )}
 
-          <div className="form-group">
-            <label className="block text-text-primary font-medium mb-2">Stage</label>
-            <CustomSelect
-              options={stages}
-              value={formData.startup.stage}
-              onChange={(value) => handleInputChange('startup', 'stage', value)}
-              placeholder="Select current stage"
-            />
-          </div>
+          {/* Custom Stage Dropdown */}
+          <CustomDropdown
+            label="Stage"
+            options={stages}
+            value={formData.startup.stage}
+            onChange={handleStageChange}
+            placeholder="Select a stage"
+            type="stage"
+          />
 
           <div className="form-group">
             <label className="block text-text-primary font-medium mb-2">
@@ -293,15 +330,15 @@ const AddPage = () => {
             />
           </div>
 
-          <div className="form-group">
-            <label className="block text-text-primary font-medium mb-2">Funding Stage</label>
-            <CustomSelect
-              options={fundingOptions}
-              value={formData.startup.funding}
-              onChange={(value) => handleInputChange('startup', 'funding', value)}
-              placeholder="Select funding stage"
-            />
-          </div>
+          {/* Custom Funding Stage Dropdown */}
+          <CustomDropdown
+            label="Funding Stage"
+            options={fundingOptions}
+            value={formData.startup.funding}
+            onChange={handleFundingChange}
+            placeholder="Select funding stage"
+            type="funding"
+          />
 
           {formData.startup.funding && (
             <div className="form-group">
@@ -312,7 +349,7 @@ const AddPage = () => {
                     key={funding}
                     type="button"
                     className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${formData.startup.fundingAmount === funding
-                      ? 'bg-accent-primary border-accent-primary text-white'
+                      ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white'
                       : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                       }`}
                     onClick={() => handleInputChange('startup', 'fundingAmount', funding)}
@@ -348,14 +385,31 @@ const AddPage = () => {
             </div>
           </div>
 
+          {/* Custom Location Dropdown */}
+          <CustomDropdown
+            label="Location"
+            options={locationOptions}
+            value={formData.startup.location}
+            onChange={handleLocationChange}
+            placeholder="Select location"
+            type="location"
+          />
+
+          {/* Website Field */}
           <div className="form-group">
-            <label className="block text-text-primary font-medium mb-2">Location</label>
-            <CustomSelect
-              options={locationOptions}
-              value={formData.startup.location}
-              onChange={(value) => handleInputChange('startup', 'location', value)}
-              placeholder="Select location"
-            />
+            <label className="block text-text-primary font-medium mb-2">Website</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i className="fas fa-globe text-text-secondary"></i>
+              </div>
+              <input
+                type="url"
+                className="w-full pl-12 pr-4 py-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300"
+                placeholder="https://yourstartup.com"
+                value={formData.startup.website}
+                onChange={(e) => handleInputChange('startup', 'website', e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="form-group">
@@ -366,8 +420,8 @@ const AddPage = () => {
                   key={gradient.value}
                   type="button"
                   className={`w-full h-12 rounded-xl border-2 transition-all duration-200 ${formData.startup.gradient === gradient.value
-                    ? 'border-accent-primary scale-105 shadow-lg shadow-accent-primary/30'
-                    : 'border-glass-border hover:border-accent-primary/50'
+                    ? 'border-blue-700 scale-105 shadow-lg shadow-blue-700/30'
+                    : 'border-glass-border hover:border-blue-700/50'
                     }`}
                   onClick={() => handleInputChange('startup', 'gradient', gradient.value)}
                 >
@@ -403,7 +457,7 @@ const AddPage = () => {
                 </div>
               ))}
               <button
-                className="w-full p-3 bg-glass-bg border border-glass-border rounded-xl text-text-secondary hover:text-accent-primary hover:border-accent-primary transition-all duration-300 flex items-center justify-center"
+                className="w-full p-3 bg-glass-bg border border-glass-border rounded-xl text-text-secondary hover:text-blue-700 hover:border-blue-700 transition-all duration-300 flex items-center justify-center"
                 onClick={() => addArrayItem('startup', 'positions')}
               >
                 <i className="fas fa-plus mr-2"></i>
@@ -416,7 +470,7 @@ const AddPage = () => {
         {/* Submit Button */}
         <div className="p-6 border-t border-glass-border bg-bg-primary/80 backdrop-blur-sm sticky bottom-0">
           <button
-            className="btn-accent w-full hover:scale-[1.02] transition-transform duration-300 shadow-lg shadow-accent-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white w-full hover:scale-[1.02] transition-transform duration-300 shadow-lg shadow-blue-700/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 font-semibold rounded-2xl py-4"
             disabled={!formData.startup.name || !formData.startup.category || formData.startup.description.length > 100 || formData.startup.name.length > 15}
             onClick={() => {
               // Простая валидация и сохранение
@@ -436,6 +490,7 @@ const AddPage = () => {
                 funding: formData.startup.fundingAmount,
                 teamSize: formData.startup.teamSize,
                 location: formData.startup.location,
+                website: formData.startup.website,
                 gradient: formData.startup.gradient,
                 image: formData.startup.image,
                 positions: formData.startup.positions.filter(pos => pos.trim() !== ''),
@@ -464,15 +519,20 @@ const AddPage = () => {
         </div>
       </div>
 
-      {/* Startup Card Preview Modal */}
+      {/* Enhanced Startup Card Preview Modal */}
       {showPreview && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowPreview(false)}>
           <div className="w-full max-w-sm transform -translate-y-20" onClick={(e) => e.stopPropagation()}>
-            {/* Preview Card */}
-            <div className="startup-card relative bg-bg-secondary rounded-3xl overflow-hidden shadow-heavy">
-              {/* Header */}
-              <div className="flex justify-between items-center p-4 bg-glass-bg/50">
-                <h3 className="text-text-primary font-bold">Card Preview</h3>
+            {/* Preview Header */}
+            <div className="flex justify-between items-center p-4 bg-glass-bg/50 rounded-t-3xl">
+              <h3 className="text-text-primary font-bold">Card Preview</h3>
+              <div className="flex gap-2">
+                <button
+                  className="w-8 h-8 rounded-full bg-glass-bg flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors"
+                  onClick={() => setPreviewFlipped(!previewFlipped)}
+                >
+                  <i className={`fas fa-sync-alt ${previewFlipped ? 'rotate-180' : ''}`}></i>
+                </button>
                 <button
                   className="w-8 h-8 rounded-full bg-glass-bg flex items-center justify-center text-text-secondary hover:text-text-primary"
                   onClick={() => setShowPreview(false)}
@@ -480,48 +540,186 @@ const AddPage = () => {
                   <i className="fas fa-times"></i>
                 </button>
               </div>
+            </div>
 
-              {/* Image */}
-              <div className={`relative h-48 ${formData.startup.gradient} overflow-hidden`}>
-                {formData.startup.image ? (
-                  <img src={formData.startup.image} alt={formData.startup.name} className="w-full h-full object-cover" />
+            {/* Preview Card */}
+            <div className="relative">
+              <div className={`startup-card relative bg-bg-secondary rounded-3xl overflow-hidden shadow-heavy transition-transform duration-500 ${previewFlipped ? 'rotate-y-180' : ''}`}>
+                {!previewFlipped ? (
+                  // Front Side
+                  <>
+                    {/* Image */}
+                    <div className={`relative h-48 ${formData.startup.gradient} overflow-hidden`}>
+                      {formData.startup.image ? (
+                        <img src={formData.startup.image} alt={formData.startup.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="company-logo">
+                            <span className="text-white font-bold text-xl">{formData.startup.name ? formData.startup.name.substring(0, 2).toUpperCase() : 'ST'}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Gradient Overlay */}
+                      <div className="gradient-overlay"></div>
+
+                      {/* Badges */}
+                      <div className="card-badges">
+                        {formData.startup.fundingAmount && (
+                          <span className="badge funding">{formData.startup.fundingAmount}</span>
+                        )}
+                        {formData.startup.stage && (
+                          <span className="badge stage">{formData.startup.stage}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="card-content">
+                      <div className="card-header">
+                        <h3 className="card-title">{formData.startup.name || 'Startup Name'}</h3>
+                        <div className="card-meta">
+                          <span className="card-category">{formData.startup.category || 'Category'}</span>
+                          {formData.startup.stage && (
+                            <span className="card-stage">{formData.startup.stage}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="card-description">
+                        {formData.startup.description || 'No description provided'}
+                      </p>
+                    </div>
+                  </>
                 ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="company-logo">
-                      <span className="text-white font-bold text-xl">{formData.startup.name ? formData.startup.name.substring(0, 2).toUpperCase() : 'ST'}</span>
+                  // Back Side
+                  <div className="h-full flex flex-col bg-bg-primary border border-glass-border">
+                    {/* Header */}
+                    <div className="p-4 border-b border-glass-border">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className="w-12 h-12 rounded-xl flex items-center justify-center"
+                          style={{
+                            backgroundColor: `${getGradientColor(formData.startup.gradient)}20`,
+                          }}
+                        >
+                          <span
+                            className="font-bold text-lg"
+                            style={{ color: getGradientColor(formData.startup.gradient) }}
+                          >
+                            {formData.startup.name ? formData.startup.name.substring(0, 2).toUpperCase() : 'ST'}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-text-primary mb-1">{formData.startup.name || 'Startup Name'}</h3>
+                          <div className="flex items-center gap-3 text-sm text-text-secondary">
+                            <span className="flex items-center gap-1">
+                              <i
+                                className="fas fa-tag"
+                                style={{ color: getGradientColor(formData.startup.gradient) }}
+                              ></i>
+                              {formData.startup.category || 'Category'}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <i
+                                className="fas fa-chart-line"
+                                style={{ color: getGradientColor(formData.startup.gradient) }}
+                              ></i>
+                              {formData.startup.stage || 'Stage'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+                      {/* About */}
+                      <div className="bg-black/30 border border-white/20 rounded-xl p-4">
+                        <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
+                          <i
+                            className="fas fa-info-circle"
+                            style={{ color: getGradientColor(formData.startup.gradient) }}
+                          ></i>
+                          About
+                        </h4>
+                        <p className="text-text-secondary text-sm leading-relaxed">{formData.startup.description || 'No description provided'}</p>
+                      </div>
+
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-black/30 border border-white/20 rounded-xl p-4 text-center">
+                          <div
+                            className="font-bold text-lg"
+                            style={{ color: getGradientColor(formData.startup.gradient) }}
+                          >
+                            {formData.startup.fundingAmount || 'N/A'}
+                          </div>
+                          <div className="text-text-secondary text-xs mt-1">Funding</div>
+                        </div>
+                        <div className="bg-black/30 border border-white/20 rounded-xl p-4 text-center">
+                          <div
+                            className="font-bold text-lg flex items-center justify-center gap-2"
+                            style={{ color: getGradientColor(formData.startup.gradient) }}
+                          >
+                            <i className="fas fa-users text-sm"></i>
+                            {formData.startup.teamSize || '1'}
+                          </div>
+                          <div className="text-text-secondary text-xs mt-1">Team Size</div>
+                        </div>
+                      </div>
+
+                      {/* Website */}
+                      {formData.startup.website && (
+                        <div className="bg-black/30 border border-white/20 rounded-xl p-4">
+                          <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
+                            <i
+                              className="fas fa-globe"
+                              style={{ color: getGradientColor(formData.startup.gradient) }}
+                            ></i>
+                            Website
+                          </h4>
+                          <a
+                            href={formData.startup.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-accent-primary text-sm hover:underline break-all"
+                          >
+                            {formData.startup.website}
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Open Positions */}
+                      {formData.startup.positions.filter(pos => pos.trim() !== '').length > 0 && (
+                        <div className="bg-black/30 border border-white/20 rounded-xl p-4">
+                          <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
+                            <i
+                              className="fas fa-users"
+                              style={{ color: getGradientColor(formData.startup.gradient) }}
+                            ></i>
+                            Open Positions
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {formData.startup.positions.filter(pos => pos.trim() !== '').map((role, index) => (
+                              <span
+                                key={index}
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium"
+                                style={{
+                                  backgroundColor: `${getGradientColor(formData.startup.gradient)}20`,
+                                  color: getGradientColor(formData.startup.gradient),
+                                  border: `1px solid ${getGradientColor(formData.startup.gradient)}30`
+                                }}
+                              >
+                                {role}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
-
-                {/* Gradient Overlay */}
-                <div className="gradient-overlay"></div>
-
-                {/* Badges */}
-                <div className="card-badges">
-                  {formData.startup.fundingAmount && (
-                    <span className="badge funding">{formData.startup.fundingAmount}</span>
-                  )}
-                  {formData.startup.stage && (
-                    <span className="badge stage">{formData.startup.stage}</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="card-content">
-                <div className="card-header">
-                  <h3 className="card-title">{formData.startup.name || 'Startup Name'}</h3>
-                  <div className="card-meta">
-                    <span className="card-category">{formData.startup.category || 'Category'}</span>
-                    {formData.startup.stage && (
-                      <span className="card-stage">{formData.startup.stage}</span>
-                    )}
-                  </div>
-                </div>
-
-                <p className="card-description">
-                  {formData.startup.description || 'No description provided'}
-                </p>
               </div>
             </div>
           </div>

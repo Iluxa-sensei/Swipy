@@ -256,13 +256,13 @@ const ProfilePage = () => {
             {/* Enhanced Stats */}
             <div className="p-6">
               <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-                <i className="fas fa-chart-line text-accent-primary"></i>
+                <i className="fas fa-chart-line text-blue-400"></i>
                 Activity Dashboard
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 {stats.map((stat, index) => (
-                  <div key={index} className="bg-gradient-to-br from-bg-secondary/50 to-bg-secondary/30 border border-glass-border rounded-2xl p-5 text-center hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-accent-primary/20">
-                    <div className="w-14 h-14 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <div key={index} className="bg-gradient-to-br from-bg-secondary/50 to-bg-secondary/30 border border-glass-border rounded-2xl p-5 text-center hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-blue-400/20">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-300 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                       <i className={`${stat.icon} text-white text-xl`}></i>
                     </div>
                     <div className="text-3xl font-bold text-text-primary mb-2">{stat.value}</div>
@@ -275,7 +275,7 @@ const ProfilePage = () => {
             {/* Skills */}
             <div className="p-6 border-t border-glass-border">
               <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-                <i className="fas fa-code text-accent-primary"></i>
+                <i className="fas fa-code text-blue-400"></i>
                 Technical Skills
               </h3>
               <div className="flex flex-wrap gap-3">
@@ -290,7 +290,7 @@ const ProfilePage = () => {
             {/* Enhanced Bio */}
             <div className="p-6 border-t border-glass-border">
               <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-                <i className="fas fa-info-circle text-accent-primary"></i>
+                <i className="fas fa-info-circle text-blue-400"></i>
                 About Me
               </h3>
               <div className="bg-bg-secondary/80 border border-glass-border rounded-2xl p-6">
@@ -301,7 +301,7 @@ const ProfilePage = () => {
             {/* Certifications */}
             <div className="p-6 border-t border-glass-border">
               <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-                <i className="fas fa-certificate text-accent-primary"></i>
+                <i className="fas fa-certificate text-blue-400"></i>
                 Certifications
               </h3>
               <div className="space-y-3">
@@ -334,12 +334,12 @@ const ProfilePage = () => {
         {activeTab === 'portfolio' && (
           <div className="p-6 animate-fade-in">
             <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-              <i className="fas fa-rocket text-accent-primary"></i>
+              <i className="fas fa-rocket text-blue-400"></i>
               My Startups
             </h3>
             <div className="grid grid-cols-1 gap-6">
               {userProfile.portfolio.map((startup) => (
-                <div key={startup.id} className="bg-bg-secondary/80 border border-glass-border rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-accent-primary/20">
+                <div key={startup.id} className="bg-bg-secondary/80 border border-glass-border rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-blue-400/20">
                   <div className={`h-32 ${startup.gradient || 'bg-gradient-primary'} relative`}>
                     {startup.image && (
                       <img src={startup.image} alt={startup.name} className="w-full h-full object-cover" />
@@ -401,17 +401,17 @@ const ProfilePage = () => {
         {activeTab === 'achievements' && (
           <div className="p-6 animate-fade-in">
             <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-              <i className="fas fa-trophy text-accent-primary"></i>
+              <i className="fas fa-trophy text-blue-400"></i>
               Achievements & Badges
             </h3>
             <div className="grid grid-cols-1 gap-4">
               {userProfile.achievements.map((achievement, index) => (
                 <div key={index} className={`flex items-center gap-4 p-5 border rounded-2xl transition-all duration-300 hover:scale-[1.02] ${achievement.unlocked
-                  ? 'bg-gradient-to-r from-accent-primary/10 to-accent-secondary/10 border-accent-primary/30 shadow-lg shadow-accent-primary/10'
+                  ? 'bg-gradient-to-r from-blue-400/10 to-blue-600/10 border-blue-400/30 shadow-lg shadow-blue-400/10'
                   : 'bg-glass-bg border-glass-border opacity-60'
                   }`}>
                   <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${achievement.unlocked
-                    ? 'bg-gradient-primary shadow-lg'
+                    ? 'bg-gradient-to-br from-blue-300 to-blue-700 shadow-lg'
                     : 'bg-gray-600'
                     }`}>
                     <i className={`${achievement.icon} text-white text-2xl ${achievement.unlocked ? 'animate-pulse' : ''}`}></i>
@@ -420,7 +420,7 @@ const ProfilePage = () => {
                     <h4 className="text-text-primary font-bold text-lg mb-1">{achievement.title}</h4>
                     <p className="text-text-secondary">{achievement.description}</p>
                     {achievement.unlocked && (
-                      <div className="text-accent-primary text-sm font-semibold mt-2 flex items-center gap-1">
+                      <div className="text-blue-400 text-sm font-semibold mt-2 flex items-center gap-1">
                         <i className="fas fa-check-circle"></i>
                         Unlocked
                       </div>
@@ -441,7 +441,7 @@ const ProfilePage = () => {
         <div className="p-6 border-t border-glass-border">
           <div className="grid grid-cols-1 gap-3">
             <button
-              className="btn-primary hover:scale-105 transition-all duration-200 text-lg py-4"
+              className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white hover:scale-105 transition-all duration-200 text-lg py-4 font-semibold rounded-2xl shadow-lg hover:shadow-xl"
               onClick={() => navigate('/profile/edit')}
             >
               <i className="fas fa-edit text-xl"></i>

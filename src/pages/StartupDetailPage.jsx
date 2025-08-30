@@ -30,6 +30,7 @@ const StartupDetailPage = () => {
                             funding: startup.funding,
                             teamSize: startup.teamSize,
                             location: startup.location,
+                            website: startup.website || null,
                             image: startup.image || null
                         }))
 
@@ -139,6 +140,26 @@ const StartupDetailPage = () => {
                             <div className="text-text-primary font-semibold">{startup.stage}</div>
                         </div>
                     </div>
+
+                    {/* Website Section */}
+                    {startup.website && (
+                        <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
+                            <div className="flex items-center gap-3">
+                                <div className="text-text-secondary text-sm flex items-center gap-2">
+                                    <i className="fas fa-globe"></i>
+                                    Website
+                                </div>
+                                <a
+                                    href={startup.website}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-accent-primary hover:text-accent-primary/80 text-sm font-medium hover:underline break-all"
+                                >
+                                    {startup.website}
+                                </a>
+                            </div>
+                        </div>
+                    )}
 
                     <div>
                         <h3 className="text-lg font-semibold text-text-primary mb-3">Open Roles</h3>

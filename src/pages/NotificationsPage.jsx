@@ -47,7 +47,7 @@ const NotificationsPage = () => {
         {notificationsList.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <i className="fas fa-bell text-3xl text-white"></i>
               </div>
               <h2 className="text-2xl font-bold text-text-primary mb-4">No Notifications</h2>
