@@ -1,1 +1,0 @@
-# Swipy - Tinder for startups
