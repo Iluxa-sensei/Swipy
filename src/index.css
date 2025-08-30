@@ -331,7 +331,9 @@
   }
 
   .card-category,
-  .card-stage {
+  .card-stage,
+  .card-location,
+  .card-team-size {
     @apply px-3 py-1 bg-glass-bg rounded-full text-sm text-text-secondary;
   }
 
@@ -1016,44 +1018,37 @@
     color: #3B82F6 !important;
   }
 
-  /* Анимация градиента для Swipy */
+  /* Анимация цвета для Swipy */
   .animate-super-gradient {
-    background-size: 300% 300%;
-    animation: super-gradient-flow 4s ease-in-out infinite;
-    filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.3));
+    animation: color-flow 4s ease-in-out infinite;
   }
 
-  @keyframes super-gradient-flow {
+  @keyframes color-flow {
     0% {
-      background-position: 0% 50%;
-      filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.3));
+      color: #ffffff;
     }
 
     25% {
-      background-position: 100% 50%;
-      filter: drop-shadow(0 0 25px rgba(147, 197, 253, 0.4));
+      color: #93c5fd;
     }
 
     50% {
-      background-position: 100% 100%;
-      filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.5));
+      color: #3b82f6;
     }
 
     75% {
-      background-position: 0% 100%;
-      filter: drop-shadow(0 0 25px rgba(147, 197, 253, 0.4));
+      color: #93c5fd;
     }
 
     100% {
-      background-position: 0% 50%;
-      filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.3));
+      color: #ffffff;
     }
   }
 
   /* Дополнительная анимация для текста */
   .animate-super-gradient:hover {
-    animation: super-gradient-flow 2s ease-in-out infinite;
-    transform: scale(1.05);
+    animation: color-flow 2s ease-in-out infinite;
+    transform: scale(1.02);
     transition: transform 0.3s ease;
   }
 

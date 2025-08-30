@@ -33,6 +33,7 @@ const ProfileEditPage = () => {
     const [activeTab, setActiveTab] = useState('basic')
     const [form, setForm] = useState({
         name: '',
+        username: '',
         title: '',
         location: '',
         experience: '',
@@ -69,6 +70,7 @@ const ProfileEditPage = () => {
         if (existing) {
             const defaultForm = {
                 name: '',
+                username: '',
                 title: '',
                 location: '',
                 experience: '',
@@ -149,11 +151,17 @@ const ProfileEditPage = () => {
             ...prev,
             portfolio: [...prev.portfolio, {
                 id: Date.now(),
-                title: '',
+                name: '',
+                category: '',
                 description: '',
+                stage: '',
+                funding: '',
+                teamSize: '',
+                location: '',
+                gradient: 'bg-gradient-primary',
                 image: '',
-                tech: [''],
-                link: ''
+                positions: [],
+                createdAt: new Date().toISOString()
             }]
         }))
     }
@@ -279,7 +287,7 @@ const ProfileEditPage = () => {
                 <button
                     className="btn-primary text-sm px-4 py-2"
                     onClick={handleSave}
-                    disabled={urlInvalid || !form.name.trim()}
+                    disabled={urlInvalid || !form.name.trim() || !form.username.trim()}
                 >
                     <i className="fas fa-save"></i>
                     Save
@@ -348,6 +356,17 @@ const ProfileEditPage = () => {
                                         onChange={handleChange}
                                         className="w-full bg-bg-primary border border-glass-border rounded-xl p-4 text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
                                         placeholder="Enter your full name"
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="block text-sm font-medium text-text-secondary mb-2">Username *</label>
+                                    <input
+                                        name="username"
+                                        value={form.username}
+                                        onChange={handleChange}
+                                        className="w-full bg-bg-primary border border-glass-border rounded-xl p-4 text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
+                                        placeholder="Enter your username (without @)"
                                     />
                                 </div>
 
@@ -479,14 +498,14 @@ const ProfileEditPage = () => {
                 {activeTab === 'portfolio' && (
                     <div className="p-6 space-y-6 animate-fade-in">
                         <div className="text-center mb-6">
-                            <h2 className="text-2xl font-bold text-text-primary mb-2">Portfolio Projects</h2>
-                            <p className="text-text-secondary">Showcase your best work and projects</p>
+                            <h2 className="text-2xl font-bold text-text-primary mb-2">My Startups</h2>
+                            <p className="text-text-secondary">Manage your created startups</p>
                         </div>
 
-                        {form.portfolio.map((project, index) => (
-                            <div key={project.id} className="bg-glass-bg border border-glass-border rounded-2xl p-6">
+                        {form.portfolio.map((startup, index) => (
+                            <div key={startup.id} className="bg-glass-bg border border-glass-border rounded-2xl p-6">
                                 <div className="flex justify-between items-start mb-4">
-                                    <h3 className="text-lg font-semibold text-text-primary">Project #{index + 1}</h3>
+                                    <h3 className="text-lg font-semibold text-text-primary">{startup.name || `Startup #${index + 1}`}</h3>
                                     <button
                                         type="button"
                                         className="w-10 h-10 bg-red-500/20 border border-red-500/30 rounded-xl flex items-center justify-center text-red-400 hover:bg-red-500 hover:text-white transition-all duration-200"
@@ -499,22 +518,51 @@ const ProfileEditPage = () => {
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-text-secondary mb-2">Project Title</label>
+                                            <label className="block text-sm font-medium text-text-secondary mb-2">Startup Name</label>
                                             <input
-                                                value={project.title}
-                                                onChange={(e) => updatePortfolioItem(index, 'title', e.target.value)}
+                                                value={startup.name || ''}
+                                                onChange={(e) => updatePortfolioItem(index, 'name', e.target.value)}
                                                 className="w-full bg-bg-primary border border-glass-border rounded-xl p-3 text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
-                                                placeholder="Amazing Project"
+                                                placeholder="Startup Name"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-text-secondary mb-2">Project Link</label>
+                                            <label className="block text-sm font-medium text-text-secondary mb-2">Category</label>
                                             <input
-                                                type="url"
-                                                value={project.link}
-                                                onChange={(e) => updatePortfolioItem(index, 'link', e.target.value)}
+                                                value={startup.category || ''}
+                                                onChange={(e) => updatePortfolioItem(index, 'category', e.target.value)}
                                                 className="w-full bg-bg-primary border border-glass-border rounded-xl p-3 text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
-                                                placeholder="https://github.com/..."
+                                                placeholder="e.g. FinTech, EdTech"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-text-secondary mb-2">Stage</label>
+                                            <input
+                                                value={startup.stage || ''}
+                                                onChange={(e) => updatePortfolioItem(index, 'stage', e.target.value)}
+                                                className="w-full bg-bg-primary border border-glass-border rounded-xl p-3 text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
+                                                placeholder="e.g. MVP, Seed"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-text-secondary mb-2">Funding</label>
+                                            <input
+                                                value={startup.funding || ''}
+                                                onChange={(e) => updatePortfolioItem(index, 'funding', e.target.value)}
+                                                className="w-full bg-bg-primary border border-glass-border rounded-xl p-3 text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
+                                                placeholder="e.g. $500K"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-text-secondary mb-2">Team Size</label>
+                                            <input
+                                                value={startup.teamSize || ''}
+                                                onChange={(e) => updatePortfolioItem(index, 'teamSize', e.target.value)}
+                                                className="w-full bg-bg-primary border border-glass-border rounded-xl p-3 text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
+                                                placeholder="e.g. 5-10"
                                             />
                                         </div>
                                     </div>
@@ -522,43 +570,22 @@ const ProfileEditPage = () => {
                                     <div>
                                         <label className="block text-sm font-medium text-text-secondary mb-2">Description</label>
                                         <textarea
-                                            value={project.description}
+                                            value={startup.description || ''}
                                             onChange={(e) => updatePortfolioItem(index, 'description', e.target.value)}
                                             rows="3"
                                             className="w-full bg-bg-primary border border-glass-border rounded-xl p-3 text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200 resize-none"
-                                            placeholder="Describe your project, what it does, and what technologies you used..."
+                                            placeholder="Describe your startup, what problem it solves..."
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-text-secondary mb-2">Technologies Used</label>
-                                        <div className="space-y-2">
-                                            {project.tech.map((tech, techIndex) => (
-                                                <div key={techIndex} className="flex gap-2">
-                                                    <input
-                                                        value={tech}
-                                                        onChange={(e) => updatePortfolioTech(index, techIndex, e.target.value)}
-                                                        className="flex-1 bg-bg-primary border border-glass-border rounded-xl p-3 text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
-                                                        placeholder={`Technology ${techIndex + 1}`}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        className="w-12 h-12 bg-red-500/20 border border-red-500/30 rounded-xl flex items-center justify-center text-red-400 hover:bg-red-500 hover:text-white transition-all duration-200"
-                                                        onClick={() => removePortfolioTech(index, techIndex)}
-                                                    >
-                                                        <i className="fas fa-times"></i>
-                                                    </button>
-                                                </div>
-                                            ))}
-                                            <button
-                                                type="button"
-                                                className="w-full py-2 border border-dashed border-glass-border rounded-xl text-text-secondary hover:border-accent-primary hover:text-accent-primary transition-all duration-200 flex items-center justify-center gap-2"
-                                                onClick={() => addPortfolioTech(index)}
-                                            >
-                                                <i className="fas fa-plus"></i>
-                                                Add Technology
-                                            </button>
-                                        </div>
+                                        <label className="block text-sm font-medium text-text-secondary mb-2">Location</label>
+                                        <input
+                                            value={startup.location || ''}
+                                            onChange={(e) => updatePortfolioItem(index, 'location', e.target.value)}
+                                            className="w-full bg-bg-primary border border-glass-border rounded-xl p-3 text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
+                                            placeholder="e.g. San Francisco, CA"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -570,7 +597,7 @@ const ProfileEditPage = () => {
                             onClick={addPortfolioItem}
                         >
                             <i className="fas fa-plus text-xl"></i>
-                            <span className="font-semibold">Add New Project</span>
+                            <span className="font-semibold">Add New Startup</span>
                         </button>
                     </div>
                 )}

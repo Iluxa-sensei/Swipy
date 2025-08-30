@@ -421,6 +421,39 @@ const AddPage = () => {
             onClick={() => {
               // Простая валидация и сохранение
               console.log('Startup data:', formData.startup)
+
+              // Сохраняем стартап в профиль пользователя
+              const profileData = localStorage.getItem('profile_data')
+              const currentProfile = profileData ? JSON.parse(profileData) : {}
+
+              // Создаем объект стартапа
+              const newStartup = {
+                id: Date.now(),
+                name: formData.startup.name,
+                category: formData.startup.category,
+                description: formData.startup.description,
+                stage: formData.startup.stage,
+                funding: formData.startup.fundingAmount,
+                teamSize: formData.startup.teamSize,
+                location: formData.startup.location,
+                gradient: formData.startup.gradient,
+                image: formData.startup.image,
+                positions: formData.startup.positions.filter(pos => pos.trim() !== ''),
+                createdAt: new Date().toISOString()
+              }
+
+              // Добавляем стартап в портфолио
+              const updatedPortfolio = [...(currentProfile.portfolio || []), newStartup]
+
+              // Обновляем профиль
+              const updatedProfile = {
+                ...currentProfile,
+                portfolio: updatedPortfolio
+              }
+
+              // Сохраняем обновленный профиль
+              localStorage.setItem('profile_data', JSON.stringify(updatedProfile))
+
               alert('Startup created successfully!')
               navigate('/home')
             }}

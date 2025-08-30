@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { startups } from '../data/startups'
+import { startups as defaultStartups } from '../data/startups'
 import { saveSwipe } from '../data/swipes'
+import { getOrCreateChatForStartup } from '../data/chats'
 
 const HomePage = () => {
+  const [startups, setStartups] = useState(defaultStartups)
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [debugMode, setDebugMode] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -15,6 +17,45 @@ const HomePage = () => {
   const cardRef = useRef(null)
   const lastTapRef = useRef(0)
   const navigate = useNavigate()
+
+  // Простой тестовый рендер для отладки
+  console.log('HomePage component rendering...')
+
+  // Загружаем созданные стартапы из профиля
+  useEffect(() => {
+    const loadCreatedStartups = () => {
+      try {
+        const profileData = localStorage.getItem('profile_data')
+        if (profileData) {
+          const profile = JSON.parse(profileData)
+          if (profile.portfolio && profile.portfolio.length > 0) {
+            // Преобразуем стартапы из профиля в формат для главной страницы
+            const createdStartups = profile.portfolio.map(startup => ({
+              id: startup.id,
+              name: startup.name,
+              logo: startup.name ? startup.name.substring(0, 2).toUpperCase() : 'ST',
+              category: startup.category,
+              stage: startup.stage,
+              description: startup.description,
+              roles: startup.positions || ['Team Member'],
+              gradient: startup.gradient || 'bg-gradient-primary',
+              funding: startup.funding,
+              teamSize: startup.teamSize,
+              location: startup.location,
+              image: startup.image || null
+            }))
+
+            // Объединяем созданные стартапы с дефолтными
+            setStartups([...createdStartups, ...defaultStartups])
+          }
+        }
+      } catch (error) {
+        console.error('Error loading created startups:', error)
+      }
+    }
+
+    loadCreatedStartups()
+  }, [])
 
   // Функция для показа деталей стартапа
   const handleShowDetails = (startup) => {
@@ -192,8 +233,8 @@ const HomePage = () => {
         <button className="header-btn" onClick={() => navigate('/filters')}>
           <i className="fas fa-filter"></i>
         </button>
-        <h1 className="header-title bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent text-3xl font-bold">
-          Swipy {isFlipped ? '🔄' : ''}
+        <h1 className="header-title text-3xl font-bold animate-super-gradient">
+          Swipy
         </h1>
         <button className="header-btn" onClick={() => navigate('/saved')}>
           <i className="fas fa-bookmark"></i>
@@ -215,11 +256,19 @@ const HomePage = () => {
             >
               <div className="startup-card">
                 <div className="card-image">
-                  <div className={`${startups[currentCardIndex + 1].gradient} w-full h-full`}>
+                  <div className={`${startups[currentCardIndex + 1].gradient} w-full h-full relative overflow-hidden`}>
+                    {startups[currentCardIndex + 1].image ? (
+                      <img
+                        src={startups[currentCardIndex + 1].image}
+                        alt={startups[currentCardIndex + 1].name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="company-logo">
+                        <span className="text-white font-bold text-xl">{startups[currentCardIndex + 1].logo}</span>
+                      </div>
+                    )}
                     <div className="gradient-overlay opacity-70"></div>
-                    <div className="company-logo">
-                      <span className="text-white font-bold text-xl">{startups[currentCardIndex + 1].logo}</span>
-                    </div>
                   </div>
                 </div>
                 <div className="card-content">
@@ -262,19 +311,23 @@ const HomePage = () => {
               }
 
               if (isDragging && cardRef.current) {
-                // Горизонтальный и вертикальный свайп
-                const rotation = deltaX * 0.1
-                cardRef.current.style.transform = `translateX(${deltaX}px) translateY(${deltaY}px) rotate(${rotation}deg)`
+                // Плавное движение карты с поворотом
+                const rotation = deltaX * 0.15
+                const scale = Math.max(0.8, 1 - Math.abs(deltaX) / 1000)
+
+                // Применяем стили к контейнеру карточки
+                const cardContainer = cardRef.current
+                cardContainer.style.transform = `translateX(${deltaX}px) translateY(${deltaY}px) rotate(${rotation}deg) scale(${scale})`
 
                 // Цветовые эффекты
                 if (deltaX > 50) {
-                  cardRef.current.style.boxShadow = '0 0 30px rgba(34, 197, 94, 0.4)'
+                  cardContainer.style.boxShadow = `0 0 30px rgba(34, 197, 94, ${Math.min(0.6, Math.abs(deltaX) / 200)})`
                 } else if (deltaX < -50) {
-                  cardRef.current.style.boxShadow = '0 0 30px rgba(239, 68, 68, 0.4)'
+                  cardContainer.style.boxShadow = `0 0 30px rgba(239, 68, 68, ${Math.min(0.6, Math.abs(deltaX) / 200)})`
                 } else if (deltaY > 50) {
-                  cardRef.current.style.boxShadow = '0 0 30px rgba(0, 123, 255, 0.4)'
+                  cardContainer.style.boxShadow = `0 0 30px rgba(59, 130, 246, ${Math.min(0.6, Math.abs(deltaY) / 200)})`
                 } else {
-                  cardRef.current.style.boxShadow = ''
+                  cardContainer.style.boxShadow = ''
                 }
 
                 setCurrentPos({ x: e.clientX, y: e.clientY })
@@ -305,35 +358,47 @@ const HomePage = () => {
 
               if (isDragging && cardRef.current) {
                 setIsDragging(false)
+                const cardContainer = cardRef.current
 
                 if (Math.abs(deltaX) > 80) {
-                  // Горизонтальный свайп - лайк/пропуск
+                  // Горизонтальный свайп - лайк/пропуск с анимацией
                   if (deltaX > 0) {
+                    // Свайп вправо - лайк
                     handleSwipeWithFlip('like')
                   } else {
+                    // Свайп влево - пропуск
                     handleSwipeWithFlip('pass')
                   }
                 } else if (Math.abs(deltaY) > 100) {
-                  // Вертикальный свайп вниз - переход к деталям
-                  cardRef.current.style.transition = 'transform 0.4s ease, opacity 0.4s ease'
-                  cardRef.current.style.transform = 'translateY(100vh) scale(0.8)'
-                  cardRef.current.style.opacity = '0'
-                  setTimeout(() => {
-                    navigate(`/startup/${currentStartup.id}`)
-                  }, 300)
+                  // Вертикальный свайп вниз - переход к деталям с анимацией
+                  if (deltaY > 0) {
+                    // Свайп вниз - переход к деталям
+                    cardContainer.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+                    cardContainer.style.transform = 'translateY(100vh) rotate(10deg) scale(0.8)'
+                    cardContainer.style.opacity = '0'
+                    cardContainer.style.boxShadow = '0 0 30px rgba(59, 130, 246, 0.5)'
+                    setTimeout(() => {
+                      navigate(`/startup/${currentStartup.id}`)
+                    }, 400)
+                  } else {
+                    // Свайп вверх - возврат на место
+                    cardContainer.style.transition = 'all 0.3s ease'
+                    cardContainer.style.transform = 'translateY(0px) rotate(0deg)'
+                    cardContainer.style.boxShadow = 'none'
+                  }
                 } else {
                   // Возвращаем карточку на место
-                  cardRef.current.style.transition = 'all 0.3s ease'
-                  cardRef.current.style.transform = 'translateY(0px) rotate(0deg)'
-                  cardRef.current.style.boxShadow = 'none'
+                  cardContainer.style.transition = 'all 0.3s ease'
+                  cardContainer.style.transform = 'translateY(0px) rotate(0deg)'
+                  cardContainer.style.boxShadow = 'none'
                 }
               }
             }}
           >
 
-            {/* Flip Container */}
-            <div
-              className={`flip-container ${isFlipped ? 'flipped' : ''}`}
+            {/* Invisible Double-tap Button */}
+            <button
+              className="absolute inset-0 w-full h-full bg-transparent border-none cursor-pointer z-10"
               onClick={(e) => {
                 e.stopPropagation()
                 e.preventDefault()
@@ -353,36 +418,31 @@ const HomePage = () => {
                   lastTapRef.current = currentTime
                 }
               }}
+              style={{ pointerEvents: 'auto' }}
+            />
+
+            {/* Flip Container */}
+            <div
+              className={`flip-container ${isFlipped ? 'flipped' : ''}`}
             >
               {/* Front Side */}
               <div
                 className="flip-front startup-card"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  e.preventDefault()
-
-                  // Если карта в процессе свайпа, игнорируем клик
-                  if (isDragging) return
-
-                  const currentTime = Date.now()
-                  const timeSinceLastTap = currentTime - lastTapRef.current
-
-                  if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-                    // Двойной тап - переворачиваем карту
-                    setIsFlipped(true)
-                    lastTapRef.current = 0
-                  } else {
-                    // Первый тап
-                    lastTapRef.current = currentTime
-                  }
-                }}
               >
                 <div className="card-image">
-                  <div className={`${currentStartup.gradient} w-full h-full`}>
+                  <div className={`${currentStartup.gradient} w-full h-full relative overflow-hidden`}>
+                    {currentStartup.image ? (
+                      <img
+                        src={currentStartup.image}
+                        alt={currentStartup.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="company-logo">
+                        <span className="text-white font-bold text-xl">{currentStartup.logo}</span>
+                      </div>
+                    )}
                     <div className="gradient-overlay"></div>
-                    <div className="company-logo">
-                      <span className="text-white font-bold text-xl">{currentStartup.logo}</span>
-                    </div>
                     <div className="card-badges">
                       <span className="badge funding">{currentStartup.funding}</span>
                       <span className="badge stage">{currentStartup.stage}</span>
@@ -395,48 +455,49 @@ const HomePage = () => {
                     <h3 className="card-title">{currentStartup.name}</h3>
                     <div className="card-meta">
                       <span className="card-category">{currentStartup.category}</span>
-                      <span className="card-stage">{currentStartup.stage}</span>
+                      <span className="card-location">{currentStartup.location || 'Remote'}</span>
+                      <span className="card-team-size flex items-center gap-1">
+                        <i className="fas fa-users text-xs"></i>
+                        {currentStartup.teamSize || '5-10'}
+                      </span>
                     </div>
                   </div>
 
                   <p className="card-description">{currentStartup.description}</p>
                 </div>
 
-                {/* Flip Hint */}
+                {/* Swipe Hints */}
+                <div className="absolute top-4 left-4 opacity-40 hover:opacity-80 transition-opacity duration-300">
+                  <div className="bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                    <i className="fas fa-arrow-left text-xs text-red-400"></i>
+                    Pass
+                  </div>
+                </div>
+
+                <div className="absolute top-4 right-4 opacity-40 hover:opacity-80 transition-opacity duration-300">
+                  <div className="bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                    <i className="fas fa-arrow-right text-xs text-green-400"></i>
+                    Like
+                  </div>
+                </div>
+
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 opacity-60 hover:opacity-100 transition-opacity duration-300">
                   <div className="bg-black/50 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
                     <i className="fas fa-sync-alt text-xs"></i>
                     Double tap for details
                   </div>
                 </div>
+
+
               </div>
 
               {/* Back Side */}
               <div
                 className="flip-back startup-card bg-bg-primary border border-glass-border"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  e.preventDefault()
-
-                  // Если карта в процессе свайпа, игнорируем клик
-                  if (isDragging) return
-
-                  const currentTime = Date.now()
-                  const timeSinceLastTap = currentTime - lastTapRef.current
-
-                  if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-                    // Двойной тап - переворачиваем карту обратно
-                    setIsFlipped(false)
-                    lastTapRef.current = 0
-                  } else {
-                    // Первый тап
-                    lastTapRef.current = currentTime
-                  }
-                }}
               >
                 {/* Header */}
-                <div className="p-6 border-b border-glass-border">
-                  <div className="flex items-center gap-4 mb-4">
+                <div className="p-4 border-b border-glass-border">
+                  <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-accent-primary/20 rounded-xl flex items-center justify-center">
                       <span className="text-accent-primary font-bold text-lg">{currentStartup.logo}</span>
                     </div>
@@ -454,29 +515,12 @@ const HomePage = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Chat button */}
-                  <button
-                    className="w-full bg-accent-primary hover:bg-accent-primary/90 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      e.preventDefault()
-                      navigate('/chat')
-                    }}
-                    onDoubleClick={(e) => {
-                      e.stopPropagation()
-                      e.preventDefault()
-                    }}
-                  >
-                    <i className="fas fa-comments"></i>
-                    Start Chat
-                  </button>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 p-6 space-y-4 overflow-y-auto">
+                <div className="flex-1 p-4 space-y-3 overflow-y-auto">
                   {/* About */}
-                  <div className="bg-glass-bg/50 border border-glass-border rounded-xl p-4">
+                  <div className="bg-black/30 border border-white/20 rounded-xl p-4">
                     <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
                       <i className="fas fa-info-circle text-accent-primary"></i>
                       About
@@ -486,18 +530,21 @@ const HomePage = () => {
 
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-glass-bg/50 border border-glass-border rounded-xl p-4 text-center">
+                    <div className="bg-black/30 border border-white/20 rounded-xl p-4 text-center">
                       <div className="text-accent-primary font-bold text-lg">{currentStartup.funding}</div>
                       <div className="text-text-secondary text-xs mt-1">Funding</div>
                     </div>
-                    <div className="bg-glass-bg/50 border border-glass-border rounded-xl p-4 text-center">
-                      <div className="text-accent-primary font-bold text-lg">{currentStartup.teamSize || '5-10'}</div>
+                    <div className="bg-black/30 border border-white/20 rounded-xl p-4 text-center">
+                      <div className="text-accent-primary font-bold text-lg flex items-center justify-center gap-2">
+                        <i className="fas fa-users text-sm"></i>
+                        {currentStartup.teamSize || '5-10'}
+                      </div>
                       <div className="text-text-secondary text-xs mt-1">Team Size</div>
                     </div>
                   </div>
 
                   {/* Open Positions */}
-                  <div className="bg-glass-bg/50 border border-glass-border rounded-xl p-4">
+                  <div className="bg-black/30 border border-white/20 rounded-xl p-4">
                     <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
                       <i className="fas fa-users text-accent-primary"></i>
                       Open Positions
@@ -516,7 +563,7 @@ const HomePage = () => {
 
                   {/* Location & Contact */}
                   {(currentStartup.location || currentStartup.website) && (
-                    <div className="bg-glass-bg/50 border border-glass-border rounded-xl p-4">
+                    <div className="bg-black/30 border border-white/20 rounded-xl p-4">
                       <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
                         <i className="fas fa-map-marker-alt text-accent-primary"></i>
                         Details

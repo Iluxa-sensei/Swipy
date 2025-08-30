@@ -49,7 +49,7 @@ const SettingsPage = () => {
 
                 <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
                     <h3 className="text-text-primary font-semibold mb-2">Danger Zone</h3>
-                    <button className="btn-primary w-full" onClick={clearAll}>
+                    <button className="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105 active:scale-95" onClick={clearAll}>
                         <i className="fas fa-bomb"></i>
                         Reset App Data
                     </button>

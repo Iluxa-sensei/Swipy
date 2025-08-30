@@ -23,6 +23,7 @@ const ProfilePage = () => {
 
   const userProfile = hasProfile ? {
     name: loadedProfile.name,
+    username: loadedProfile.username || 'user',
     title: loadedProfile.title,
     avatar: loadedProfile.name?.charAt(0)?.toUpperCase() + (loadedProfile.name?.split(' ')[1]?.charAt(0)?.toUpperCase() || ''),
     location: loadedProfile.location,
@@ -172,13 +173,13 @@ const ProfilePage = () => {
           </div>
 
           <h2 className="text-3xl font-bold text-text-primary mb-2">{userProfile.name}</h2>
-          <p className="text-accent-primary text-lg font-semibold mb-3">{userProfile.title}</p>
+          <p className="text-accent-primary text-lg font-semibold mb-3">@{userProfile.username}</p>
 
           {/* Professional Info */}
           <div className="flex items-center justify-center gap-6 text-sm text-text-secondary mb-4">
+            {userProfile.title && <span><i className="fas fa-briefcase mr-1"></i>{userProfile.title}</span>}
             {userProfile.location && <span><i className="fas fa-map-marker-alt mr-1"></i>{userProfile.location}</span>}
-            {userProfile.experience && <span><i className="fas fa-briefcase mr-1"></i>{userProfile.experience} years</span>}
-            {userProfile.responseTime && <span><i className="fas fa-clock mr-1"></i>{userProfile.responseTime}</span>}
+            {userProfile.experience && <span><i className="fas fa-clock mr-1"></i>{userProfile.experience} years</span>}
           </div>
 
           {/* Quick Stats */}
@@ -333,32 +334,63 @@ const ProfilePage = () => {
         {activeTab === 'portfolio' && (
           <div className="p-6 animate-fade-in">
             <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-              <i className="fas fa-folder-open text-accent-primary"></i>
-              Portfolio Projects
+              <i className="fas fa-rocket text-accent-primary"></i>
+              My Startups
             </h3>
             <div className="grid grid-cols-1 gap-6">
-              {userProfile.portfolio.map((project) => (
-                <div key={project.id} className="bg-bg-secondary/80 border border-glass-border rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-accent-primary/20">
-                  <img src={project.image} alt={project.title} className="w-full h-48 object-cover" />
-                  <div className="p-6">
-                    <h4 className="text-xl font-bold text-text-primary mb-3">{project.title}</h4>
-                    <p className="text-text-secondary mb-4 leading-relaxed">{project.description}</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {project.tech.map((tech, index) => (
-                        <span key={index} className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm font-medium">
-                          {tech}
+              {userProfile.portfolio.map((startup) => (
+                <div key={startup.id} className="bg-bg-secondary/80 border border-glass-border rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-accent-primary/20">
+                  <div className={`h-32 ${startup.gradient || 'bg-gradient-primary'} relative`}>
+                    {startup.image && (
+                      <img src={startup.image} alt={startup.name} className="w-full h-full object-cover" />
+                    )}
+                    <div className="absolute inset-0 bg-black/20"></div>
+                    <div className="absolute top-4 right-4 flex gap-2">
+                      {startup.funding && (
+                        <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-semibold text-white">
+                          {startup.funding}
                         </span>
-                      ))}
+                      )}
+                      {startup.stage && (
+                        <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-semibold text-white">
+                          {startup.stage}
+                        </span>
+                      )}
                     </div>
-                    <a
-                      href={project.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn-secondary hover:bg-accent-primary hover:text-white transition-all duration-200"
-                    >
-                      <i className="fab fa-github"></i>
-                      View Project
-                    </a>
+                  </div>
+                  <div className="p-6">
+                    <h4 className="text-xl font-bold text-text-primary mb-2">{startup.name}</h4>
+                    <p className="text-text-secondary mb-3 leading-relaxed">{startup.description}</p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm font-medium">
+                        {startup.category}
+                      </span>
+                      {startup.teamSize && (
+                        <span className="px-3 py-1 bg-bg-secondary/80 text-text-secondary rounded-full text-sm font-medium">
+                          Team: {startup.teamSize}
+                        </span>
+                      )}
+                      {startup.location && (
+                        <span className="px-3 py-1 bg-bg-secondary/80 text-text-secondary rounded-full text-sm font-medium">
+                          📍 {startup.location}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        className="btn-secondary flex-1 hover:bg-accent-primary hover:text-white transition-all duration-200"
+                        onClick={() => navigate(`/startup/${startup.id}`)}
+                      >
+                        <i className="fas fa-eye"></i>
+                        View Details
+                      </button>
+                      <button
+                        className="btn-secondary hover:bg-accent-primary hover:text-white transition-all duration-200"
+                        onClick={() => navigate('/profile/edit')}
+                      >
+                        <i className="fas fa-edit"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

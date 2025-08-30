@@ -25,6 +25,10 @@ const ChatDetailPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [currentAudio, setCurrentAudio] = useState(null);
   const [audioProgress, setAudioProgress] = useState(0);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [recordingInterval, setRecordingInterval] = useState(null);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [recordedChunks, setRecordedChunks] = useState([]);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const audioRef = useRef(null);
@@ -80,9 +84,16 @@ const ChatDetailPage = () => {
         currentAudio.pause();
         currentAudio.currentTime = 0;
       }
+      if (recordingInterval) {
+        clearInterval(recordingInterval);
+      }
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+      }
       setAudioProgress(0);
+      setRecordingTime(0);
     };
-  }, [currentAudio]);
+  }, [currentAudio, recordingInterval, mediaRecorder]);
 
   // Обработка отправки сообщения
   const handleSendMessage = (e) => {
@@ -229,37 +240,212 @@ const ChatDetailPage = () => {
     }, 1500);
   };
 
+  // Проверка разрешений микрофона
+  const checkMicrophonePermission = async () => {
+    try {
+      const result = await navigator.permissions.query({ name: 'microphone' });
+      return result.state;
+    } catch (error) {
+      console.warn('Permission API not supported, trying direct access');
+      return 'unknown';
+    }
+  };
+
   // Обработка голосового сообщения
-  const handleVoiceRecord = () => {
+  const handleVoiceRecord = async () => {
     if (isRecording) {
-      setIsRecording(false);
-      // Создаем голосовое сообщение
-      const voiceMessage = {
-        id: chat.messages.length + 1,
-        text: '',
-        timestamp: new Date().toISOString(),
-        sender: 'user',
-        reactions: [],
-        isRead: false,
-        status: 'delivered',
-        fileType: 'voice',
-        duration: '0:05',
-        isPlaying: false
+      // Останавливаем запись
+      stopRecording();
+    } else {
+      // Проверяем разрешения перед началом записи
+      const permission = await checkMicrophonePermission();
+
+      if (permission === 'denied') {
+        alert('Microphone access is denied. Please enable it in your browser settings.');
+        return;
+      }
+
+      // Начинаем запись
+      startRecording();
+    }
+  };
+
+  // Начать запись
+  const startRecording = async () => {
+    try {
+      // Проверяем поддержку MediaDevices
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('MediaDevices API not supported');
+      }
+
+      // Запрашиваем разрешение на доступ к микрофону
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+
+      const recorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
+      });
+
+      const chunks = [];
+
+      recorder.ondataavailable = (e) => {
+        console.log('Data available:', e.data.size, 'bytes');
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
       };
 
-      setChat(prev => ({
-        ...prev,
-        messages: [...prev.messages, voiceMessage]
-      }));
-    } else {
-      setIsRecording(true);
-      // Останавливаем запись через 5 секунд
-      setTimeout(() => {
-        if (isRecording) {
-          handleVoiceRecord();
+      recorder.onstop = () => {
+        console.log('Recording stopped, processing data...');
+        console.log('Chunks length:', chunks.length);
+
+        if (chunks.length === 0) {
+          console.error('No audio data recorded');
+          alert('No audio data recorded. Please try again.');
+          return;
         }
-      }, 5000);
+
+        const blob = new Blob(chunks, { type: recorder.mimeType });
+        console.log('Blob size:', blob.size, 'bytes');
+
+        if (blob.size === 0) {
+          console.error('Empty audio blob');
+          alert('Recording failed. Please try again.');
+          return;
+        }
+
+        const audioUrl = URL.createObjectURL(blob);
+        console.log('Audio URL created:', audioUrl);
+
+        // Получаем текущее время записи
+        const finalRecordingTime = recordingTime;
+
+        // Создаем голосовое сообщение
+        const voiceMessage = {
+          id: chat.messages.length + 1,
+          text: '',
+          timestamp: new Date().toISOString(),
+          sender: 'user',
+          reactions: [],
+          isRead: false,
+          status: 'delivered',
+          fileType: 'voice',
+          fileUrl: audioUrl,
+          duration: formatTime(finalRecordingTime),
+          isPlaying: false
+        };
+
+        console.log('Voice message created:', voiceMessage);
+
+        setChat(prev => ({
+          ...prev,
+          messages: [...prev.messages, voiceMessage]
+        }));
+
+        // Останавливаем все треки
+        stream.getTracks().forEach(track => {
+          console.log('Stopping track in onstop:', track.kind);
+          track.stop();
+        });
+      };
+
+      recorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event.error);
+        alert('Recording failed. Please try again.');
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.onstart = () => {
+        console.log('Recording started');
+      };
+
+      recorder.onpause = () => {
+        console.log('Recording paused');
+      };
+
+      recorder.onresume = () => {
+        console.log('Recording resumed');
+      };
+
+      setMediaRecorder(recorder);
+      setRecordedChunks(chunks);
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      // Запускаем таймер записи
+      const interval = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+      setRecordingInterval(interval);
+
+      recorder.start();
+    } catch (error) {
+      console.error('Error starting recording:', error);
+
+      if (error.name === 'NotAllowedError') {
+        alert('Microphone access denied. Please allow microphone access in your browser settings and try again.');
+      } else if (error.name === 'NotFoundError') {
+        alert('No microphone found. Please connect a microphone and try again.');
+      } else if (error.name === 'NotSupportedError') {
+        alert('Recording is not supported in this browser. Please use a modern browser.');
+      } else {
+        alert('Failed to access microphone. Please check your browser settings and try again.');
+      }
     }
+  };
+
+  // Остановить запись
+  const stopRecording = () => {
+    console.log('Stopping recording...');
+
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      console.log('MediaRecorder state:', mediaRecorder.state);
+      mediaRecorder.stop();
+    }
+
+    if (recordingInterval) {
+      clearInterval(recordingInterval);
+      setRecordingInterval(null);
+    }
+
+    // Останавливаем все треки потока
+    if (mediaRecorder && mediaRecorder.stream) {
+      mediaRecorder.stream.getTracks().forEach(track => {
+        console.log('Stopping track:', track.kind);
+        track.stop();
+      });
+    }
+
+    setIsRecording(false);
+    setRecordingTime(0);
+  };
+
+  // Отменить запись
+  const cancelRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+    }
+
+    if (recordingInterval) {
+      clearInterval(recordingInterval);
+      setRecordingInterval(null);
+    }
+
+    setIsRecording(false);
+    setRecordingTime(0);
+    setRecordedChunks([]);
+  };
+
+  // Форматирование времени
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Поиск в чате
@@ -301,30 +487,33 @@ const ChatDetailPage = () => {
   // Отключение уведомлений
   const toggleMute = () => {
     setIsMuted(!isMuted);
-    showSuccess(isMuted ? '🔔 Уведомления включены' : '🔕 Уведомления отключены');
+    showSuccess(isMuted ? '🔔 Notifications enabled' : '🔕 Notifications disabled');
   };
 
   // Добавление в избранное
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
-    showSuccess(isFavorite ? '💔 Удалено из избранного' : '⭐ Добавлено в избранное');
+    showSuccess(isFavorite ? '💔 Removed from favorites' : '⭐ Added to favorites');
   };
 
   // Архивирование чата
   const archiveChat = () => {
-    showConfirm('Архивировать этот чат?', () => {
+    showConfirm('Archive this chat?', () => {
       // Сохраняем в localStorage
       const archivedChats = JSON.parse(localStorage.getItem('archivedChats') || '[]');
       archivedChats.push({ ...chat, archivedAt: new Date().toISOString() });
       localStorage.setItem('archivedChats', JSON.stringify(archivedChats));
 
-      showSuccess('📁 Чат архивирован');
+      showSuccess('📁 Chat archived');
       setTimeout(() => navigate('/chat'), 1000);
     });
   };
 
   // Воспроизведение голосового сообщения
   const toggleVoicePlayback = (messageId) => {
+    const message = chat.messages.find(msg => msg.id === messageId);
+    if (!message || message.fileType !== 'voice') return;
+
     // Останавливаем текущее воспроизведение
     if (currentAudio) {
       currentAudio.pause();
@@ -335,79 +524,68 @@ const ChatDetailPage = () => {
 
     setChat(prev => ({
       ...prev,
-      messages: prev.messages.map(msg => {
-        if (msg.fileType === 'voice') {
-          const isThisMessage = msg.id === messageId;
-          const shouldPlay = isThisMessage && !msg.isPlaying;
-
-          if (shouldPlay) {
-            // Создаем новый аудио элемент для симуляции
-            const audio = new Audio();
-            // Используем простой звуковой сигнал
-            audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT';
-            audio.volume = 0.5;
-
-            setCurrentAudio(audio);
-
-            // Начинаем воспроизведение
-            audio.play().catch(error => {
-              console.log('Audio play failed:', error);
-              // Если воспроизведение не удалось, просто симулируем
-              setAudioProgress(0);
-              const progressInterval = setInterval(() => {
-                setAudioProgress(prev => {
-                  if (prev >= 100) {
-                    clearInterval(progressInterval);
-                    setChat(prevChat => ({
-                      ...prevChat,
-                      messages: prevChat.messages.map(m => ({
-                        ...m,
-                        isPlaying: false
-                      }))
-                    }));
-                    setCurrentAudio(null);
-                    return 0;
-                  }
-                  return prev + 2;
-                });
-              }, 100);
-            });
-
-            // Анимация прогресса
-            setAudioProgress(0);
-            const progressInterval = setInterval(() => {
-              setAudioProgress(prev => {
-                if (prev >= 100) {
-                  clearInterval(progressInterval);
-                  setChat(prevChat => ({
-                    ...prevChat,
-                    messages: prevChat.messages.map(m => ({
-                      ...m,
-                      isPlaying: false
-                    }))
-                  }));
-                  setCurrentAudio(null);
-                  return 0;
-                }
-                return prev + 2;
-              });
-            }, 100);
-          }
-
-          return {
-            ...msg,
-            isPlaying: isThisMessage ? shouldPlay : false
-          };
-        }
-        return msg;
-      })
+      messages: prev.messages.map(msg => ({
+        ...msg,
+        isPlaying: msg.id === messageId ? !msg.isPlaying : false
+      }))
     }));
+
+    const isPlaying = !message.isPlaying;
+
+    if (isPlaying && message.fileUrl) {
+      const audio = new Audio(message.fileUrl);
+      audio.volume = 0.7;
+
+      audio.addEventListener('loadedmetadata', () => {
+        setCurrentAudio(audio);
+        setAudioProgress(0);
+      });
+
+      audio.addEventListener('timeupdate', () => {
+        if (audio.duration > 0) {
+          setAudioProgress((audio.currentTime / audio.duration) * 100);
+        }
+      });
+
+      audio.addEventListener('ended', () => {
+        setChat(prev => ({
+          ...prev,
+          messages: prev.messages.map(msg => ({
+            ...msg,
+            isPlaying: false
+          }))
+        }));
+        setCurrentAudio(null);
+        setAudioProgress(0);
+      });
+
+      audio.play().catch(error => {
+        console.error('Audio play failed:', error);
+        setChat(prev => ({
+          ...prev,
+          messages: prev.messages.map(msg => ({
+            ...msg,
+            isPlaying: false
+          }))
+        }));
+      });
+    }
+  };
+
+  // Обработка изменения позиции в аудио
+  const handleAudioSeek = (messageId, newProgress) => {
+    const message = chat.messages.find(msg => msg.id === messageId);
+    if (!message || !currentAudio) return;
+
+    const newTime = (newProgress / 100) * currentAudio.duration;
+    currentAudio.currentTime = newTime;
+    setAudioProgress(newProgress);
   };
 
   // Удаление чата
   const deleteChat = () => {
-    showConfirm('Удалить этот чат? Это действие нельзя отменить.', () => {
-      showSuccess('🗑️ Чат удален');
+    showConfirm('Delete this chat? This action cannot be undone.', () => {
+      showSuccess('🗑️ Chat deleted');
       setTimeout(() => navigate('/chat'), 1000);
     });
   };
@@ -425,7 +603,7 @@ const ChatDetailPage = () => {
     }
 
     navigator.clipboard.writeText(textToCopy).then(() => {
-      showSuccess('📋 Сообщение скопировано');
+      showSuccess('📋 Message copied');
     });
   };
 
@@ -583,21 +761,29 @@ const ChatDetailPage = () => {
                           <button
                             onClick={() => toggleVoicePlayback(message.id)}
                             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${message.isPlaying
-                                ? 'bg-white text-black'
-                                : 'bg-white/20 text-white hover:bg-white/30'
+                              ? 'bg-white text-black'
+                              : 'bg-white/20 text-white hover:bg-white/30'
                               }`}
                           >
                             <i className={`fas ${message.isPlaying ? 'fa-pause' : 'fa-play'}`}></i>
                           </button>
                           <div className="flex-1">
-                            <div className="w-full bg-white/20 rounded-full h-2 mb-2">
+                            <div className="relative w-full bg-white/20 rounded-full h-2 mb-2">
                               <div
-                                className={`bg-white h-2 rounded-full transition-all duration-300 ${message.isPlaying ? `w-[${audioProgress}%]` : 'w-0'
-                                  }`}
+                                className="bg-white h-2 rounded-full transition-all duration-300"
                                 style={{
                                   width: message.isPlaying ? `${audioProgress}%` : '0%'
                                 }}
                               ></div>
+                              <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                value={message.isPlaying ? audioProgress : 0}
+                                onChange={(e) => handleAudioSeek(message.id, parseInt(e.target.value))}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                style={{ WebkitAppearance: 'none' }}
+                              />
                             </div>
                             <div className="flex justify-between items-center">
                               <div className="text-sm text-white/80">{message.duration}</div>
@@ -740,84 +926,116 @@ const ChatDetailPage = () => {
 
         {/* Main Input Container */}
         <div className="bg-bg-secondary/80 border border-glass-border/50 rounded-3xl shadow-2xl overflow-hidden">
-          <form onSubmit={handleSendMessage} className="flex items-end">
-            {/* Left Actions */}
-            <div className="flex items-center p-2">
-              <button
-                type="button"
-                className="w-10 h-10 rounded-2xl bg-transparent hover:bg-bg-secondary/50 flex items-center justify-center text-text-primary hover:text-accent-primary transition-all duration-200 hover:scale-105 active:scale-95"
-                onClick={() => fileInputRef.current?.click()}
-                title="Attach file"
-              >
-                <i className="fas fa-plus text-lg"></i>
-              </button>
+          {isRecording ? (
+            /* Recording Interface */
+            <div className="flex items-center p-4">
+              <div className="flex-1 bg-red-500/20 border border-red-500/30 rounded-2xl px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-red-500 font-semibold">Recording...</span>
+                  <span className="text-red-400 font-mono">{formatTime(recordingTime)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
+                    onClick={stopRecording}
+                    title="Stop recording"
+                  >
+                    <i className="fas fa-stop text-sm"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className="w-8 h-8 rounded-full bg-gray-500 text-white flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
+                    onClick={cancelRecording}
+                    title="Cancel recording"
+                  >
+                    <i className="fas fa-times text-sm"></i>
+                  </button>
+                </div>
+              </div>
             </div>
-
-            {/* Message Input */}
-            <div className="flex-1 py-3">
-              <textarea
-                className="w-full bg-transparent outline-none text-text-primary resize-none min-h-[28px] max-h-32 leading-7 text-base placeholder-text-secondary px-2"
-                placeholder="Message..."
-                value={newMessage}
-                onChange={(e) => {
-                  setNewMessage(e.target.value);
-                  // Auto-resize textarea
-                  e.target.style.height = 'auto';
-                  e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage(e);
-                  }
-                }}
-                rows="1"
-                style={{ height: '28px' }}
-              />
-            </div>
-
-            {/* Right Actions */}
-            <div className="flex items-center gap-1 p-2">
-              {/* Emoji Button */}
-              <button
-                type="button"
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ${showEmojiPicker
-                  ? 'bg-accent-primary/20 text-accent-primary'
-                  : 'bg-transparent hover:bg-bg-secondary/50 text-text-primary hover:text-accent-primary'
-                  }`}
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                title="Add emoji"
-              >
-                <i className="far fa-smile text-lg"></i>
-              </button>
-
-              {/* Voice Button */}
-              <button
-                type="button"
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ${isRecording
-                  ? 'bg-red-500 text-white animate-pulse'
-                  : 'bg-transparent hover:bg-bg-secondary/50 text-text-primary hover:text-accent-primary'
-                  }`}
-                onClick={handleVoiceRecord}
-                title={isRecording ? 'Stop recording' : 'Voice message'}
-              >
-                <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone'} text-lg`}></i>
-              </button>
-
-              {/* Send Button */}
-              {newMessage.trim() ? (
+          ) : (
+            /* Normal Input Interface */
+            <form onSubmit={handleSendMessage} className="flex items-end">
+              {/* Left Actions */}
+              <div className="flex items-center p-2">
                 <button
-                  type="submit"
-                  className="w-10 h-10 rounded-2xl bg-gradient-primary text-white flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl hover:shadow-accent-primary/30 ml-1"
-                  title="Send message"
+                  type="button"
+                  className="w-10 h-10 rounded-2xl bg-transparent hover:bg-bg-secondary/50 flex items-center justify-center text-text-primary hover:text-accent-primary transition-all duration-200 hover:scale-105 active:scale-95"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach file"
                 >
-                  <i className="fas fa-paper-plane text-lg"></i>
+                  <i className="fas fa-plus text-lg"></i>
                 </button>
-              ) : (
-                <div className="w-10 h-10 ml-1"></div>
-              )}
-            </div>
-          </form>
+              </div>
+
+              {/* Message Input */}
+              <div className="flex-1 py-3">
+                <textarea
+                  className="w-full bg-transparent outline-none text-text-primary resize-none min-h-[28px] max-h-32 leading-7 text-base placeholder-text-secondary px-2"
+                  placeholder="Message..."
+                  value={newMessage}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    // Auto-resize textarea
+                    e.target.style.height = 'auto';
+                    e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage(e);
+                    }
+                  }}
+                  rows="1"
+                  style={{ height: '28px' }}
+                />
+              </div>
+
+              {/* Right Actions */}
+              <div className="flex items-center gap-1 p-2">
+                {/* Emoji Button */}
+                <button
+                  type="button"
+                  className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ${showEmojiPicker
+                    ? 'bg-accent-primary/20 text-accent-primary'
+                    : 'bg-transparent hover:bg-bg-secondary/50 text-text-primary hover:text-accent-primary'
+                    }`}
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  title="Add emoji"
+                >
+                  <i className="far fa-smile text-lg"></i>
+                </button>
+
+                {/* Voice Button */}
+                <button
+                  type="button"
+                  className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ${isRecording
+                    ? 'bg-red-500 text-white animate-pulse'
+                    : 'bg-transparent hover:bg-bg-secondary/50 text-text-primary hover:text-accent-primary'
+                    }`}
+                  onClick={handleVoiceRecord}
+                  title={isRecording ? 'Stop recording' : 'Voice message'}
+                >
+                  <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone'} text-lg`}></i>
+                </button>
+
+                {/* Send Button */}
+                {newMessage.trim() ? (
+                  <button
+                    type="submit"
+                    className="w-10 h-10 rounded-2xl bg-gradient-primary text-white flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl hover:shadow-accent-primary/30 ml-1"
+                    title="Send message"
+                  >
+                    <i className="fas fa-paper-plane text-lg"></i>
+                  </button>
+                ) : (
+                  <div className="w-10 h-10 ml-1"></div>
+                )}
+              </div>
+            </form>
+          )}
         </div>
 
 

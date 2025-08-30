@@ -166,7 +166,7 @@ export const formatMessageDate = (timestamp) => {
 };
 
 // Функция для получения или создания чата для стартапа
-export const getOrCreateChatForStartup = (startupId) => {
+export const getOrCreateChatForStartup = (startupId, startupData = null) => {
   // Ищем существующий чат для этого стартапа
   let existingChat = chats.find(chat => chat.startup.id === startupId);
 
@@ -177,7 +177,12 @@ export const getOrCreateChatForStartup = (startupId) => {
   // Если чат не найден, создаем новый
   const newChat = {
     id: chats.length + 1,
-    startup: {
+    startup: startupData ? {
+      id: startupId,
+      name: startupData.name,
+      logo: startupData.logo,
+      gradient: startupData.gradient || "bg-gradient-primary"
+    } : {
       id: startupId,
       name: "New Startup",
       logo: "NS",

@@ -1,17 +1,54 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { startups } from '../data/startups'
+import { startups as defaultStartups } from '../data/startups'
 import { getOrCreateChatForStartup } from '../data/chats'
 import { saveSwipe } from '../data/swipes'
 
 const StartupDetailPage = () => {
     const navigate = useNavigate()
     const { id } = useParams()
+    const [startups, setStartups] = useState(defaultStartups)
+
+    // Загружаем созданные стартапы из профиля
+    useEffect(() => {
+        const loadCreatedStartups = () => {
+            try {
+                const profileData = localStorage.getItem('profile_data')
+                if (profileData) {
+                    const profile = JSON.parse(profileData)
+                    if (profile.portfolio && profile.portfolio.length > 0) {
+                        // Преобразуем стартапы из профиля в формат для отображения
+                        const createdStartups = profile.portfolio.map(startup => ({
+                            id: startup.id,
+                            name: startup.name,
+                            logo: startup.name ? startup.name.substring(0, 2).toUpperCase() : 'ST',
+                            category: startup.category,
+                            stage: startup.stage,
+                            description: startup.description,
+                            roles: startup.positions || ['Team Member'],
+                            gradient: startup.gradient || 'bg-gradient-primary',
+                            funding: startup.funding,
+                            teamSize: startup.teamSize,
+                            location: startup.location,
+                            image: startup.image || null
+                        }))
+
+                        // Объединяем созданные стартапы с дефолтными
+                        setStartups([...createdStartups, ...defaultStartups])
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading created startups:', error)
+            }
+        }
+
+        loadCreatedStartups()
+    }, [])
 
     const startup = useMemo(() => {
         const numericId = parseInt(id)
         return startups.find(s => s.id === numericId) || null
-    }, [id])
+    }, [id, startups])
 
     if (!startup) {
         return (
@@ -33,7 +70,7 @@ const StartupDetailPage = () => {
     }
 
     const openChat = () => {
-        const chat = getOrCreateChatForStartup(startup)
+        const chat = getOrCreateChatForStartup(startup.id, startup)
         navigate(`/chat-detail/${chat.id}`)
     }
 
@@ -53,11 +90,19 @@ const StartupDetailPage = () => {
 
             <div className="flex-1 overflow-y-auto pb-6">
                 <div className="card-image">
-                    <div className={`${startup.gradient} w-full h-56`}>
+                    <div className={`${startup.gradient} w-full h-56 relative overflow-hidden`}>
+                        {startup.image ? (
+                            <img
+                                src={startup.image}
+                                alt={startup.name}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="company-logo">
+                                <span className="text-white font-bold text-xl">{startup.logo}</span>
+                            </div>
+                        )}
                         <div className="gradient-overlay"></div>
-                        <div className="company-logo">
-                            <span className="text-white font-bold text-xl">{startup.logo}</span>
-                        </div>
                         <div className="card-badges">
                             <span className="badge funding">{startup.funding}</span>
                             <span className="badge stage">{startup.stage}</span>
