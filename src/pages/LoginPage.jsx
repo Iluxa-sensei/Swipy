@@ -1,9 +1,14 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { supabase } from '../services/supabaseClient.js'
+import { useAuth } from '../providers/AuthProvider.jsx'
 
 const LoginPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { session } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -12,31 +17,137 @@ const LoginPage = () => {
     agreeToTerms: false
   })
 
+  // Input validation functions
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email.trim())
+  }
+
+  const validatePassword = (password) => {
+    return password.length >= 8 && password.length <= 128
+  }
+
+  const validateName = (name) => {
+    const sanitizedName = name.trim().replace(/[<>]/g, '')
+    return sanitizedName.length >= 2 && sanitizedName.length <= 100
+  }
+
   const handleInputChange = (field, value) => {
+    // Sanitize input based on field type
+    let sanitizedValue = value
+    if (field === 'name') {
+      sanitizedValue = value.replace(/[<>]/g, '')
+    } else if (field === 'email') {
+      sanitizedValue = value.toLowerCase().trim()
+    }
+
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: sanitizedValue
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    if (isSubmitting) return
+    setIsSubmitting(true)
 
-    if (isLogin) {
-      // Логика входа
-      navigate('/home')
-    } else {
-      // Логика регистрации
-      if (formData.password !== formData.confirmPassword) {
-        alert('Passwords do not match!')
+    try {
+      // Input validation
+      if (!validateEmail(formData.email)) {
+        alert('Please enter a valid email address')
         return
       }
-      if (!formData.agreeToTerms) {
-        alert('Please agree to the terms and conditions')
+
+      if (!validatePassword(formData.password)) {
+        alert('Password must be between 8 and 128 characters')
         return
       }
-      navigate('/onboarding')
+
+      if (!isLogin) {
+        if (!validateName(formData.name)) {
+          alert('Name must be between 2 and 100 characters')
+          return
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+          alert('Passwords do not match!')
+          return
+        }
+
+        if (!formData.agreeToTerms) {
+          alert('Please agree to the terms and conditions')
+          return
+        }
+      }
+
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
+        })
+        if (error) {
+          alert(error.message)
+          return
+        }
+        const redirectTo = location.state?.from?.pathname || '/home'
+        navigate(redirectTo)
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: { full_name: formData.name }
+          }
+        })
+        if (error) {
+          alert(error.message)
+          return
+        }
+        navigate('/onboarding')
+      }
+    } catch (error) {
+      console.error('Authentication error:', error)
+      alert('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
+  }
+
+  const signInWithProvider = async (provider) => {
+    if (isSubmitting) return
+    
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin + '/home'
+        }
+      })
+      if (error) alert(error.message)
+    } catch (error) {
+      console.error('OAuth error:', error)
+      alert('OAuth authentication failed. Please try again.')
+    }
+  }
+
+  const handleTermsClick = (e) => {
+    e.preventDefault()
+    // TODO: Navigate to actual terms page
+    alert('Terms of Service - Coming Soon')
+  }
+
+  const handlePrivacyClick = (e) => {
+    e.preventDefault()
+    // TODO: Navigate to actual privacy policy page
+    alert('Privacy Policy - Coming Soon')
+  }
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault()
+    // TODO: Implement forgot password flow
+    alert('Password reset functionality coming soon')
   }
 
   const toggleMode = () => {
@@ -78,6 +189,9 @@ const LoginPage = () => {
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-colors duration-200"
                 required={!isLogin}
+                maxLength={100}
+                pattern="[^<>]*"
+                title="Name cannot contain < or > characters"
               />
             </div>
           )}
@@ -91,6 +205,7 @@ const LoginPage = () => {
               onChange={(e) => handleInputChange('email', e.target.value)}
               className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-colors duration-200"
               required
+              maxLength={254}
             />
           </div>
 
@@ -103,6 +218,8 @@ const LoginPage = () => {
               onChange={(e) => handleInputChange('password', e.target.value)}
               className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-colors duration-200"
               required
+              minLength={8}
+              maxLength={128}
             />
           </div>
 
@@ -116,6 +233,8 @@ const LoginPage = () => {
                 onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                 className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-colors duration-200"
                 required={!isLogin}
+                minLength={8}
+                maxLength={128}
               />
             </div>
           )}
@@ -128,30 +247,48 @@ const LoginPage = () => {
                 checked={formData.agreeToTerms}
                 onChange={(e) => handleInputChange('agreeToTerms', e.target.checked)}
                 className="mt-1 w-5 h-5 text-blue-400 bg-glass-bg border-glass-border rounded focus:ring-blue-400 focus:ring-2"
+                required={!isLogin}
               />
               <label htmlFor="agreeToTerms" className="text-sm text-text-secondary">
                 I agree to the{' '}
-                <a href="#" className="text-blue-400 hover:underline">Terms of Service</a>
+                <button
+                  type="button"
+                  onClick={handleTermsClick}
+                  className="text-blue-400 hover:underline focus:outline-none"
+                >
+                  Terms of Service
+                </button>
                 {' '}and{' '}
-                <a href="#" className="text-blue-400 hover:underline">Privacy Policy</a>
+                <button
+                  type="button"
+                  onClick={handlePrivacyClick}
+                  className="text-blue-400 hover:underline focus:outline-none"
+                >
+                  Privacy Policy
+                </button>
               </label>
             </div>
           )}
 
           {isLogin && (
             <div className="text-right">
-              <a href="#" className="text-blue-400 text-sm hover:underline">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-blue-400 text-sm hover:underline focus:outline-none"
+              >
                 Forgot Password?
-              </a>
+              </button>
             </div>
           )}
 
           <button
             type="submit"
-            className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white w-full font-semibold rounded-2xl py-4 shadow-lg hover:shadow-xl transition-all duration-200"
+            disabled={isSubmitting}
+            className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white w-full font-semibold rounded-2xl py-4 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i className={`fas ${isLogin ? 'fa-sign-in-alt' : 'fa-user-plus'} mr-2`}></i>
-            {isLogin ? 'Sign In' : 'Create Account'}
+            {isSubmitting ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
           </button>
         </form>
 
@@ -169,13 +306,18 @@ const LoginPage = () => {
 
         {/* Social Login */}
         <div className="space-y-4">
-          <button className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary hover:bg-glass-border transition-colors duration-200 flex items-center justify-center gap-3">
+          <button 
+            type="button" 
+            disabled={isSubmitting}
+            onClick={() => signInWithProvider('google')} 
+            className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary hover:bg-glass-border transition-colors duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <i className="fab fa-google text-xl"></i>
             Continue with Google
           </button>
-          <button className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary hover:bg-glass-border transition-colors duration-200 flex items-center justify-center gap-3">
+          <button type="button" disabled className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-secondary cursor-not-allowed flex items-center justify-center gap-3">
             <i className="fab fa-linkedin text-xl"></i>
-            Continue with LinkedIn
+            Continue with LinkedIn (coming soon)
           </button>
         </div>
 
@@ -184,8 +326,9 @@ const LoginPage = () => {
           <p className="text-text-secondary">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
+              type="button"
               onClick={toggleMode}
-              className="text-blue-400 hover:underline font-medium"
+              className="text-blue-400 hover:underline font-medium focus:outline-none"
             >
               {isLogin ? 'Sign up' : 'Sign in'}
             </button>
@@ -193,14 +336,17 @@ const LoginPage = () => {
         </div>
 
         {/* Guest Access */}
-        <div className="text-center mt-6">
-          <button
-            onClick={() => navigate('/home')}
-            className="text-text-secondary hover:text-text-primary transition-colors duration-200"
-          >
-            Continue as Guest
-          </button>
-        </div>
+        {!session && (
+          <div className="text-center mt-6">
+            <button
+              type="button"
+              onClick={() => navigate('/home')}
+              className="text-text-secondary hover:text-text-primary transition-colors duration-200 focus:outline-none"
+            >
+              Continue as Guest
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

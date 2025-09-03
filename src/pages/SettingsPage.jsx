@@ -1,18 +1,67 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { clearSwipes } from '../data/swipes'
+import { supabase } from '../services/supabaseClient.js'
 
 const SettingsPage = () => {
     const navigate = useNavigate()
 
     const clearProfile = () => {
-        try { localStorage.removeItem('profile_data') } catch { }
-        navigate('/profile')
+        if (window.confirm('Are you sure you want to clear your saved profile data? This action cannot be undone.')) {
+            try { 
+                localStorage.removeItem('profile_data') 
+                alert('Profile data cleared successfully')
+            } catch (error) {
+                console.error('Error clearing profile data:', error)
+                alert('Failed to clear profile data')
+            }
+            navigate('/profile')
+        }
     }
 
     const clearAll = () => {
-        try { localStorage.clear() } catch { }
-        navigate('/home')
+        if (window.confirm('⚠️ WARNING: This will delete ALL your local data including swipes, preferences, and settings. This action cannot be undone. Are you absolutely sure?')) {
+            try { 
+                // Only clear app-specific data, not all localStorage
+                const keysToRemove = [
+                    'profile_data',
+                    'swipes_data',
+                    'filters_data',
+                    'preferences_data'
+                ]
+                
+                keysToRemove.forEach(key => {
+                    if (localStorage.getItem(key)) {
+                        localStorage.removeItem(key)
+                    }
+                })
+                
+                alert('App data cleared successfully')
+            } catch (error) {
+                console.error('Error clearing app data:', error)
+                alert('Failed to clear app data')
+            }
+            navigate('/home')
+        }
+    }
+
+    const signOut = async () => {
+        if (window.confirm('Are you sure you want to sign out?')) {
+            try {
+                await supabase.auth.signOut()
+                // Clear sensitive data on sign out
+                try {
+                    localStorage.removeItem('profile_data')
+                    localStorage.removeItem('swipes_data')
+                } catch (error) {
+                    console.error('Error clearing data on sign out:', error)
+                }
+                navigate('/login')
+            } catch (error) {
+                console.error('Error signing out:', error)
+                alert('Failed to sign out. Please try again.')
+            }
+        }
     }
 
     return (
@@ -37,11 +86,21 @@ const SettingsPage = () => {
                         <i className="fas fa-trash"></i>
                         Clear Saved Profile
                     </button>
+                    <div className="h-3"></div>
+                    <button className="btn-secondary w-full" onClick={signOut}>
+                        <i className="fas fa-sign-out-alt"></i>
+                        Sign out
+                    </button>
                 </div>
 
                 <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
                     <h3 className="text-text-primary font-semibold mb-2">Discover</h3>
-                    <button className="btn-secondary w-full" onClick={() => { clearSwipes(); navigate('/saved') }}>
+                    <button className="btn-secondary w-full" onClick={() => { 
+                        if (window.confirm('Clear all your likes and passes? This action cannot be undone.')) {
+                            clearSwipes()
+                            navigate('/saved')
+                        }
+                    }}>
                         <i className="fas fa-undo"></i>
                         Clear Likes/Passes
                     </button>
