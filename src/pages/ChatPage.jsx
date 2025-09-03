@@ -1,58 +1,49 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { chats } from '../data/chats'
-import { formatMessageTime } from '../data/chats'
+import { useAuth, useChats } from '../hooks'
+import { formatMessageTime } from '../utils/dateUtils'
 
 const ChatPage = () => {
   const navigate = useNavigate()
-  const [chatList, setChatList] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
+  const { chats, loading, error } = useChats(user?.id)
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState('all') // all, unread, favorites, archived
   const [showMainMenu, setShowMainMenu] = useState(false)
   const [archivedChats, setArchivedChats] = useState([])
 
-  // Load chat data
+  // Load archived chats from localStorage
   useEffect(() => {
-    const timer = setTimeout(() => {
-      // Load archived chats
-      const archived = JSON.parse(localStorage.getItem('archivedChats') || '[]')
-      setArchivedChats(archived)
-
-      // Transform chat data into display format
-      const formattedChats = chats.map((chat, index) => {
-        const lastMessage = chat.messages[chat.messages.length - 1]
-        return {
-          id: chat.id,
-          name: chat.startup.name,
-          lastMessage: lastMessage.text,
-          time: formatMessageTime(lastMessage.timestamp),
-          unread: lastMessage.sender === 'startup',
-          unreadCount: Math.floor(Math.random() * 5) + (lastMessage.sender === 'startup' ? 1 : 0),
-          avatar: chat.startup.logo,
-          gradient: chat.startup.gradient,
-          isOnline: index < 2, // First 2 chats show as online
-          lastSeen: index >= 2 ? 'Last seen 2h ago' : null,
-          isTyping: index === 0 && Math.random() > 0.7, // Sometimes show typing
-          isFavorite: index === 1, // Second chat - favorite
-          isPinned: index === 0 // First chat - pinned
-        }
-      })
-
-      setChatList(formattedChats)
-      setLoading(false)
-    }, 600)
-
-    return () => clearTimeout(timer)
+    const archived = JSON.parse(localStorage.getItem('archivedChats') || '[]')
+    setArchivedChats(archived)
   }, [])
+
+  // Transform chat data into display format
+  const chatList = chats.map((chat) => {
+    const lastMessage = chat.messages?.[chat.messages.length - 1]
+    const otherParticipant = chat.participants?.find(p => p.id !== user?.id)
+
+    return {
+      id: chat.id,
+      name: otherParticipant?.full_name || 'Unknown User',
+      lastMessage: lastMessage?.body || 'No messages yet',
+      time: lastMessage ? formatMessageTime(lastMessage.created_at) : 'Just now',
+      unread: lastMessage?.sender_id !== user?.id && !lastMessage?.read,
+      unreadCount: chat.unread_count || 0,
+      avatar: otherParticipant?.avatar_url || otherParticipant?.full_name?.charAt(0)?.toUpperCase(),
+      gradient: 'bg-gradient-primary',
+      isOnline: false,
+      lastSeen: otherParticipant?.last_seen,
+      isTyping: false,
+      isFavorite: false,
+      isPinned: false
+    }
+  })
 
   // Mark all as read
   const markAllAsRead = () => {
-    setChatList(prev => prev.map(chat => ({
-      ...chat,
-      unread: false,
-      unreadCount: 0
-    })))
+    // This would update all chats as read in Supabase
+    console.log('Marking all chats as read')
     setShowMainMenu(false)
   }
 
@@ -65,9 +56,8 @@ const ChatPage = () => {
   // Function to toggle favorite
   const toggleFavorite = (chatId, e) => {
     e.stopPropagation()
-    setChatList(prev => prev.map(chat =>
-      chat.id === chatId ? { ...chat, isFavorite: !chat.isFavorite } : chat
-    ))
+    // This would update favorite status in Supabase
+    console.log('Toggling favorite for chat:', chatId)
   }
 
   // Function to archive chat
@@ -84,18 +74,51 @@ const ChatPage = () => {
       setArchivedChats(newArchived)
       localStorage.setItem('archivedChats', JSON.stringify(newArchived))
 
-      // Remove from main list
-      setChatList(prev => prev.filter(chat => chat.id !== chatId))
+      // Remove from main list (this would also update Supabase)
+      console.log('Archiving chat:', chatId)
     }
   }
 
 
 
+  // Show error state
+  if (error) {
+    return (
+      <div className="screen active">
+        <div className="header">
+          <button className="header-btn" onClick={() => navigate('/home')}>
+            <i className="fas fa-arrow-left"></i>
+          </button>
+          <h1>Chats</h1>
+          <button className="header-btn" onClick={() => setShowMainMenu(!showMainMenu)}>
+            <i className="fas fa-ellipsis-v"></i>
+          </button>
+        </div>
+
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Chats</h2>
+            <p className="text-text-secondary mb-6">{error}</p>
+            <button
+              className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Chat filtering
   const filteredChats = (() => {
     if (filter === 'archived') {
       return archivedChats.filter(chat =>
-        chat.startup.name.toLowerCase().includes(searchQuery.toLowerCase())
+        chat.name.toLowerCase().includes(searchQuery.toLowerCase())
       ).map(chat => ({
         ...chat,
         name: chat.startup.name,
@@ -126,7 +149,7 @@ const ChatPage = () => {
     })
   })()
 
-        // Sorting: pinned at top, then by time
+  // Sorting: pinned at top, then by time
   const sortedChats = [...filteredChats].sort((a, b) => {
     if (a.isPinned && !b.isPinned) return -1
     if (!a.isPinned && b.isPinned) return 1
@@ -135,6 +158,37 @@ const ChatPage = () => {
 
   const openChat = (chatId) => {
     navigate(`/chat-detail/${chatId}`)
+  }
+
+  // Show empty state if no chats
+  if (chatList.length === 0 && !loading) {
+    return (
+      <div className="screen active">
+        <div className="header">
+          <button className="header-btn" onClick={() => setShowMainMenu(true)}>
+            <i className="fas fa-ellipsis-v"></i>
+          </button>
+          <h1>Messages</h1>
+          <div className="w-10"></div>
+        </div>
+
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-comments text-3xl text-white"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary mb-4">No Messages Yet</h2>
+            <p className="text-text-secondary mb-8">Start connecting with startups to see your conversations here.</p>
+            <button
+              className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+              onClick={() => navigate('/home')}
+            >
+              Browse Startups
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

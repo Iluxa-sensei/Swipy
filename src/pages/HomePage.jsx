@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { startups as defaultStartups } from '../data/startups'
-import { saveSwipe } from '../data/swipes'
-import { getOrCreateChatForStartup } from '../data/chats'
+import { useStartups, useSwipes, useAuth } from '../hooks'
+import { chatService } from '../services'
 import OnboardingTutorial from '../components/OnboardingTutorial'
 
 const HomePage = () => {
-  const [startups, setStartups] = useState(defaultStartups)
+  const { user } = useAuth()
+  const { startups, loading: startupsLoading, error: startupsError } = useStartups()
+  const { likeStartup, passStartup, loading: swipesLoading } = useSwipes(user?.id)
+  
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [debugMode, setDebugMode] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -42,41 +44,71 @@ const HomePage = () => {
   // Simple test render for debugging
   console.log('HomePage component rendering...')
 
-  // Load created startups from profile
-  useEffect(() => {
-    const loadCreatedStartups = () => {
-      try {
-        const profileData = localStorage.getItem('profile_data')
-        if (profileData) {
-          const profile = JSON.parse(profileData)
-          if (profile.portfolio && profile.portfolio.length > 0) {
-            // Transform startups from profile into main page format
-            const createdStartups = profile.portfolio.map(startup => ({
-              id: startup.id,
-              name: startup.name,
-              logo: startup.name ? startup.name.substring(0, 2).toUpperCase() : 'ST',
-              category: startup.category,
-              stage: startup.stage,
-              description: startup.description,
-              investmentRequired: startup.investmentRequired || null,
-              gradient: startup.gradient || 'bg-gradient-primary',
-              funding: startup.funding,
-              teamSize: startup.teamSize,
-              location: startup.location,
-              image: startup.image || null
-            }))
+  // Show loading state
+  if (startupsLoading) {
+    return (
+      <div className="screen active">
+        <div className="header">
+          <button className="header-btn" onClick={() => navigate('/filters')}>
+            <i className="fas fa-filter"></i>
+          </button>
+          <h1 className="header-title text-3xl font-bold animate-super-gradient">
+            Swipy
+          </h1>
+          <button className="header-btn" onClick={() => navigate('/saved')}>
+            <i className="fas fa-bookmark"></i>
+          </button>
+        </div>
 
-            // Combine created startups with default ones
-            setStartups([...createdStartups, ...defaultStartups])
-          }
-        }
-      } catch (error) {
-        console.error('Error loading created startups:', error)
-      }
-    }
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
+              <i className="fas fa-spinner fa-spin text-3xl text-white"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary mb-4">Loading Startups</h2>
+            <p className="text-text-secondary">Please wait while we fetch the latest opportunities...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-    loadCreatedStartups()
-  }, [])
+  // Show error state
+  if (startupsError) {
+    return (
+      <div className="screen active">
+        <div className="header">
+          <button className="header-btn" onClick={() => navigate('/filters')}>
+            <i className="fas fa-filter"></i>
+          </button>
+          <h1 className="header-title text-3xl font-bold animate-super-gradient">
+            Swipy
+          </h1>
+          <button className="header-btn" onClick={() => navigate('/saved')}>
+            <i className="fas fa-bookmark"></i>
+          </button>
+        </div>
+
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Startups</h2>
+            <p className="text-text-secondary mb-6">{startupsError}</p>
+            <button
+              className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+
 
   // Check if tutorial should be shown
   useEffect(() => {
@@ -137,7 +169,7 @@ const HomePage = () => {
   }
 
   // Function for swipe right (like)
-  const handleLike = () => {
+  const handleLike = async () => {
     if (!cardRef.current || isAnimating) return
     setIsAnimating(true)
 
@@ -146,10 +178,14 @@ const HomePage = () => {
     cardRef.current.style.opacity = '0'
     cardRef.current.style.boxShadow = ''
 
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
-        saveSwipe(currentStartup.id, 'like')
-      } catch (e) { }
+        await likeStartup(currentStartup.id)
+        console.log('Startup liked successfully')
+      } catch (error) {
+        console.error('Error liking startup:', error)
+        // You can show a toast notification here
+      }
 
       setCurrentCardIndex(prev => prev + 1)
       setIsAnimating(false)
@@ -158,7 +194,7 @@ const HomePage = () => {
   }
 
   // Function for swipe left (pass)
-  const handlePass = () => {
+  const handlePass = async () => {
     if (!cardRef.current || isAnimating) return
     setIsAnimating(true)
 
@@ -167,10 +203,14 @@ const HomePage = () => {
     cardRef.current.style.opacity = '0'
     cardRef.current.style.boxShadow = ''
 
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
-        saveSwipe(currentStartup.id, 'pass')
-      } catch (e) { }
+        await passStartup(currentStartup.id)
+        console.log('Startup passed successfully')
+      } catch (error) {
+        console.error('Error passing startup:', error)
+        // You can show a toast notification here
+      }
 
       setCurrentCardIndex(prev => prev + 1)
       setIsAnimating(false)
@@ -262,6 +302,41 @@ const HomePage = () => {
 
   // Get current startup
   const currentStartup = startups[currentCardIndex]
+
+  // Show empty state if no startups
+  if (startups.length === 0) {
+    return (
+      <div className="screen active">
+        <div className="header">
+          <button className="header-btn" onClick={() => navigate('/filters')}>
+            <i className="fas fa-filter"></i>
+          </button>
+          <h1 className="header-title text-3xl font-bold animate-super-gradient">
+            Swipy
+          </h1>
+          <button className="header-btn" onClick={() => navigate('/saved')}>
+            <i className="fas fa-bookmark"></i>
+          </button>
+        </div>
+
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-rocket text-3xl text-white"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary mb-4">No Startups Available</h2>
+            <p className="text-text-secondary mb-8">Startups will appear here once they are created by founders.</p>
+            <button
+              className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+              onClick={() => navigate('/add')}
+            >
+              Create First Startup
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="screen active">
@@ -403,16 +478,16 @@ const HomePage = () => {
                 if (Math.abs(deltaX) > 80) {
                   // Horizontal swipe - like/pass with animation
                   if (deltaX > 0) {
-                                          // Swipe right - like
+                    // Swipe right - like
                     handleSwipeWithFlip('like')
                   } else {
-                                          // Swipe left - pass
+                    // Swipe left - pass
                     handleSwipeWithFlip('pass')
                   }
                 } else if (Math.abs(deltaY) > 100) {
                   // Vertical swipe down - go to details with animation
                   if (deltaY > 0) {
-                                          // Swipe down - go to details
+                    // Swipe down - go to details
                     cardContainer.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
                     cardContainer.style.transform = 'translateY(100vh) rotate(10deg) scale(0.8)'
                     cardContainer.style.opacity = '0'

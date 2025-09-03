@@ -1,24 +1,61 @@
 import { useState, useEffect, useCallback } from 'react'
 import { startupService, swipeService, chatService, profileService } from '../services/index.js'
+import { useFilters } from '../context/FiltersContext'
 
 // Hook for working with startups
 export const useStartups = () => {
     const [startups, setStartups] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const { filters } = useFilters()
 
     const fetchStartups = useCallback(async () => {
         try {
             setLoading(true)
             setError(null)
-            const data = await startupService.getAllStartups()
+            let data = await startupService.getAllStartups()
+
+            // Apply filters if any are active
+            if (filters && Object.values(filters).some(value =>
+                Array.isArray(value) ? value.length > 0 : value !== ''
+            )) {
+                data = data.filter(startup => {
+                    // Filter by industry
+                    if (filters.industries.length > 0 && !filters.industries.includes(startup.industry)) {
+                        return false
+                    }
+
+                    // Filter by stage
+                    if (filters.stages.length > 0 && !filters.stages.includes(startup.stage)) {
+                        return false
+                    }
+
+                    // Filter by location
+                    if (filters.locations.length > 0 && !filters.locations.includes(startup.location)) {
+                        return false
+                    }
+
+                    // Filter by team size
+                    if (filters.teamSize && startup.team_size !== filters.teamSize) {
+                        return false
+                    }
+
+                    // Filter by funding
+                    if (filters.funding && startup.funding_round !== filters.funding) {
+                        return false
+                    }
+
+                    return true
+                })
+            }
+
             setStartups(data)
         } catch (err) {
             setError(err.message)
         } finally {
             setLoading(false)
         }
-    }, [])
+    }, [filters])
 
     const createStartup = useCallback(async (startupData) => {
         try {

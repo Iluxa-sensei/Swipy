@@ -6,7 +6,7 @@ const FiltersPage = () => {
   const navigate = useNavigate()
   const {
     filters,
-    toggleCategory,
+    toggleIndustry,
     toggleStage,
     toggleLocation,
     setTeamSize,
@@ -20,10 +20,10 @@ const FiltersPage = () => {
 
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeTab, setActiveTab] = useState('categories')
+  const [activeTab, setActiveTab] = useState('industries')
   const [showPresets, setShowPresets] = useState(false)
 
-  const categories = [
+  const industries = [
     "AI/ML", "FinTech", "HealthTech", "EdTech", "Sustainability",
     "E-commerce", "Gaming", "Enterprise", "Mobile", "Web3"
   ]
@@ -51,56 +51,7 @@ const FiltersPage = () => {
 
 
   // Filter presets
-  const filterPresets = [
-    {
-      name: "Early Stage",
-      description: "Startups in idea and MVP stage",
-      filters: {
-        categories: [],
-        stages: ["Idea", "MVP"],
-        locations: [],
-        teamSize: "",
-        funding: "",
-        investmentRequired: ""
-      }
-    },
-    {
-      name: "Tech Focus",
-      description: "AI/ML and FinTech startups",
-      filters: {
-        categories: ["AI/ML", "FinTech"],
-        stages: [],
-        locations: [],
-        teamSize: "",
-        funding: "",
-        investmentRequired: ""
-      }
-    },
-    {
-      name: "Remote First",
-      description: "Remote-friendly opportunities",
-      filters: {
-        categories: [],
-        stages: [],
-        locations: ["Remote"],
-        teamSize: "",
-        funding: "",
-        investmentRequired: ""
-      }
-    },
-    {
-      name: "European Startups",
-      description: "Startups based in Europe",
-      filters: {
-        categories: [],
-        stages: [],
-        locations: ["Europe"],
-        teamSize: "",
-        funding: "",
-        investmentRequired: ""
-      }
-    }
-  ]
+  const filterPresets = []
 
   const applyFilters = () => {
     // Filters are already applied through context
@@ -133,7 +84,7 @@ const FiltersPage = () => {
   }
 
   const tabs = [
-    { id: 'categories', label: 'Categories', icon: 'fas fa-tags' },
+    { id: 'industries', label: 'Industries', icon: 'fas fa-tags' },
     { id: 'stages', label: 'Stages', icon: 'fas fa-chart-line' },
     { id: 'locations', label: 'Locations', icon: 'fas fa-map-marker-alt' },
     { id: 'other', label: 'Other', icon: 'fas fa-cog' }
@@ -255,21 +206,21 @@ const FiltersPage = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-20">
-        {/* Categories Tab */}
-        {activeTab === 'categories' && (
+        {/* Industries Tab */}
+        {activeTab === 'industries' && (
           <div className="p-6 animate-fade-in">
-            <h3 className="text-lg font-semibold text-text-primary mb-4">Categories</h3>
+            <h3 className="text-lg font-semibold text-text-primary mb-4">Industries</h3>
             <div className="grid grid-cols-2 gap-3">
-              {getFilteredItems(categories).map((category) => (
+              {getFilteredItems(industries).map((industry) => (
                 <button
-                  key={category}
-                  className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${filters.categories.includes(category)
+                  key={industry}
+                  className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${filters.industries.includes(industry)
                     ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
                     : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                     }`}
-                  onClick={() => toggleCategory(category)}
+                  onClick={() => toggleIndustry(industry)}
                 >
-                  {category}
+                  {industry}
                 </button>
               ))}
             </div>

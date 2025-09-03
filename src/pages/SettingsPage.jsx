@@ -1,10 +1,11 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { clearSwipes } from '../data/swipes'
-import { supabase } from '../services/supabaseClient.js'
+import { useAuth } from '../hooks'
+import { authService, swipeService } from '../services'
 
 const SettingsPage = () => {
     const navigate = useNavigate()
+    const { user } = useAuth()
 
     const clearProfile = () => {
         if (window.confirm('Are you sure you want to clear your saved profile data? This action cannot be undone.')) {
@@ -45,10 +46,32 @@ const SettingsPage = () => {
         }
     }
 
+    const clearSwipes = async () => {
+        if (!user?.id) return
+
+        if (window.confirm('Clear all your likes and passes? This action cannot be undone.')) {
+            try {
+                // Get all swipes and remove them
+                const { likes, passes } = await swipeService.getUserLikes(user.id)
+                const allSwipes = [...likes, ...passes]
+
+                await Promise.all(allSwipes.map(swipe =>
+                    swipeService.removeSwipe(user.id, swipe.startup_id)
+                ))
+
+                alert('All swipes cleared successfully')
+                navigate('/saved')
+            } catch (error) {
+                console.error('Error clearing swipes:', error)
+                alert('Failed to clear swipes. Please try again.')
+            }
+        }
+    }
+
     const signOut = async () => {
         if (window.confirm('Are you sure you want to sign out?')) {
             try {
-                await supabase.auth.signOut()
+                await authService.signOut()
                 // Clear sensitive data on sign out
                 try {
                     localStorage.removeItem('profile_data')
@@ -95,12 +118,7 @@ const SettingsPage = () => {
 
                 <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
                     <h3 className="text-text-primary font-semibold mb-2">Discover</h3>
-                    <button className="btn-secondary w-full" onClick={() => {
-                        if (window.confirm('Clear all your likes and passes? This action cannot be undone.')) {
-                            clearSwipes()
-                            navigate('/saved')
-                        }
-                    }}>
+                    <button className="btn-secondary w-full" onClick={clearSwipes}>
                         <i className="fas fa-undo"></i>
                         Clear Likes/Passes
                     </button>

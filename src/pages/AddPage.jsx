@@ -1,13 +1,17 @@
 import React, { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks'
+import { startupService } from '../services'
 import CustomDropdown from '../components/CustomDropdown'
 
 const AddPage = () => {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [showPreview, setShowPreview] = useState(false)
   const [previewFlipped, setPreviewFlipped] = useState(false)
   const [customCategory, setCustomCategory] = useState('')
   const [showCustomCategory, setShowCustomCategory] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const fileInputRef = useRef(null)
 
 
@@ -502,50 +506,55 @@ const AddPage = () => {
         <div className="p-6 border-t border-glass-border bg-bg-primary/80 backdrop-blur-sm sticky bottom-0">
           <button
             className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white w-full hover:scale-[1.02] transition-transform duration-300 shadow-lg shadow-blue-700/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 font-semibold rounded-2xl py-4"
-            disabled={!formData.startup.name || !formData.startup.category || formData.startup.description.length > 100 || formData.startup.name.length > 15}
-            onClick={() => {
-              // Simple validation and saving
-              console.log('Startup data:', formData.startup)
-
-              // Save startup to user profile
-              const profileData = localStorage.getItem('profile_data')
-              const currentProfile = profileData ? JSON.parse(profileData) : {}
-
-              // Create startup object
-              const newStartup = {
-                id: Date.now(),
-                name: formData.startup.name,
-                category: formData.startup.category,
-                description: formData.startup.description,
-                stage: formData.startup.stage,
-                funding: formData.startup.fundingAmount,
-                teamSize: formData.startup.teamSize,
-                location: formData.startup.location,
-                website: formData.startup.website,
-                gradient: formData.startup.gradient,
-                image: formData.startup.image,
-                investmentRequired: formData.startup.investmentRequired,
-                createdAt: new Date().toISOString()
+            disabled={!formData.startup.name || !formData.startup.category || formData.startup.description.length > 100 || formData.startup.name.length > 15 || isSubmitting}
+            onClick={async () => {
+              if (!user?.id) {
+                alert('Please sign in to create a startup')
+                return
               }
 
-              // Add startup to portfolio
-              const updatedPortfolio = [...(currentProfile.portfolio || []), newStartup]
-
-              // Update profile
-              const updatedProfile = {
-                ...currentProfile,
-                portfolio: updatedPortfolio
+              // Simple validation
+              if (!formData.startup.name || !formData.startup.category || formData.startup.description.length > 100 || formData.startup.name.length > 15) {
+                alert('Please fill in all required fields correctly')
+                return
               }
 
-              // Save updated profile
-              localStorage.setItem('profile_data', JSON.stringify(updatedProfile))
+              setIsSubmitting(true)
 
-              alert('Startup created successfully!')
-              navigate('/home')
+              try {
+                // Create startup object for Supabase
+                const newStartup = {
+                  owner_id: user.id,
+                  name: formData.startup.name,
+                  description: formData.startup.description,
+                  website: formData.startup.website,
+                  logo_url: formData.startup.image,
+                  industry: formData.startup.category,
+                  stage: formData.startup.stage,
+                  funding_round: formData.startup.fundingAmount,
+                  team_size: formData.startup.teamSize,
+                  location: formData.startup.location
+                }
+
+                // Save startup to Supabase
+                const { data, error } = await startupService.createStartup(newStartup)
+
+                if (error) {
+                  throw new Error(error.message)
+                }
+
+                alert('Startup created successfully!')
+                navigate('/home')
+              } catch (error) {
+                console.error('Error creating startup:', error)
+                alert(`Failed to create startup: ${error.message}`)
+              } finally {
+                setIsSubmitting(false)
+              }
             }}
           >
-            <i className="fas fa-save mr-2"></i>
-            Create Startup
+            <i className={`fas ${isSubmitting ? 'fa-spinner fa-spin' : 'fa-save'} mr-2`}></i>
+            {isSubmitting ? 'Creating...' : 'Create Startup'}
           </button>
         </div>
       </div>

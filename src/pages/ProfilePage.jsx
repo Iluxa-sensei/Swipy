@@ -1,57 +1,48 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth, useProfile } from '../hooks'
 
 const ProfilePage = () => {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const { profile, loading: profileLoading, error: profileError } = useProfile(user?.id)
   const [activeTab, setActiveTab] = useState('profile')
   const [isOnline, setIsOnline] = useState(true)
-  const [profileLoading, setProfileLoading] = useState(true)
 
-  // Simulate profile loading
+  // If no user, redirect to login
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setProfileLoading(false)
-    }, 800)
-    return () => clearTimeout(timer)
-  }, [])
+    if (!user) {
+      navigate('/login')
+    }
+  }, [user, navigate])
 
-  const loadedProfile = localStorage.getItem('profile_data')
-    ? JSON.parse(localStorage.getItem('profile_data'))
-    : null
-
-  const hasProfile = loadedProfile && loadedProfile.name
-  const userRole = loadedProfile?.role || 'founder'
+  const hasProfile = profile && profile.full_name
+  const userRole = profile?.role || 'founder'
 
   const userProfile = hasProfile ? {
-    name: loadedProfile.name,
-    username: loadedProfile.username || 'user',
-    title: loadedProfile.title,
-    avatar: loadedProfile.name?.charAt(0)?.toUpperCase() + (loadedProfile.name?.split(' ')[1]?.charAt(0)?.toUpperCase() || ''),
-    location: loadedProfile.location,
-    experience: loadedProfile.experience,
-    skills: loadedProfile.skills || [],
-    bio: loadedProfile.bio,
-    socials: loadedProfile.socials || {},
-    avatarUrl: loadedProfile.avatar || null,
-    portfolio: loadedProfile.portfolio || [],
-    certifications: loadedProfile.certifications || [],
-    achievements: [
-      { title: "Profile Pro", description: "Complete profile setup", icon: "fas fa-trophy", unlocked: true },
-      { title: "First Match", description: "Matched with your first startup", icon: "fas fa-heart", unlocked: false },
-      { title: "Active User", description: "7 days in a row", icon: "fas fa-fire", unlocked: false },
-      { title: "Portfolio Master", description: "Added 5+ portfolio projects", icon: "fas fa-briefcase", unlocked: false },
-      { title: "Social Star", description: "100+ profile views", icon: "fas fa-star", unlocked: false }
-    ],
-    responseTime: loadedProfile.responseTime,
-    hourlyRate: loadedProfile.hourlyRate,
-    availability: loadedProfile.availability || "Available"
+    name: profile.full_name,
+    username: profile.full_name?.toLowerCase().replace(/\s+/g, '_') || 'user',
+    title: profile.title || 'Founder',
+    avatar: profile.full_name?.charAt(0)?.toUpperCase() + (profile.full_name?.split(' ')[1]?.charAt(0)?.toUpperCase() || ''),
+    location: profile.location,
+    experience: profile.experience || '0 years',
+    skills: profile.skills || [],
+    bio: profile.bio,
+    socials: profile.socials || {},
+    avatarUrl: profile.avatar_url || null,
+    portfolio: profile.portfolio || [],
+    certifications: profile.certifications || [],
+    achievements: [],
+    responseTime: profile.response_time || '24h',
+    hourlyRate: profile.hourly_rate || '0',
+    availability: profile.availability || "Available"
   } : null
 
   const stats = [
-    { label: "Profile Views", value: "47", icon: "fas fa-eye" },
-    { label: "Matches", value: "12", icon: "fas fa-heart" },
-    { label: "Applications", value: "8", icon: "fas fa-paper-plane" },
-    { label: "Days Active", value: "14", icon: "fas fa-calendar" }
+    { label: "Profile Views", value: profile?.profile_views || "0", icon: "fas fa-eye" },
+    { label: "Matches", value: profile?.matches || "0", icon: "fas fa-heart" },
+    { label: "Applications", value: profile?.applications || "0", icon: "fas fa-paper-plane" },
+    { label: "Days Active", value: profile?.days_active || "0", icon: "fas fa-calendar" }
   ]
 
   if (profileLoading) {
@@ -68,6 +59,45 @@ const ProfilePage = () => {
               <i className="fas fa-user text-3xl text-white"></i>
             </div>
             <div className="text-text-secondary">Loading profile...</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (profileError) {
+    return (
+      <div className="screen active">
+        <div className="header">
+          <button className="header-btn" onClick={() => navigate('/home')}>
+            <i className="fas fa-arrow-left"></i>
+          </button>
+          <h1>Profile</h1>
+          <div className="w-10"></div>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center px-6">
+          <div className="text-center max-w-md">
+            <div className="w-32 h-32 bg-gradient-to-br from-red-300 to-red-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
+              <i className="fas fa-exclamation-triangle text-5xl text-white"></i>
+            </div>
+
+            <h2 className="text-3xl font-bold text-text-primary mb-4">
+              Error Loading Profile
+            </h2>
+
+            <p className="text-text-secondary text-lg leading-relaxed mb-8">
+              {profileError}
+            </p>
+
+            <button
+              className="btn-primary w-full text-lg py-4 hover:scale-105 transition-all duration-300 shadow-lg shadow-accent-primary/30"
+              onClick={() => window.location.reload()}
+            >
+              <i className="fas fa-refresh mr-2"></i>
+              Retry
+            </button>
           </div>
         </div>
       </div>

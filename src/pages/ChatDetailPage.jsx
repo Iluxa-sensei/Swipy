@@ -1,21 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getChatById, formatMessageTime, formatMessageDate } from '../data/chats';
+import { useAuth } from '../hooks';
+import { chatService, profileService } from '../services';
+import { formatMessageTime, formatDate } from '../utils/dateUtils';
 
 const ChatDetailPage = () => {
   const { chatId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+
   const [chat, setChat] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [participants, setParticipants] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState([]);
   const [showMessageActions, setShowMessageActions] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -23,157 +27,129 @@ const ChatDetailPage = () => {
   const [confirmAction, setConfirmAction] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [currentAudio, setCurrentAudio] = useState(null);
-  const [audioProgress, setAudioProgress] = useState(0);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [recordingInterval, setRecordingInterval] = useState(null);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [recordedChunks, setRecordedChunks] = useState([]);
+
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
-  const audioRef = useRef(null);
 
   // Emoji list for picker
-  const emojis = ['😀', '😂', '😍', '🤔', '👍', '👎', '❤️', '🔥', '💯', '😎', '🙌', '👏', '💪', '🚀', '🎉', '✨'];
+  const emojis = ['👍', '👎', '❤️', '🔥', '💯', '😎', '🙌', '👏', '💪', '🚀', '🎉', '✨'];
 
   // Load chat data
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const chatData = getChatById(chatId);
-      if (chatData) {
-        // Add additional properties to messages
-        const enhancedChat = {
-          ...chatData,
-          messages: chatData.messages.map((msg, index) => ({
-            ...msg,
-            reactions: index % 3 === 0 ? [{ emoji: '👍', users: ['user1'], count: 1 }] : [],
-            isRead: msg.sender === 'user' ? true : Math.random() > 0.3,
-            status: msg.sender === 'user' ? (Math.random() > 0.5 ? 'delivered' : 'read') : null
-          }))
-        };
-        setChat(enhancedChat);
-      } else {
-        navigate('/chat');
+    const loadChat = async () => {
+      if (!chatId || !user?.id) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Get chat info and participants
+        const chatInfo = await chatService.getChatInfo(chatId);
+        const chatMessages = await chatService.getChatMessages(chatId);
+
+        if (!chatInfo) {
+          navigate('/chat');
+          return;
+        }
+
+        // Get participant profiles
+        const participantProfiles = await Promise.all(
+          chatInfo.participants.map(async (participantId) => {
+            if (participantId === user.id) {
+              return { id: user.id, full_name: user.user_metadata?.full_name || 'You' };
+            }
+            const profile = await profileService.getProfile(participantId);
+            return profile || { id: participantId, full_name: 'Unknown User' };
+          })
+        );
+
+        setChat(chatInfo);
+        setMessages(chatMessages);
+        setParticipants(participantProfiles);
+
+      } catch (err) {
+        console.error('Error loading chat:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 500);
+    };
 
-    return () => clearTimeout(timer);
-  }, [chatId, navigate]);
-
-  // Simulate typing
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsTyping(prev => Math.random() > 0.8 ? !prev : prev);
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
+    loadChat();
+  }, [chatId, user?.id, navigate]);
 
   // Scroll to last message
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [chat]);
-
-  // Clean up audio on unmount
-  useEffect(() => {
-    return () => {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-      }
-      if (recordingInterval) {
-        clearInterval(recordingInterval);
-      }
-      if (mediaRecorder && mediaRecorder.state === 'recording') {
-        mediaRecorder.stop();
-      }
-      setAudioProgress(0);
-      setRecordingTime(0);
-    };
-  }, [currentAudio, recordingInterval, mediaRecorder]);
+  }, [messages]);
 
   // Handle message sending
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
+    if (!newMessage.trim() || !user?.id || !chatId) return;
 
-    if (!newMessage.trim()) return;
+    try {
+      setSending(true);
 
-    // Create new message
-    const newMessageObj = {
-      id: chat.messages.length + 1,
-      text: newMessage,
-      timestamp: new Date().toISOString(),
-      sender: 'user',
-      reactions: [],
-      isRead: false,
-      status: 'sending'
-    };
+      // Send message to Supabase
+      const message = await chatService.sendMessage(chatId, user.id, newMessage.trim());
 
-    // Update chat with new message
-    setChat({
-      ...chat,
-      messages: [...chat.messages, newMessageObj]
-    });
+      // Add message to local state
+      setMessages(prev => [...prev, message]);
+      setNewMessage('');
 
-    // Clear input field
-    setNewMessage('');
-
-    // Simulate delivery
-    setTimeout(() => {
-      setChat(prev => ({
-        ...prev,
-        messages: prev.messages.map(msg =>
-          msg.id === newMessageObj.id
-            ? { ...msg, status: 'delivered' }
-            : msg
-        )
-      }));
-    }, 1000);
-
-    // Simulate reading
-    setTimeout(() => {
-      setChat(prev => ({
-        ...prev,
-        messages: prev.messages.map(msg =>
-          msg.id === newMessageObj.id
-            ? { ...msg, status: 'read' }
-            : msg
-        )
-      }));
-    }, 3000);
-  };
-
-  // Add reaction
-  const addReaction = (messageId, emoji) => {
-    setChat(prev => ({
-      ...prev,
-      messages: prev.messages.map(msg => {
-        if (msg.id === messageId) {
-          const existingReaction = msg.reactions.find(r => r.emoji === emoji);
-          if (existingReaction) {
-            // Toggle reaction
-            return {
-              ...msg,
-              reactions: msg.reactions.filter(r => r.emoji !== emoji)
-            };
-          } else {
-            // Add reaction
-            return {
-              ...msg,
-              reactions: [...msg.reactions, { emoji, users: ['current-user'], count: 1 }]
-            };
-          }
+      // Scroll to bottom
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-        return msg;
-      })
-    }));
+      }, 100);
+
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setError('Failed to send message. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
-  // Select message
-  const toggleMessageSelection = (messageId) => {
+  // Handle file upload
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !user?.id || !chatId) return;
+
+    try {
+      setSending(true);
+
+      // For now, we'll just send a text message about the file
+      // In a real app, you'd upload to Supabase Storage first
+      const message = await chatService.sendMessage(
+        chatId,
+        user.id,
+        `📎 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
+      );
+
+      setMessages(prev => [...prev, message]);
+
+    } catch (err) {
+      console.error('Error uploading file:', err);
+      setError('Failed to upload file. Please try again.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Handle emoji reaction
+  const handleEmojiReaction = (emoji) => {
+    setShowEmojiPicker(false);
+    // In a real app, you'd save reactions to Supabase
+    console.log('Emoji reaction:', emoji);
+  };
+
+  // Handle message selection
+  const handleMessageSelect = (messageId) => {
     setSelectedMessages(prev =>
       prev.includes(messageId)
         ? prev.filter(id => id !== messageId)
@@ -181,299 +157,76 @@ const ChatDetailPage = () => {
     );
   };
 
-  // Show success message
-  const showSuccess = (message) => {
-    setSuccessMessage(message);
-    setShowSuccessModal(true);
-    setTimeout(() => setShowSuccessModal(false), 2000);
-  };
+  // Handle message actions
+  const handleMessageAction = (action) => {
+    if (selectedMessages.length === 0) return;
 
-  // Show confirmation
-  const showConfirm = (message, action) => {
-    setConfirmAction({ message, action });
-    setShowConfirmModal(true);
-  };
-
-  // Handle files
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Check file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      showSuccess('File too large. Maximum size: 5MB');
-      return;
+    switch (action) {
+      case 'delete':
+        setConfirmAction({ type: 'delete', message: 'Delete selected messages?' });
+        setShowConfirmModal(true);
+        break;
+      case 'copy':
+        const selectedText = messages
+          .filter(msg => selectedMessages.includes(msg.id))
+          .map(msg => msg.body)
+          .join('\n');
+        navigator.clipboard.writeText(selectedText);
+        setSuccessMessage('Messages copied to clipboard');
+        setShowSuccessModal(true);
+        break;
+      default:
+        break;
     }
-
-    // Create URL for file
-    const fileUrl = URL.createObjectURL(file);
-
-    const fileMessage = {
-      id: chat.messages.length + 1,
-      text: file.type.startsWith('image/') ? '' : `📎 ${file.name}`,
-      timestamp: new Date().toISOString(),
-      sender: 'user',
-      reactions: [],
-      isRead: false,
-      status: 'sending',
-      fileType: file.type.startsWith('image/') ? 'image' : 'file',
-      fileName: file.name,
-      fileSize: (file.size / 1024).toFixed(1) + ' KB',
-      fileUrl: fileUrl
-    };
-
-    setChat(prev => ({
-      ...prev,
-      messages: [...prev.messages, fileMessage]
-    }));
-
-    // Simulate upload
-    setTimeout(() => {
-      setChat(prev => ({
-        ...prev,
-        messages: prev.messages.map(msg =>
-          msg.id === fileMessage.id
-            ? { ...msg, status: 'delivered' }
-            : msg
-        )
-      }));
-    }, 1500);
+    setShowMessageActions(false);
+    setSelectedMessages([]);
   };
 
-  // Check microphone permissions
-  const checkMicrophonePermission = async () => {
+  // Confirm action
+  const handleConfirmAction = async () => {
+    if (!confirmAction) return;
+
     try {
-      const result = await navigator.permissions.query({ name: 'microphone' });
-      return result.state;
-    } catch (error) {
-      console.warn('Permission API not supported, trying direct access');
-      return 'unknown';
-    }
-  };
-
-  // Handle voice message
-  const handleVoiceRecord = async () => {
-    if (isRecording) {
-      // Stop recording
-      stopRecording();
-    } else {
-      // Check permissions before starting recording
-      const permission = await checkMicrophonePermission();
-
-      if (permission === 'denied') {
-        alert('Microphone access is denied. Please enable it in your browser settings.');
-        return;
+      if (confirmAction.type === 'delete') {
+        // In a real app, you'd delete messages from Supabase
+        setMessages(prev => prev.filter(msg => !selectedMessages.includes(msg.id)));
+        setSuccessMessage('Messages deleted successfully');
+        setShowSuccessModal(true);
       }
-
-      // Start recording
-      startRecording();
+    } catch (err) {
+      console.error('Error performing action:', err);
+      setError('Failed to perform action. Please try again.');
+    } finally {
+      setShowConfirmModal(false);
+      setConfirmAction(null);
+      setSelectedMessages([]);
     }
   };
 
-  // Start recording
-  const startRecording = async () => {
-    try {
-      // Check MediaDevices support
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('MediaDevices API not supported');
-      }
-
-      // Request microphone access permission
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      });
-
-      const recorder = new MediaRecorder(stream, {
-        mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
-      });
-
-      const chunks = [];
-
-      recorder.ondataavailable = (e) => {
-        console.log('Data available:', e.data.size, 'bytes');
-        if (e.data.size > 0) {
-          chunks.push(e.data);
-        }
-      };
-
-      recorder.onstop = () => {
-        console.log('Recording stopped, processing data...');
-        console.log('Chunks length:', chunks.length);
-
-        if (chunks.length === 0) {
-          console.error('No audio data recorded');
-          alert('No audio data recorded. Please try again.');
-          return;
-        }
-
-        const blob = new Blob(chunks, { type: recorder.mimeType });
-        console.log('Blob size:', blob.size, 'bytes');
-
-        if (blob.size === 0) {
-          console.error('Empty audio blob');
-          alert('Recording failed. Please try again.');
-          return;
-        }
-
-        const audioUrl = URL.createObjectURL(blob);
-        console.log('Audio URL created:', audioUrl);
-
-        // Get current recording time
-        const finalRecordingTime = recordingTime;
-
-        // Create voice message
-        const voiceMessage = {
-          id: chat.messages.length + 1,
-          text: '',
-          timestamp: new Date().toISOString(),
-          sender: 'user',
-          reactions: [],
-          isRead: false,
-          status: 'delivered',
-          fileType: 'voice',
-          fileUrl: audioUrl,
-          duration: formatTime(finalRecordingTime),
-          isPlaying: false
-        };
-
-        console.log('Voice message created:', voiceMessage);
-
-        setChat(prev => ({
-          ...prev,
-          messages: [...prev.messages, voiceMessage]
-        }));
-
-        // Stop all tracks
-        stream.getTracks().forEach(track => {
-          console.log('Stopping track in onstop:', track.kind);
-          track.stop();
-        });
-      };
-
-      recorder.onerror = (event) => {
-        console.error('MediaRecorder error:', event.error);
-        alert('Recording failed. Please try again.');
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      recorder.onstart = () => {
-        console.log('Recording started');
-      };
-
-      recorder.onpause = () => {
-        console.log('Recording paused');
-      };
-
-      recorder.onresume = () => {
-        console.log('Recording resumed');
-      };
-
-      setMediaRecorder(recorder);
-      setRecordedChunks(chunks);
-      setIsRecording(true);
-      setRecordingTime(0);
-
-      // Start recording timer
-      const interval = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
-      setRecordingInterval(interval);
-
-      recorder.start();
-    } catch (error) {
-      console.error('Error starting recording:', error);
-
-      if (error.name === 'NotAllowedError') {
-        alert('Microphone access denied. Please allow microphone access in your browser settings and try again.');
-      } else if (error.name === 'NotFoundError') {
-        alert('No microphone found. Please connect a microphone and try again.');
-      } else if (error.name === 'NotSupportedError') {
-        alert('Recording is not supported in this browser. Please use a modern browser.');
-      } else {
-        alert('Failed to access microphone. Please check your browser settings and try again.');
-      }
-    }
-  };
-
-  // Stop recording
-  const stopRecording = () => {
-    console.log('Stopping recording...');
-
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      console.log('MediaRecorder state:', mediaRecorder.state);
-      mediaRecorder.stop();
-    }
-
-    if (recordingInterval) {
-      clearInterval(recordingInterval);
-      setRecordingInterval(null);
-    }
-
-    // Stop all stream tracks
-    if (mediaRecorder && mediaRecorder.stream) {
-      mediaRecorder.stream.getTracks().forEach(track => {
-        console.log('Stopping track:', track.kind);
-        track.stop();
-      });
-    }
-
-    setIsRecording(false);
-    setRecordingTime(0);
-  };
-
-  // Cancel recording
-  const cancelRecording = () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      mediaRecorder.stop();
-    }
-
-    if (recordingInterval) {
-      clearInterval(recordingInterval);
-      setRecordingInterval(null);
-    }
-
-    setIsRecording(false);
-    setRecordingTime(0);
-    setRecordedChunks([]);
-  };
-
-  // Time formatting
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Search in chat
-  const handleSearchInChat = () => {
-    setShowSearchModal(true);
-  };
-
-  // Execute search
-  const performSearch = () => {
+  // Search messages
+  const searchMessages = () => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
       return;
     }
 
-    const foundMessages = chat.messages.filter(msg =>
-      msg.text.toLowerCase().includes(searchQuery.toLowerCase())
-    ).map(msg => ({
-      ...msg,
-      highlightedText: msg.text.replace(
-        new RegExp(searchQuery, 'gi'),
-        match => `<mark class="bg-yellow-300 text-black">${match}</mark>`
-      )
-    }));
-
-    setSearchResults(foundMessages);
+    const results = messages.filter(msg =>
+      msg.body.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setSearchResults(results);
   };
 
-  // Scroll to message
+  // Get other participant (not current user)
+  const otherParticipant = participants.find(p => p.id !== user?.id);
+
+  // Copy message function
+  const copyMessage = (message) => {
+    navigator.clipboard.writeText(message.body || '');
+    setSuccessMessage('Message copied to clipboard');
+    setShowSuccessModal(true);
+  };
+
+  // Scroll to message function
   const scrollToMessage = (messageId) => {
     const element = document.getElementById(`message-${messageId}`);
     if (element) {
@@ -484,150 +237,10 @@ const ChatDetailPage = () => {
     }
   };
 
-  // Disable notifications
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-    showSuccess(isMuted ? '🔔 Notifications enabled' : '🔕 Notifications disabled');
-  };
-
-  // Add to favorites
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    showSuccess(isFavorite ? 'Removed from favorites' : 'Added to favorites');
-  };
-
-  // Archive chat
-  const archiveChat = () => {
-    showConfirm('Archive this chat?', () => {
-      // Save to localStorage
-      const archivedChats = JSON.parse(localStorage.getItem('archivedChats') || '[]');
-      archivedChats.push({ ...chat, archivedAt: new Date().toISOString() });
-      localStorage.setItem('archivedChats', JSON.stringify(archivedChats));
-
-      showSuccess('📁 Chat archived');
-      setTimeout(() => navigate('/chat'), 1000);
-    });
-  };
-
-  // Play voice message
-  const toggleVoicePlayback = (messageId) => {
-    const message = chat.messages.find(msg => msg.id === messageId);
-    if (!message || message.fileType !== 'voice') return;
-
-    // Stop current playback
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-      setCurrentAudio(null);
-      setAudioProgress(0);
-    }
-
-    setChat(prev => ({
-      ...prev,
-      messages: prev.messages.map(msg => ({
-        ...msg,
-        isPlaying: msg.id === messageId ? !msg.isPlaying : false
-      }))
-    }));
-
-    const isPlaying = !message.isPlaying;
-
-    if (isPlaying && message.fileUrl) {
-      const audio = new Audio(message.fileUrl);
-      audio.volume = 0.7;
-
-      audio.addEventListener('loadedmetadata', () => {
-        setCurrentAudio(audio);
-        setAudioProgress(0);
-      });
-
-      audio.addEventListener('timeupdate', () => {
-        if (audio.duration > 0) {
-          setAudioProgress((audio.currentTime / audio.duration) * 100);
-        }
-      });
-
-      audio.addEventListener('ended', () => {
-        setChat(prev => ({
-          ...prev,
-          messages: prev.messages.map(msg => ({
-            ...msg,
-            isPlaying: false
-          }))
-        }));
-        setCurrentAudio(null);
-        setAudioProgress(0);
-      });
-
-      audio.play().catch(error => {
-        console.error('Audio play failed:', error);
-        setChat(prev => ({
-          ...prev,
-          messages: prev.messages.map(msg => ({
-            ...msg,
-            isPlaying: false
-          }))
-        }));
-      });
-    }
-  };
-
-  // Handle audio position change
-  const handleAudioSeek = (messageId, newProgress) => {
-    const message = chat.messages.find(msg => msg.id === messageId);
-    if (!message || !currentAudio) return;
-
-    const newTime = (newProgress / 100) * currentAudio.duration;
-    currentAudio.currentTime = newTime;
-    setAudioProgress(newProgress);
-  };
-
-  // Delete chat
-  const deleteChat = () => {
-    showConfirm('Delete this chat? This action cannot be undone.', () => {
-      showSuccess('Chat deleted');
-      setTimeout(() => navigate('/chat'), 1000);
-    });
-  };
-
-  // Copy message
-  const copyMessage = (message) => {
-    let textToCopy = message.text;
-
-    if (message.fileType === 'image') {
-      textToCopy = '📷 Image';
-    } else if (message.fileType === 'voice') {
-      textToCopy = '🎤 Voice message';
-    } else if (message.fileType === 'file') {
-      textToCopy = `📎 ${message.fileName}`;
-    }
-
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      showSuccess('📋 Message copied');
-    });
-  };
-
-  // Group messages by date
-  const groupMessagesByDate = (messages) => {
-    const groups = {};
-
-    messages.forEach(message => {
-      const date = formatMessageDate(message.timestamp);
-      if (!groups[date]) {
-        groups[date] = [];
-      }
-      groups[date].push(message);
-    });
-
-    return Object.entries(groups).map(([date, messages]) => ({
-      date,
-      messages
-    }));
-  };
-
+  // Show loading state
   if (loading) {
     return (
-      <div className="screen active flex flex-col">
+      <div className="screen active">
         <div className="header">
           <button className="header-btn" onClick={() => navigate('/chat')}>
             <i className="fas fa-arrow-left"></i>
@@ -636,35 +249,77 @@ const ChatDetailPage = () => {
           <div className="w-10"></div>
         </div>
         <div className="flex-1 flex items-center justify-center">
-          <div className="animate-pulse">
-            <i className="fas fa-spinner fa-spin text-4xl text-blue-400"></i>
+          <div className="text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
+              <i className="fas fa-spinner fa-spin text-3xl text-white"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary mb-4">Loading Chat</h2>
+            <p className="text-text-secondary">Please wait...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!chat) {
+  // Show error state
+  if (error) {
     return (
-      <div className="screen active flex flex-col">
+      <div className="screen active">
         <div className="header">
           <button className="header-btn" onClick={() => navigate('/chat')}>
             <i className="fas fa-arrow-left"></i>
           </button>
-          <h1>Chat not found</h1>
+          <h1>Error</h1>
           <div className="w-10"></div>
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <i className="fas fa-exclamation-circle text-4xl text-red-500 mb-4"></i>
-            <p className="text-text-secondary">Chat not found or has been deleted</p>
+            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Chat</h2>
+            <p className="text-text-secondary mb-6">{error}</p>
+            <button
+              className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  const messageGroups = groupMessagesByDate(chat.messages);
+  // Show chat not found
+  if (!chat) {
+    return (
+      <div className="screen active">
+        <div className="header">
+          <button className="header-btn" onClick={() => navigate('/chat')}>
+            <i className="fas fa-arrow-left"></i>
+          </button>
+          <h1>Chat Not Found</h1>
+          <div className="w-10"></div>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary mb-4">Chat Not Found</h2>
+            <p className="text-text-secondary mb-8">The chat you're looking for doesn't exist or has been removed.</p>
+            <button
+              className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+              onClick={() => navigate('/chat')}
+            >
+              Back to Chats
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="screen active chat-detail flex flex-col h-full">
@@ -676,31 +331,19 @@ const ChatDetailPage = () => {
 
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="relative">
-            <div className={`w-12 h-12 ${chat.startup.gradient} rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300`}>
-              <span className="text-white font-bold text-lg">{chat.startup.logo}</span>
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300">
+              <span className="text-white font-bold text-lg">
+                {otherParticipant?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+              </span>
             </div>
             {/* Online status */}
-            <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-bg-primary rounded-full transition-all duration-300 ${isOnline ? 'bg-green-400 animate-pulse' : 'bg-gray-500'
-              }`}></div>
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 border-2 border-bg-primary rounded-full transition-all duration-300 bg-gray-500"></div>
           </div>
 
           <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold text-text-primary truncate">{chat.startup.name}</h1>
+            <h1 className="text-lg font-bold text-text-primary truncate">{otherParticipant?.full_name || 'Unknown User'}</h1>
             <div className="text-sm text-text-secondary">
-              {isTyping ? (
-                <div className="flex items-center gap-2 text-accent-primary">
-                  <div className="flex gap-1">
-                    <div className="w-1 h-1 bg-accent-primary rounded-full animate-bounce"></div>
-                    <div className="w-1 h-1 bg-accent-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-1 h-1 bg-accent-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                  <span>typing...</span>
-                </div>
-              ) : isOnline ? (
-                <span className="text-green-400">Online</span>
-              ) : (
-                <span>Last seen 2h ago</span>
-              )}
+              <span>Chat with {otherParticipant?.full_name || 'Unknown User'}</span>
             </div>
           </div>
         </div>
@@ -714,163 +357,120 @@ const ChatDetailPage = () => {
 
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-bg-primary to-bg-secondary">
-        {messageGroups.map((group, groupIndex) => (
-          <div key={group.date} className="mb-6">
-            {/* Date Separator */}
-            <div className="flex justify-center mb-6">
-              <div className="bg-glass-bg/80 backdrop-blur-sm border border-glass-border px-6 py-3 rounded-full text-sm text-text-secondary font-medium shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                {group.date}
-              </div>
-            </div>
+        {messages.map((message, index) => (
+          <div key={message.id} id={`message-${message.id}`} className="mb-4 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+            <div className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
+              {message.sender_id === user?.id && (
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center ml-3 flex-shrink-0 shadow-lg">
+                  <span className="text-white text-sm font-bold">YOU</span>
+                </div>
+              )}
 
-            {/* Messages */}
-            {group.messages.map((message, index) => (
-              <div key={message.id} id={`message-${message.id}`} className="mb-4 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-                <div className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {message.sender === 'startup' && (
-                    <div className={`w-10 h-10 ${chat.startup.gradient} rounded-full flex items-center justify-center mr-3 flex-shrink-0 shadow-lg`}>
-                      <span className="text-white text-sm font-bold">{chat.startup.logo}</span>
+              <div className="max-w-[75%] group">
+                {/* Message Bubble */}
+                <div
+                  className={`relative px-4 py-3 rounded-2xl shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer hover:shadow-2xl ${message.sender_id === user?.id
+                    ? 'bg-gradient-primary text-white rounded-tr-md shadow-accent-primary/20'
+                    : 'bg-bg-secondary/80 border border-glass-border text-text-primary rounded-tl-md hover:bg-bg-secondary'
+                    } ${selectedMessages.includes(message.id) ? 'ring-2 ring-accent-primary animate-pulse' : ''}`}
+                  onClick={() => handleMessageSelect(message.id)}
+                  onDoubleClick={() => handleEmojiReaction('❤️')}
+                >
+                  {/* Image message - Not implemented yet */}
+                  {false && (
+                    <div className="mb-3">
+                      <div className="w-full h-32 bg-gray-600 rounded-xl flex items-center justify-center">
+                        <i className="fas fa-image text-white text-2xl"></i>
+                      </div>
                     </div>
                   )}
 
-                  <div className="max-w-[75%] group">
-                    {/* Message Bubble */}
-                    <div
-                      className={`relative px-4 py-3 rounded-2xl shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer hover:shadow-2xl ${message.sender === 'user'
-                        ? 'bg-gradient-primary text-white rounded-tr-md shadow-accent-primary/20'
-                        : 'bg-bg-secondary/80 border border-glass-border text-text-primary rounded-tl-md hover:bg-bg-secondary'
-                        } ${selectedMessages.includes(message.id) ? 'ring-2 ring-accent-primary animate-pulse' : ''}`}
-                      onClick={() => toggleMessageSelection(message.id)}
-                      onDoubleClick={() => addReaction(message.id, '❤️')}
-                    >
-                      {/* Image message */}
-                      {message.fileType === 'image' && message.fileUrl && (
-                        <div className="mb-3">
-                          <img
-                            src={message.fileUrl}
-                            alt="Shared image"
-                            className="max-w-full rounded-xl cursor-pointer hover:scale-105 transition-transform duration-200"
-                            onClick={() => window.open(message.fileUrl, '_blank')}
-                          />
-                        </div>
-                      )}
-
-                      {/* Voice message */}
-                      {message.fileType === 'voice' && (
-                        <div className="flex items-center gap-4 mb-2 p-4 bg-black/20 rounded-xl">
-                          <button
-                            onClick={() => toggleVoicePlayback(message.id)}
-                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${message.isPlaying
-                              ? 'bg-white text-black'
-                              : 'bg-white/20 text-white hover:bg-white/30'
-                              }`}
-                          >
-                            <i className={`fas ${message.isPlaying ? 'fa-pause' : 'fa-play'}`}></i>
-                          </button>
-                          <div className="flex-1">
-                            <div className="relative w-full bg-white/20 rounded-full h-2 mb-2">
-                              <div
-                                className="bg-white h-2 rounded-full transition-all duration-300"
-                                style={{
-                                  width: message.isPlaying ? `${audioProgress}%` : '0%'
-                                }}
-                              ></div>
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                value={message.isPlaying ? audioProgress : 0}
-                                onChange={(e) => handleAudioSeek(message.id, parseInt(e.target.value))}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                style={{ WebkitAppearance: 'none' }}
-                              />
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <div className="text-sm text-white/80">{message.duration}</div>
-                              <div className="text-xs text-white/60">🎤 Voice message</div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* File message */}
-                      {message.fileType === 'file' && (
-                        <div className="flex items-center gap-3 mb-2 p-3 bg-black/20 rounded-xl">
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-500/20 text-blue-400">
-                            <i className="fas fa-file"></i>
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium text-white">{message.fileName}</div>
-                            <div className="text-xs text-white/70">{message.fileSize}</div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Text message */}
-                      {message.text && (
-                        <p className="mb-2 leading-relaxed">{message.text}</p>
-                      )}
-
-                      {/* Message Footer */}
-                      <div className={`flex items-center justify-end gap-2 text-xs ${message.sender === 'user' ? 'text-white/70' : 'text-text-secondary'
-                        }`}>
-                        <span>{formatMessageTime(message.timestamp)}</span>
-                        {message.sender === 'user' && (
-                          <div className="flex items-center gap-1">
-                            {message.status === 'sending' && <i className="fas fa-clock animate-pulse"></i>}
-                            {message.status === 'delivered' && <i className="fas fa-check"></i>}
-                            {message.status === 'read' && <i className="fas fa-check-double text-blue-400"></i>}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Quick reaction buttons */}
-                      <div className="absolute -top-12 left-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1 bg-bg-secondary/95 border border-glass-border rounded-full px-2 py-1 shadow-xl z-10">
-                        {['👍', '❤️', '😂', '😮', '📋'].map((emoji) => (
-                          <button
-                            key={emoji}
-                            className="w-8 h-8 hover:bg-bg-secondary rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 text-lg"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (emoji === '📋') {
-                                copyMessage(message);
-                              } else {
-                                addReaction(message.id, emoji);
-                              }
-                            }}
-                            title={emoji === '📋' ? 'Copy message' : `React with ${emoji}`}
-                          >
-                            {emoji}
-                          </button>
-                        ))}
+                  {/* Voice message - Not implemented yet */}
+                  {false && (
+                    <div className="flex items-center gap-4 mb-2 p-4 bg-black/20 rounded-xl">
+                      <button
+                        onClick={() => {/* Voice playback not implemented yet */ }}
+                        className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 bg-white/20 text-white hover:bg-white/30"
+                      >
+                        <i className="fas fa-play"></i>
+                      </button>
+                      <div className="flex-1">
+                        <div className="text-sm text-white/80">Voice message</div>
+                        <div className="text-xs text-white/60">🎤 Tap to play</div>
                       </div>
                     </div>
+                  )}
 
-                    {/* Reactions */}
-                    {message.reactions.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2 ml-2">
-                        {message.reactions.map((reaction, reactionIndex) => (
-                          <button
-                            key={reactionIndex}
-                            className="flex items-center gap-1 bg-bg-secondary/80 border border-glass-border rounded-full px-2 py-1 text-sm hover:bg-bg-secondary transition-all duration-200"
-                            onClick={() => addReaction(message.id, reaction.emoji)}
-                          >
-                            <span>{reaction.emoji}</span>
-                            <span className="text-text-secondary">{reaction.count}</span>
-                          </button>
-                        ))}
+                  {/* File message - Not implemented yet */}
+                  {false && (
+                    <div className="flex items-center gap-3 mb-2 p-3 bg-black/20 rounded-xl">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-500/20 text-blue-400">
+                        <i className="fas fa-file"></i>
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-white">File name</div>
+                        <div className="text-xs text-white/70">File size</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Text message */}
+                  {message.body && (
+                    <p className="mb-2 leading-relaxed">{message.body}</p>
+                  )}
+
+                  {/* Message Footer */}
+                  <div className={`flex items-center justify-end gap-2 text-xs ${message.sender_id === user?.id ? 'text-white/70' : 'text-text-secondary'
+                    }`}>
+                    <span>{formatMessageTime(message.created_at)}</span>
+                    {message.sender_id === user?.id && (
+                      <div className="flex items-center gap-1">
+                        <i className="fas fa-check text-blue-400"></i>
                       </div>
                     )}
                   </div>
 
-                  {message.sender === 'user' && (
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center ml-3 flex-shrink-0 shadow-lg">
-                      <span className="text-white text-sm font-bold">YOU</span>
-                    </div>
-                  )}
+                  {/* Quick reaction buttons */}
+                  <div className="absolute -top-12 left-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1 bg-bg-secondary/95 border border-glass-border rounded-full px-2 py-1 shadow-xl z-10">
+                    {['👍', '❤️', '😂', '😮', '📋'].map((emoji) => (
+                      <button
+                        key={emoji}
+                        className="w-8 h-8 hover:bg-bg-secondary rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 text-lg"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (emoji === '📋') {
+                            navigator.clipboard.writeText(message.body || '');
+                            setSuccessMessage('Message copied to clipboard');
+                            setShowSuccessModal(true);
+                          } else {
+                            handleEmojiReaction(emoji);
+                          }
+                        }}
+                        title={emoji === '📋' ? 'Copy message' : `React with ${emoji}`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Reactions - Not implemented yet */}
+                {false && (
+                  <div className="flex flex-wrap gap-2 mt-2 ml-2">
+                    <div className="flex items-center gap-1 bg-bg-secondary/80 border border-glass-border rounded-full px-2 py-1 text-sm">
+                      <span>👍</span>
+                      <span className="text-text-secondary">1</span>
+                    </div>
+                  </div>
+                )}
               </div>
-            ))}
+
+              {message.sender_id !== user?.id && (
+                <div className="w-10 h-10 rounded-full flex items-center justify-center mr-3 flex-shrink-0 shadow-lg">
+                  <span className="text-white text-sm font-bold">{otherParticipant?.full_name}</span>
+                </div>
+              )}
+            </div>
           </div>
         ))}
 
@@ -926,7 +526,7 @@ const ChatDetailPage = () => {
 
         {/* Main Input Container */}
         <div className="bg-bg-secondary/80 border border-glass-border/50 rounded-3xl shadow-2xl overflow-hidden">
-          {isRecording ? (
+          {sending ? (
             /* Recording Interface */
             <div className="flex items-center p-4">
               <div className="flex-1 bg-red-500/20 border border-red-500/30 rounded-2xl px-4 py-3 flex items-center justify-between">
@@ -1008,17 +608,14 @@ const ChatDetailPage = () => {
                   <i className="far fa-smile text-lg"></i>
                 </button>
 
-                {/* Voice Button */}
+                {/* Voice Button - Not implemented yet */}
                 <button
                   type="button"
-                  className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ${isRecording
-                    ? 'bg-red-500 text-white animate-pulse'
-                    : 'bg-transparent hover:bg-bg-secondary/50 text-text-primary hover:text-accent-primary'
-                    }`}
-                  onClick={handleVoiceRecord}
-                  title={isRecording ? 'Stop recording' : 'Voice message'}
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 bg-transparent hover:bg-bg-secondary/50 text-text-primary hover:text-accent-primary"
+                  onClick={() => console.log('Voice recording not implemented')}
+                  title="Voice message (not implemented)"
                 >
-                  <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone'} text-lg`}></i>
+                  <i className="fas fa-microphone text-lg"></i>
                 </button>
 
                 {/* Send Button */}
@@ -1057,11 +654,11 @@ const ChatDetailPage = () => {
             <div className="w-12 h-1 bg-glass-border rounded-full mx-auto mb-4"></div>
 
             {[
-              { icon: 'fas fa-search', label: 'Search in conversation', action: handleSearchInChat },
-              { icon: `fas ${isMuted ? 'fa-bell' : 'fa-bell-slash'}`, label: `${isMuted ? 'Unmute' : 'Mute'} notifications`, action: toggleMute },
-              { icon: `fas fa-star${isFavorite ? ' text-yellow-400' : ''}`, label: `${isFavorite ? 'Remove from' : 'Add to'} favorites`, action: toggleFavorite },
-              { icon: 'fas fa-archive', label: 'Archive chat', action: archiveChat },
-              { icon: 'fas fa-trash', label: 'Delete chat', action: deleteChat, danger: true },
+              { icon: 'fas fa-search', label: 'Search in conversation', action: () => setShowSearchModal(true) },
+              { icon: 'fas fa-bell', label: 'Mute notifications', action: () => console.log('Mute not implemented') },
+              { icon: 'fas fa-star', label: 'Add to favorites', action: () => console.log('Favorites not implemented') },
+              { icon: 'fas fa-archive', label: 'Archive chat', action: () => console.log('Archive not implemented') },
+              { icon: 'fas fa-trash', label: 'Delete chat', action: () => console.log('Delete not implemented'), danger: true },
             ].map((action) => (
               <button
                 key={action.label}
@@ -1103,7 +700,7 @@ const ChatDetailPage = () => {
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
-                  performSearch();
+                  searchMessages();
                 }}
                 className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
                 autoFocus
@@ -1122,8 +719,8 @@ const ChatDetailPage = () => {
                     className="p-3 bg-glass-bg rounded-xl cursor-pointer hover:bg-glass-border transition-all duration-200"
                     onClick={() => scrollToMessage(result.id)}
                   >
-                    <div className="text-text-primary text-sm" dangerouslySetInnerHTML={{ __html: result.highlightedText }} />
-                    <div className="text-text-secondary text-xs mt-1">{formatMessageTime(result.timestamp)}</div>
+                    <div className="text-text-primary text-sm">{result.body}</div>
+                    <div className="text-text-secondary text-xs mt-1">{formatMessageTime(result.created_at)}</div>
                   </div>
                 ))}
               </div>
@@ -1159,10 +756,7 @@ const ChatDetailPage = () => {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  confirmAction.action();
-                  setShowConfirmModal(false);
-                }}
+                onClick={handleConfirmAction}
                 className="flex-1 py-3 px-4 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition-all duration-200"
               >
                 Confirm

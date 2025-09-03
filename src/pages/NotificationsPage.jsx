@@ -1,34 +1,145 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { notifications } from '../data/notifications'
+import { useAuth } from '../hooks'
+import { notificationService } from '../services'
 
 const NotificationsPage = () => {
-  const [notificationsList, setNotificationsList] = useState(notifications)
+  const [notificationsList, setNotificationsList] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const navigate = useNavigate()
+  const { user } = useAuth()
 
-  const markAllRead = () => {
-    setNotificationsList(prev =>
-      prev.map(notification => ({ ...notification, unread: false }))
-    )
+  // Load notifications
+  useEffect(() => {
+    const loadNotifications = async () => {
+      if (!user?.id) return
+
+      try {
+        setLoading(true)
+        const notifications = await notificationService.getUserNotifications(user.id)
+        setNotificationsList(notifications)
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadNotifications()
+  }, [user?.id])
+
+  const markAllRead = async () => {
+    if (!user?.id) return
+
+    try {
+      await notificationService.markAllAsRead(user.id)
+      setNotificationsList(prev => prev.map(notification => ({ ...notification, read: true })))
+    } catch (error) {
+      console.error('Error marking all as read:', error)
+    }
   }
 
-  const clearAllNotifications = () => {
-    setNotificationsList([])
+  const clearAllNotifications = async () => {
+    if (!user?.id) return
+
+    try {
+      // Delete all notifications
+      await Promise.all(notificationsList.map(notification =>
+        notificationService.deleteNotification(notification.id)
+      ))
+      setNotificationsList([])
+    } catch (error) {
+      console.error('Error clearing notifications:', error)
+    }
   }
 
-  const openNotification = (notification) => {
-    // Here you can add logic for opening notification
+  const openNotification = async (notification) => {
+    // Mark as read if unread
+    if (!notification.read) {
+      try {
+        await notificationService.markAsRead(notification.id)
+        setNotificationsList(prev =>
+          prev.map(n =>
+            n.id === notification.id ? { ...n, read: true } : n
+          )
+        )
+      } catch (error) {
+        console.error('Error marking notification as read:', error)
+      }
+    }
 
-          // Mark as read
-    setNotificationsList(prev =>
-      prev.map(n =>
-        n.id === notification.id ? { ...n, unread: false } : n
-      )
-    )
+    // Handle navigation based on notification type
+    if (notification.type === 'like' && notification.data?.startup_id) {
+      navigate(`/startup/${notification.data.startup_id}`)
+    } else if (notification.type === 'match' && notification.data?.matched_user_id) {
+      // Navigate to chat or profile
+      navigate('/chats')
+    }
   }
 
   const goBack = () => {
     navigate('/home')
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="screen active">
+        <div className="header">
+          <button className="header-btn" onClick={goBack}>
+            <i className="fas fa-arrow-left"></i>
+          </button>
+          <h1>Notifications</h1>
+          <button className="header-btn">
+            <i className="fas fa-check-double"></i>
+          </button>
+        </div>
+
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
+              <i className="fas fa-spinner fa-spin text-3xl text-white"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary mb-4">Loading Notifications</h2>
+            <p className="text-text-secondary">Please wait...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="screen active">
+        <div className="header">
+          <button className="header-btn" onClick={goBack}>
+            <i className="fas fa-arrow-left"></i>
+          </button>
+          <h1>Notifications</h1>
+          <button className="header-btn">
+            <i className="fas fa-check-double"></i>
+          </button>
+        </div>
+
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Notifications</h2>
+            <p className="text-text-secondary mb-6">{error}</p>
+            <button
+              className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -51,34 +162,42 @@ const NotificationsPage = () => {
                 <i className="fas fa-bell text-3xl text-white"></i>
               </div>
               <h2 className="text-2xl font-bold text-text-primary mb-4">No Notifications</h2>
-              <p className="text-text-secondary">You're all caught up!</p>
+              <p className="text-text-secondary mb-8">Notifications will appear here when you interact with startups.</p>
+              <button
+                className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                onClick={() => navigate('/home')}
+              >
+                Browse Startups
+              </button>
             </div>
           </div>
         ) : (
           notificationsList.map((notification, index) => (
             <div
               key={notification.id}
-              className={`notification-item ${notification.unread ? 'unread' : ''} animate-slide-in`}
+              className={`notification-item ${!notification.read ? 'unread' : ''} animate-slide-in`}
               style={{ animationDelay: `${index * 0.1}s` }}
               onClick={() => openNotification(notification)}
             >
               <div className="notification-icon">
-                <i className={notification.icon}></i>
+                <i className={getNotificationIcon(notification.type)}></i>
               </div>
               <div className="notification-content">
                 <div className="notification-header">
                   <h4 className="notification-title">{notification.title}</h4>
-                  <span className="notification-time">{notification.time}</span>
+                  <span className="notification-time">{formatNotificationTime(notification.created_at)}</span>
                 </div>
-                <p className="notification-text">{notification.text}</p>
-                <div className="notification-badges">
-                  {notification.badges.map((badge, index) => (
-                    <span key={index} className="notification-badge">{badge}</span>
-                  ))}
-                </div>
+                <p className="notification-text">{notification.message}</p>
+                {notification.data && (
+                  <div className="notification-badges">
+                    {Object.entries(notification.data).map(([key, value]) => (
+                      <span key={key} className="notification-badge">{key}: {value}</span>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="notification-status">
-                <div className={notification.unread ? 'unread-dot' : 'read-dot'}></div>
+                <div className={!notification.read ? 'unread-dot' : 'read-dot'}></div>
               </div>
             </div>
           ))
@@ -99,6 +218,29 @@ const NotificationsPage = () => {
       )}
     </div>
   )
+}
+
+// Helper function to get notification icon
+const getNotificationIcon = (type) => {
+  const iconMap = {
+    'like': 'fas fa-heart',
+    'match': 'fas fa-star',
+    'message': 'fas fa-comment',
+    'system': 'fas fa-info-circle'
+  }
+  return iconMap[type] || 'fas fa-bell'
+}
+
+// Helper function to format notification time
+const formatNotificationTime = (createdAt) => {
+  const now = new Date()
+  const created = new Date(createdAt)
+  const diffInMinutes = Math.floor((now - created) / (1000 * 60))
+
+  if (diffInMinutes < 1) return 'Just now'
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`
+  if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`
+  return `${Math.floor(diffInMinutes / 1440)}d ago`
 }
 
 export default NotificationsPage
