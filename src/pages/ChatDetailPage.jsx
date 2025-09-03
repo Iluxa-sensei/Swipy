@@ -36,12 +36,12 @@ const ChatDetailPage = () => {
   // Emoji list for picker
   const emojis = ['😀', '😂', '😍', '🤔', '👍', '👎', '❤️', '🔥', '💯', '😎', '🙌', '👏', '💪', '🚀', '🎉', '✨'];
 
-  // Загружаем данные чата
+  // Load chat data
   useEffect(() => {
     const timer = setTimeout(() => {
       const chatData = getChatById(chatId);
       if (chatData) {
-        // Добавляем дополнительные свойства к сообщениям
+        // Add additional properties to messages
         const enhancedChat = {
           ...chatData,
           messages: chatData.messages.map((msg, index) => ({
@@ -61,7 +61,7 @@ const ChatDetailPage = () => {
     return () => clearTimeout(timer);
   }, [chatId, navigate]);
 
-  // Симуляция набора текста
+  // Simulate typing
   useEffect(() => {
     const interval = setInterval(() => {
       setIsTyping(prev => Math.random() > 0.8 ? !prev : prev);
@@ -70,14 +70,14 @@ const ChatDetailPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Прокрутка к последнему сообщению
+  // Scroll to last message
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chat]);
 
-  // Очистка аудио при размонтировании
+  // Clean up audio on unmount
   useEffect(() => {
     return () => {
       if (currentAudio) {
@@ -95,13 +95,13 @@ const ChatDetailPage = () => {
     };
   }, [currentAudio, recordingInterval, mediaRecorder]);
 
-  // Обработка отправки сообщения
+  // Handle message sending
   const handleSendMessage = (e) => {
     e.preventDefault();
 
     if (!newMessage.trim()) return;
 
-    // Создаем новое сообщение
+    // Create new message
     const newMessageObj = {
       id: chat.messages.length + 1,
       text: newMessage,
@@ -112,16 +112,16 @@ const ChatDetailPage = () => {
       status: 'sending'
     };
 
-    // Обновляем чат с новым сообщением
+    // Update chat with new message
     setChat({
       ...chat,
       messages: [...chat.messages, newMessageObj]
     });
 
-    // Очищаем поле ввода
+    // Clear input field
     setNewMessage('');
 
-    // Симуляция доставки
+    // Simulate delivery
     setTimeout(() => {
       setChat(prev => ({
         ...prev,
@@ -133,7 +133,7 @@ const ChatDetailPage = () => {
       }));
     }, 1000);
 
-    // Симуляция прочтения
+    // Simulate reading
     setTimeout(() => {
       setChat(prev => ({
         ...prev,
@@ -146,7 +146,7 @@ const ChatDetailPage = () => {
     }, 3000);
   };
 
-  // Добавление реакции
+  // Add reaction
   const addReaction = (messageId, emoji) => {
     setChat(prev => ({
       ...prev,
@@ -172,7 +172,7 @@ const ChatDetailPage = () => {
     }));
   };
 
-  // Выбор сообщения
+  // Select message
   const toggleMessageSelection = (messageId) => {
     setSelectedMessages(prev =>
       prev.includes(messageId)
@@ -181,31 +181,31 @@ const ChatDetailPage = () => {
     );
   };
 
-  // Показать успешное сообщение
+  // Show success message
   const showSuccess = (message) => {
     setSuccessMessage(message);
     setShowSuccessModal(true);
     setTimeout(() => setShowSuccessModal(false), 2000);
   };
 
-  // Показать подтверждение
+  // Show confirmation
   const showConfirm = (message, action) => {
     setConfirmAction({ message, action });
     setShowConfirmModal(true);
   };
 
-  // Обработка файлов
+  // Handle files
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Проверка размера файла (5MB)
+    // Check file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      showSuccess('❌ Файл слишком большой. Максимальный размер: 5MB');
+      showSuccess('File too large. Maximum size: 5MB');
       return;
     }
 
-    // Создаем URL для файла
+    // Create URL for file
     const fileUrl = URL.createObjectURL(file);
 
     const fileMessage = {
@@ -227,7 +227,7 @@ const ChatDetailPage = () => {
       messages: [...prev.messages, fileMessage]
     }));
 
-    // Симуляция загрузки
+    // Simulate upload
     setTimeout(() => {
       setChat(prev => ({
         ...prev,
@@ -240,7 +240,7 @@ const ChatDetailPage = () => {
     }, 1500);
   };
 
-  // Проверка разрешений микрофона
+  // Check microphone permissions
   const checkMicrophonePermission = async () => {
     try {
       const result = await navigator.permissions.query({ name: 'microphone' });
@@ -251,13 +251,13 @@ const ChatDetailPage = () => {
     }
   };
 
-  // Обработка голосового сообщения
+  // Handle voice message
   const handleVoiceRecord = async () => {
     if (isRecording) {
-      // Останавливаем запись
+      // Stop recording
       stopRecording();
     } else {
-      // Проверяем разрешения перед началом записи
+      // Check permissions before starting recording
       const permission = await checkMicrophonePermission();
 
       if (permission === 'denied') {
@@ -265,20 +265,20 @@ const ChatDetailPage = () => {
         return;
       }
 
-      // Начинаем запись
+      // Start recording
       startRecording();
     }
   };
 
-  // Начать запись
+  // Start recording
   const startRecording = async () => {
     try {
-      // Проверяем поддержку MediaDevices
+      // Check MediaDevices support
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('MediaDevices API not supported');
       }
 
-      // Запрашиваем разрешение на доступ к микрофону
+      // Request microphone access permission
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -322,10 +322,10 @@ const ChatDetailPage = () => {
         const audioUrl = URL.createObjectURL(blob);
         console.log('Audio URL created:', audioUrl);
 
-        // Получаем текущее время записи
+        // Get current recording time
         const finalRecordingTime = recordingTime;
 
-        // Создаем голосовое сообщение
+        // Create voice message
         const voiceMessage = {
           id: chat.messages.length + 1,
           text: '',
@@ -347,7 +347,7 @@ const ChatDetailPage = () => {
           messages: [...prev.messages, voiceMessage]
         }));
 
-        // Останавливаем все треки
+        // Stop all tracks
         stream.getTracks().forEach(track => {
           console.log('Stopping track in onstop:', track.kind);
           track.stop();
@@ -377,7 +377,7 @@ const ChatDetailPage = () => {
       setIsRecording(true);
       setRecordingTime(0);
 
-      // Запускаем таймер записи
+      // Start recording timer
       const interval = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -399,7 +399,7 @@ const ChatDetailPage = () => {
     }
   };
 
-  // Остановить запись
+  // Stop recording
   const stopRecording = () => {
     console.log('Stopping recording...');
 
@@ -413,7 +413,7 @@ const ChatDetailPage = () => {
       setRecordingInterval(null);
     }
 
-    // Останавливаем все треки потока
+    // Stop all stream tracks
     if (mediaRecorder && mediaRecorder.stream) {
       mediaRecorder.stream.getTracks().forEach(track => {
         console.log('Stopping track:', track.kind);
@@ -425,7 +425,7 @@ const ChatDetailPage = () => {
     setRecordingTime(0);
   };
 
-  // Отменить запись
+  // Cancel recording
   const cancelRecording = () => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       mediaRecorder.stop();
@@ -441,19 +441,19 @@ const ChatDetailPage = () => {
     setRecordedChunks([]);
   };
 
-  // Форматирование времени
+  // Time formatting
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Поиск в чате
+  // Search in chat
   const handleSearchInChat = () => {
     setShowSearchModal(true);
   };
 
-  // Выполнить поиск
+  // Execute search
   const performSearch = () => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -473,7 +473,7 @@ const ChatDetailPage = () => {
     setSearchResults(foundMessages);
   };
 
-  // Прокрутить к сообщению
+  // Scroll to message
   const scrollToMessage = (messageId) => {
     const element = document.getElementById(`message-${messageId}`);
     if (element) {
@@ -484,22 +484,22 @@ const ChatDetailPage = () => {
     }
   };
 
-  // Отключение уведомлений
+  // Disable notifications
   const toggleMute = () => {
     setIsMuted(!isMuted);
     showSuccess(isMuted ? '🔔 Notifications enabled' : '🔕 Notifications disabled');
   };
 
-  // Добавление в избранное
+  // Add to favorites
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
-    showSuccess(isFavorite ? '💔 Removed from favorites' : '⭐ Added to favorites');
+    showSuccess(isFavorite ? 'Removed from favorites' : 'Added to favorites');
   };
 
-  // Архивирование чата
+  // Archive chat
   const archiveChat = () => {
     showConfirm('Archive this chat?', () => {
-      // Сохраняем в localStorage
+      // Save to localStorage
       const archivedChats = JSON.parse(localStorage.getItem('archivedChats') || '[]');
       archivedChats.push({ ...chat, archivedAt: new Date().toISOString() });
       localStorage.setItem('archivedChats', JSON.stringify(archivedChats));
@@ -509,12 +509,12 @@ const ChatDetailPage = () => {
     });
   };
 
-  // Воспроизведение голосового сообщения
+  // Play voice message
   const toggleVoicePlayback = (messageId) => {
     const message = chat.messages.find(msg => msg.id === messageId);
     if (!message || message.fileType !== 'voice') return;
 
-    // Останавливаем текущее воспроизведение
+    // Stop current playback
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
@@ -572,7 +572,7 @@ const ChatDetailPage = () => {
     }
   };
 
-  // Обработка изменения позиции в аудио
+  // Handle audio position change
   const handleAudioSeek = (messageId, newProgress) => {
     const message = chat.messages.find(msg => msg.id === messageId);
     if (!message || !currentAudio) return;
@@ -582,22 +582,22 @@ const ChatDetailPage = () => {
     setAudioProgress(newProgress);
   };
 
-  // Удаление чата
+  // Delete chat
   const deleteChat = () => {
     showConfirm('Delete this chat? This action cannot be undone.', () => {
-      showSuccess('🗑️ Chat deleted');
+      showSuccess('Chat deleted');
       setTimeout(() => navigate('/chat'), 1000);
     });
   };
 
-  // Копирование сообщения
+  // Copy message
   const copyMessage = (message) => {
     let textToCopy = message.text;
 
     if (message.fileType === 'image') {
-      textToCopy = '📷 Изображение';
+      textToCopy = '📷 Image';
     } else if (message.fileType === 'voice') {
-      textToCopy = '🎤 Голосовое сообщение';
+      textToCopy = '🎤 Voice message';
     } else if (message.fileType === 'file') {
       textToCopy = `📎 ${message.fileName}`;
     }
@@ -607,7 +607,7 @@ const ChatDetailPage = () => {
     });
   };
 
-  // Группировка сообщений по дате
+  // Group messages by date
   const groupMessagesByDate = (messages) => {
     const groups = {};
 

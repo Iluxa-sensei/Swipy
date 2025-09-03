@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFilters } from '../context/FiltersContext'
 
@@ -9,13 +9,15 @@ const FiltersPage = () => {
     toggleCategory,
     toggleStage,
     toggleLocation,
-    toggleRole,
     setTeamSize,
     setFunding,
+    setInvestmentRequired,
     clearFilters,
     getActiveFiltersCount,
     updateFilters
   } = useFilters()
+
+
 
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState('categories')
@@ -31,8 +33,7 @@ const FiltersPage = () => {
   ]
 
   const locations = [
-    "San Francisco, CA", "New York, NY", "Austin, TX", "Boston, MA",
-    "Seattle, WA", "Los Angeles, CA", "Chicago, IL", "Remote"
+    "Remote", "Asia", "Europe", "North America", "South America", "Africa", "Australia"
   ]
 
   const teamSizes = [
@@ -43,14 +44,13 @@ const FiltersPage = () => {
     "Bootstrapped", "Under $1K", "Under $10K", "Under $100K", "$500K+"
   ]
 
-  const roles = [
-    "Frontend Developer", "Backend Developer", "Full Stack Developer",
-    "Mobile Developer", "DevOps Engineer", "Data Scientist", "ML Engineer",
-    "Product Manager", "UX Designer", "UI Designer", "Business Developer",
-    "Marketing Manager", "Sales Manager", "CTO", "CEO"
+  const investmentRanges = [
+    "Under $10K", "Under $50K", "Under $100K", "Under $500K", "Under $1M", "$1M+"
   ]
 
-  // Пресеты фильтров
+
+
+  // Filter presets
   const filterPresets = [
     {
       name: "Early Stage",
@@ -61,7 +61,7 @@ const FiltersPage = () => {
         locations: [],
         teamSize: "",
         funding: "",
-        roles: []
+        investmentRequired: ""
       }
     },
     {
@@ -73,7 +73,7 @@ const FiltersPage = () => {
         locations: [],
         teamSize: "",
         funding: "",
-        roles: []
+        investmentRequired: ""
       }
     },
     {
@@ -85,25 +85,25 @@ const FiltersPage = () => {
         locations: ["Remote"],
         teamSize: "",
         funding: "",
-        roles: []
+        investmentRequired: ""
       }
     },
     {
-      name: "Senior Roles",
-      description: "Leadership and senior positions",
+      name: "European Startups",
+      description: "Startups based in Europe",
       filters: {
         categories: [],
         stages: [],
-        locations: [],
+        locations: ["Europe"],
         teamSize: "",
         funding: "",
-        roles: ["CTO", "CEO", "Product Manager"]
+        investmentRequired: ""
       }
     }
   ]
 
   const applyFilters = () => {
-    // Фильтры уже применены через контекст
+    // Filters are already applied through context
     navigate('/home')
   }
 
@@ -120,7 +120,7 @@ const FiltersPage = () => {
         description: "Custom filter preset",
         filters: { ...filters }
       }
-      // В реальном приложении здесь было бы сохранение в localStorage или API
+      // In a real app, this would save to localStorage or API
       alert(`Preset "${presetName}" saved!`)
     }
   }
@@ -136,7 +136,6 @@ const FiltersPage = () => {
     { id: 'categories', label: 'Categories', icon: 'fas fa-tags' },
     { id: 'stages', label: 'Stages', icon: 'fas fa-chart-line' },
     { id: 'locations', label: 'Locations', icon: 'fas fa-map-marker-alt' },
-    { id: 'roles', label: 'Roles', icon: 'fas fa-users' },
     { id: 'other', label: 'Other', icon: 'fas fa-cog' }
   ]
 
@@ -218,11 +217,7 @@ const FiltersPage = () => {
                 {loc} <button onClick={() => toggleLocation(loc)} className="ml-1">×</button>
               </span>
             ))}
-            {filters.roles.map(role => (
-              <span key={role} className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm">
-                {role} <button onClick={() => toggleRole(role)} className="ml-1">×</button>
-              </span>
-            ))}
+
             {filters.teamSize && (
               <span className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm">
                 Team: {filters.teamSize} <button onClick={() => setTeamSize(filters.teamSize)} className="ml-1">×</button>
@@ -231,6 +226,11 @@ const FiltersPage = () => {
             {filters.funding && (
               <span className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm">
                 {filters.funding} <button onClick={() => setFunding(filters.funding)} className="ml-1">×</button>
+              </span>
+            )}
+            {filters.investmentRequired && (
+              <span className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm">
+                Investment: {filters.investmentRequired} <button onClick={() => setInvestmentRequired(filters.investmentRequired)} className="ml-1">×</button>
               </span>
             )}
           </div>
@@ -243,8 +243,8 @@ const FiltersPage = () => {
           <button
             key={tab.id}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
-                ? 'text-accent-primary border-b-2 border-accent-primary bg-accent-primary/10'
-                : 'text-text-secondary hover:text-text-primary hover:bg-glass-border'
+              ? 'text-accent-primary border-b-2 border-accent-primary bg-accent-primary/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-glass-border'
               }`}
             onClick={() => setActiveTab(tab.id)}
           >
@@ -264,8 +264,8 @@ const FiltersPage = () => {
                 <button
                   key={category}
                   className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${filters.categories.includes(category)
-                      ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
-                      : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
+                    ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                    : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                     }`}
                   onClick={() => toggleCategory(category)}
                 >
@@ -285,8 +285,8 @@ const FiltersPage = () => {
                 <button
                   key={stage}
                   className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${filters.stages.includes(stage)
-                      ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
-                      : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
+                    ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                    : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                     }`}
                   onClick={() => toggleStage(stage)}
                 >
@@ -306,8 +306,8 @@ const FiltersPage = () => {
                 <button
                   key={location}
                   className={`p-3 rounded-2xl border transition-all duration-200 text-left hover:scale-105 ${filters.locations.includes(location)
-                      ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
-                      : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
+                    ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                    : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                     }`}
                   onClick={() => toggleLocation(location)}
                 >
@@ -319,26 +319,7 @@ const FiltersPage = () => {
           </div>
         )}
 
-        {/* Roles Tab */}
-        {activeTab === 'roles' && (
-          <div className="p-6 animate-fade-in">
-            <h3 className="text-lg font-semibold text-text-primary mb-4">Open Positions</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {getFilteredItems(roles).map((role) => (
-                <button
-                  key={role}
-                  className={`p-3 rounded-2xl border transition-all duration-200 text-sm hover:scale-105 ${filters.roles.includes(role)
-                      ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
-                      : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
-                    }`}
-                  onClick={() => toggleRole(role)}
-                >
-                  {role}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+
 
         {/* Other Tab */}
         {activeTab === 'other' && (
@@ -351,8 +332,8 @@ const FiltersPage = () => {
                   <button
                     key={size}
                     className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${filters.teamSize === size
-                        ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
-                        : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
+                      ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                      : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                       }`}
                     onClick={() => setTeamSize(size)}
                   >
@@ -370,12 +351,31 @@ const FiltersPage = () => {
                   <button
                     key={funding}
                     className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${filters.funding === funding
-                        ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
-                        : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
+                      ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                      : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                       }`}
                     onClick={() => setFunding(funding)}
                   >
                     {funding}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Investment Required */}
+            <div>
+              <h3 className="text-lg font-semibold text-text-primary mb-4">Investment Required</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {investmentRanges.map((amount) => (
+                  <button
+                    key={amount}
+                    className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${filters.investmentRequired === amount
+                      ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                      : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
+                      }`}
+                    onClick={() => setInvestmentRequired(amount)}
+                  >
+                    {amount}
                   </button>
                 ))}
               </div>

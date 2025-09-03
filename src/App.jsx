@@ -18,12 +18,13 @@ import SavedPage from './pages/SavedPage'
 import ProfileEditPage from './pages/ProfileEditPage'
 import SettingsPage from './pages/SettingsPage'
 
+
 function App() {
   const [currentScreen, setCurrentScreen] = useState('login')
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Синхронизируем currentScreen с текущим маршрутом
+  // Synchronize currentScreen with current route
   useEffect(() => {
     const path = location.pathname.substring(1) || 'login'
     setCurrentScreen(path)
@@ -34,7 +35,7 @@ function App() {
     navigate(`/${screen}`)
   }
 
-  // Определяем, нужно ли показывать нижнюю навигацию
+  // Determine whether to show bottom navigation
   const showBottomNav = !['onboarding', 'login'].includes(currentScreen) && !currentScreen.startsWith('chat-detail')
 
   return (
@@ -44,7 +45,7 @@ function App() {
           <Routes>
             <Route path="/" element={<LoginPage />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route element={<ProtectedRoute />}> 
+            <Route element={<ProtectedRoute />}>
               <Route path="/home" element={<HomePage />} />
               <Route path="/startup/:id" element={<StartupDetailPage />} />
               <Route path="/saved" element={<SavedPage />} />
@@ -55,6 +56,7 @@ function App() {
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/add" element={<AddPage />} />
               <Route path="/filters" element={<FiltersPage />} />
+
               <Route path="/chat-detail/:chatId" element={<ChatDetailPage />} />
               <Route path="/onboarding" element={<OnboardingPage />} />
             </Route>

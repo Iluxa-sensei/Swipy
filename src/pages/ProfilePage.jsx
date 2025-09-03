@@ -7,7 +7,7 @@ const ProfilePage = () => {
   const [isOnline, setIsOnline] = useState(true)
   const [profileLoading, setProfileLoading] = useState(true)
 
-  // Симуляция загрузки профиля
+  // Simulate profile loading
   useEffect(() => {
     const timer = setTimeout(() => {
       setProfileLoading(false)
@@ -20,6 +20,7 @@ const ProfilePage = () => {
     : null
 
   const hasProfile = loadedProfile && loadedProfile.name
+  const userRole = loadedProfile?.role || 'founder'
 
   const userProfile = hasProfile ? {
     name: loadedProfile.name,
@@ -73,7 +74,7 @@ const ProfilePage = () => {
     )
   }
 
-  // Если профиля нет, показываем экран создания
+  // If no profile, show creation screen
   if (!profileLoading && !hasProfile) {
     return (
       <div className="screen active">
@@ -123,8 +124,8 @@ const ProfilePage = () => {
                 <p className="text-text-secondary text-sm">Showcase Portfolio</p>
               </div>
               <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
-                <i className="fas fa-users text-accent-primary text-2xl mb-2"></i>
-                <p className="text-text-secondary text-sm">Connect with Teams</p>
+                <i className="fas fa-chart-line text-accent-primary text-2xl mb-2"></i>
+                <p className="text-text-secondary text-sm">Raise Investments</p>
               </div>
               <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
                 <i className="fas fa-rocket text-accent-primary text-2xl mb-2"></i>
@@ -202,6 +203,9 @@ const ProfilePage = () => {
           )}
 
           {/* Social Links */}
+          <div className="text-center mb-4">
+            <span className="text-text-secondary text-sm">Social Links (Optional)</span>
+          </div>
           {(userProfile.socials.github || userProfile.socials.linkedin || userProfile.socials.instagram || userProfile.socials.website) && (
             <div className="flex items-center justify-center gap-3">
               {userProfile.socials.github && (
@@ -272,66 +276,70 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Skills */}
-            <div className="p-6 border-t border-glass-border">
-              <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-                <i className="fas fa-code text-blue-400"></i>
-                Technical Skills
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                {userProfile.skills.map((skill, index) => (
-                  <span key={index} className="px-4 py-2 bg-bg-secondary/80 border border-glass-border rounded-full text-sm text-text-primary hover:bg-bg-secondary transition-colors duration-200 font-medium">
-                    {skill}
-                  </span>
-                ))}
+            {/* Skills - only for founders */}
+            {userRole === 'founder' && userProfile.skills.length > 0 && (
+              <div className="p-6 border-t border-glass-border">
+                <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+                  <i className="fas fa-code text-blue-400"></i>
+                  Technical Skills
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {userProfile.skills.map((skill, index) => (
+                    <span key={index} className="px-4 py-2 bg-bg-secondary/80 border border-glass-border rounded-full text-sm text-text-primary hover:bg-bg-secondary transition-colors duration-200 font-medium">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Enhanced Bio */}
             <div className="p-6 border-t border-glass-border">
               <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
                 <i className="fas fa-info-circle text-blue-400"></i>
-                About Me
+                About Me (Optional)
               </h3>
               <div className="bg-bg-secondary/80 border border-glass-border rounded-2xl p-6">
-                <p className="text-text-primary leading-relaxed text-lg">{userProfile.bio}</p>
+                <p className="text-text-primary leading-relaxed text-lg">{userProfile.bio || 'No bio provided'}</p>
               </div>
             </div>
 
-            {/* Certifications */}
-            <div className="p-6 border-t border-glass-border">
-              <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-                <i className="fas fa-certificate text-blue-400"></i>
-                Certifications
-              </h3>
-              <div className="space-y-3">
-                {userProfile.certifications.map((cert, index) => (
-                  <div key={index} className="flex items-center gap-4 p-4 bg-bg-secondary/80 border border-glass-border rounded-xl hover:scale-[1.02] transition-all duration-200">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${cert.verified ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                      <i className={`fas ${cert.verified ? 'fa-check-circle' : 'fa-clock'}`}></i>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-text-primary font-semibold">{cert.name}</h4>
-                      <div className="flex items-center gap-3 text-sm text-text-secondary">
-                        <span>{cert.issuer}</span>
-                        <span>•</span>
-                        <span>{cert.year}</span>
-                        {cert.verified && (
-                          <>
-                            <span>•</span>
-                            <span className="text-green-400 font-medium">Verified</span>
-                          </>
-                        )}
+            {/* Certifications - only for founders */}
+            {userRole === 'founder' && userProfile.certifications.length > 0 && (
+              <div className="p-6 border-t border-glass-border">
+                <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+                  <i className="fas fa-certificate text-blue-400"></i>
+                  Certifications
+                </h3>
+                <div className="space-y-3">
+                  {userProfile.certifications.map((cert, index) => (
+                    <div key={index} className="flex items-center gap-4 p-4 bg-bg-secondary/80 border border-glass-border rounded-xl hover:scale-[1.02] transition-all duration-200">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${cert.verified ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                        <i className={`fas ${cert.verified ? 'fa-check-circle' : 'fa-clock'}`}></i>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-text-primary font-semibold">{cert.name}</h4>
+                        <div className="flex items-center gap-3 text-sm text-text-secondary">
+                          <span>{cert.issuer}</span>
+                          <span>•</span>
+                          <span>{cert.year}</span>
+                          {cert.verified && (
+                            <>
+                              <span>•</span>
+                              <span className="text-green-400 font-medium">Verified</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 
-        {activeTab === 'portfolio' && (
+        {activeTab === 'portfolio' && userRole === 'founder' && (
           <div className="p-6 animate-fade-in">
             <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
               <i className="fas fa-rocket text-blue-400"></i>
@@ -394,6 +402,22 @@ const ProfilePage = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'portfolio' && userRole === 'investor' && (
+          <div className="p-6 animate-fade-in">
+            <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+              <i className="fas fa-chart-line text-green-400"></i>
+              Investment Portfolio
+            </h3>
+            <div className="text-center py-12">
+              <div className="w-24 h-24 bg-gradient-to-br from-green-300 to-green-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <i className="fas fa-chart-line text-3xl text-white"></i>
+              </div>
+              <h3 className="text-xl font-bold text-text-primary mb-2">Investment Dashboard</h3>
+              <p className="text-text-secondary">Track your startup investments and performance here</p>
             </div>
           </div>
         )}

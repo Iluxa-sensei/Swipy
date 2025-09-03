@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { supabase } from '../services/supabaseClient.js'
+import { authService } from '../services/authService.js'
 
 const AuthContext = createContext({ session: null, user: null, loading: true })
 
@@ -15,30 +15,22 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = async () => {
       try {
         // Security: Get initial session
-        const { data, error: sessionError } = await supabase.auth.getSession()
-        
-        if (!isMounted) return
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError)
-          setError(sessionError.message)
-          setLoading(false)
-          return
-        }
+        const currentSession = await authService.getCurrentSession()
 
-        // Security: Validate session data
-        if (data.session) {
+        if (!isMounted) return
+
+        if (currentSession) {
           // Basic session validation
-          if (!data.session.user?.id || !data.session.access_token) {
+          if (!currentSession.user?.id || !currentSession.access_token) {
             console.warn('Invalid session data, clearing session')
             setSession(null)
           } else {
-            setSession(data.session)
+            setSession(currentSession)
           }
         } else {
           setSession(null)
         }
-        
+
         setLoading(false)
       } catch (error) {
         if (!isMounted) return
@@ -51,7 +43,7 @@ export const AuthProvider = ({ children }) => {
     // Security: Set up auth state change listener
     const setupAuthListener = () => {
       try {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        const { data: { subscription } } = authService.onAuthStateChange(
           async (event, newSession) => {
             if (!isMounted) return
 
@@ -88,7 +80,7 @@ export const AuthProvider = ({ children }) => {
             }
           }
         )
-        
+
         authSubscription = subscription
       } catch (error) {
         console.error('Auth listener setup error:', error)

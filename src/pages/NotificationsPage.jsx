@@ -17,9 +17,9 @@ const NotificationsPage = () => {
   }
 
   const openNotification = (notification) => {
-    // Здесь можно добавить логику открытия уведомления
+    // Here you can add logic for opening notification
 
-    // Помечаем как прочитанное
+          // Mark as read
     setNotificationsList(prev =>
       prev.map(n =>
         n.id === notification.id ? { ...n, unread: false } : n

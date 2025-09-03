@@ -155,12 +155,11 @@ const ProfileEditPage = () => {
                 category: '',
                 description: '',
                 stage: '',
-                funding: '',
+                investmentRequired: '',
                 teamSize: '',
                 location: '',
                 gradient: 'bg-gradient-primary',
                 image: '',
-                positions: [],
                 createdAt: new Date().toISOString()
             }]
         }))
@@ -394,6 +393,22 @@ const ProfileEditPage = () => {
                                     </div>
 
                                     <div className="form-group">
+                                        <label className="block text-sm font-medium text-text-secondary mb-2">Role</label>
+                                        <select
+                                            name="role"
+                                            value={form.role || ''}
+                                            onChange={handleChange}
+                                            className="w-full bg-bg-primary border border-glass-border rounded-xl p-4 text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
+                                        >
+                                            <option value="">Select your role</option>
+                                            <option value="founder">Founder</option>
+                                            <option value="investor">Investor</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="form-group">
                                         <label className="block text-sm font-medium text-text-secondary mb-2">Years of Experience</label>
                                         <input
                                             type="number"
@@ -548,10 +563,10 @@ const ProfileEditPage = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-text-secondary mb-2">Funding</label>
+                                            <label className="block text-sm font-medium text-text-secondary mb-2">Investment Required</label>
                                             <input
-                                                value={startup.funding || ''}
-                                                onChange={(e) => updatePortfolioItem(index, 'funding', e.target.value)}
+                                                value={startup.investmentRequired || ''}
+                                                onChange={(e) => updatePortfolioItem(index, 'investmentRequired', e.target.value)}
                                                 className="w-full bg-bg-primary border border-glass-border rounded-xl p-3 text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
                                                 placeholder="e.g. $500K"
                                             />

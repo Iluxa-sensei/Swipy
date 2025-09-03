@@ -4,10 +4,25 @@ import { useNavigate } from 'react-router-dom'
 const BottomNavigation = ({ currentScreen, onScreenChange }) => {
   const navigate = useNavigate()
 
+      // Get user role from localStorage
+  const getUserRole = () => {
+    try {
+      const profileData = localStorage.getItem('profile_data')
+      if (profileData) {
+        const profile = JSON.parse(profileData)
+        return profile.role || 'founder'
+      }
+    } catch (error) {
+      console.error('Error getting user role:', error)
+    }
+    return 'founder'
+  }
+
+  const userRole = getUserRole()
+
   const navItems = [
     { id: 'home', icon: 'fas fa-fire', label: 'Home', path: '/home' },
-    { id: 'filters', icon: 'fas fa-search', label: 'Search', path: '/filters' },
-    { id: 'add', icon: 'fas fa-plus', label: 'Add', path: '/add' },
+    ...(userRole === 'founder' ? [{ id: 'add', icon: 'fas fa-plus', label: 'Add', path: '/add' }] : []),
     { id: 'chat', icon: 'fas fa-comments', label: 'Chat', path: '/chat' },
     { id: 'profile', icon: 'fas fa-user', label: 'Profile', path: '/profile' }
   ]

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { startups as defaultStartups } from '../data/startups'
 import { saveSwipe } from '../data/swipes'
 import { getOrCreateChatForStartup } from '../data/chats'
+import OnboardingTutorial from '../components/OnboardingTutorial'
 
 const HomePage = () => {
   const [startups, setStartups] = useState(defaultStartups)
@@ -13,12 +14,15 @@ const HomePage = () => {
   const [isDragging, setIsDragging] = useState(false)
   const [startPos, setStartPos] = useState({ x: 0, y: 0 })
   const [currentPos, setCurrentPos] = useState({ x: 0, y: 0 })
+  const [showTutorial, setShowTutorial] = useState(false)
 
   const cardRef = useRef(null)
   const lastTapRef = useRef(0)
   const navigate = useNavigate()
 
-  // Функция для извлечения основного цвета из градиента
+
+
+  // Function to extract main color from gradient
   const getGradientColor = (gradientClass) => {
     const gradientMap = {
       'bg-gradient-primary': '#1565c0',
@@ -35,10 +39,10 @@ const HomePage = () => {
     return gradientMap[gradientClass] || '#2196f3'
   }
 
-  // Простой тестовый рендер для отладки
+  // Simple test render for debugging
   console.log('HomePage component rendering...')
 
-  // Загружаем созданные стартапы из профиля
+  // Load created startups from profile
   useEffect(() => {
     const loadCreatedStartups = () => {
       try {
@@ -46,7 +50,7 @@ const HomePage = () => {
         if (profileData) {
           const profile = JSON.parse(profileData)
           if (profile.portfolio && profile.portfolio.length > 0) {
-            // Преобразуем стартапы из профиля в формат для главной страницы
+            // Transform startups from profile into main page format
             const createdStartups = profile.portfolio.map(startup => ({
               id: startup.id,
               name: startup.name,
@@ -54,7 +58,7 @@ const HomePage = () => {
               category: startup.category,
               stage: startup.stage,
               description: startup.description,
-              roles: startup.positions || ['Team Member'],
+              investmentRequired: startup.investmentRequired || null,
               gradient: startup.gradient || 'bg-gradient-primary',
               funding: startup.funding,
               teamSize: startup.teamSize,
@@ -62,7 +66,7 @@ const HomePage = () => {
               image: startup.image || null
             }))
 
-            // Объединяем созданные стартапы с дефолтными
+            // Combine created startups with default ones
             setStartups([...createdStartups, ...defaultStartups])
           }
         }
@@ -74,7 +78,17 @@ const HomePage = () => {
     loadCreatedStartups()
   }, [])
 
-  // Функция для показа деталей стартапа
+  // Check if tutorial should be shown
+  useEffect(() => {
+    const tutorialCompleted = localStorage.getItem('tutorial-completed')
+    if (!tutorialCompleted) {
+      // Small delay for smoothness
+      const timer = setTimeout(() => setShowTutorial(true), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [])
+
+  // Function to show startup details
   const handleShowDetails = (startup) => {
     if (cardRef.current) {
       cardRef.current.style.transition = 'transform 0.4s ease, opacity 0.4s ease'
@@ -86,28 +100,33 @@ const HomePage = () => {
     }, 300)
   }
 
-  // Функция для обработки двойного тапа
+  // Function to complete tutorial
+  const handleTutorialComplete = () => {
+    setShowTutorial(false)
+  }
+
+  // Function to handle double tap
   const handleCardClick = (e) => {
     e.stopPropagation()
     e.preventDefault()
 
-    // Если карта в процессе свайпа, игнорируем клик
+    // If card is in swipe process, ignore click
     if (isDragging) return
 
     const currentTime = Date.now()
     const timeSinceLastTap = currentTime - lastTapRef.current
 
     if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-      // Двойной тап - переворачиваем карту
+      // Double tap - flip card
       setIsFlipped(prev => !prev)
       lastTapRef.current = 0
     } else {
-      // Первый тап
+      // First tap
       lastTapRef.current = currentTime
     }
   }
 
-  // Функция для сброса стилей карты
+  // Function to reset card styles
   const resetCardStyles = () => {
     if (cardRef.current) {
       cardRef.current.style.transition = ''
@@ -117,7 +136,7 @@ const HomePage = () => {
     }
   }
 
-  // Функция для свайпа вправо (лайк)
+  // Function for swipe right (like)
   const handleLike = () => {
     if (!cardRef.current || isAnimating) return
     setIsAnimating(true)
@@ -138,7 +157,7 @@ const HomePage = () => {
     }, 400)
   }
 
-  // Функция для свайпа влево (пропуск)
+  // Function for swipe left (pass)
   const handlePass = () => {
     if (!cardRef.current || isAnimating) return
     setIsAnimating(true)
@@ -159,24 +178,24 @@ const HomePage = () => {
     }, 400)
   }
 
-  // Функция для переворота карты обратно при свайпе на обратной стороне
+  // Function to flip card back when swiping on reverse side
   const handleSwipeWithFlip = (direction) => {
     if (!cardRef.current || isAnimating) return
     setIsAnimating(true)
 
-    // Если карта перевернута, сначала переворачиваем обратно
+    // If card is flipped, first flip it back
     if (isFlipped) {
       setIsFlipped(false)
       setTimeout(() => {
-        // После переворота выполняем свайп
+        // After flip, perform swipe
         if (direction === 'like') {
           handleLike()
         } else {
           handlePass()
         }
-      }, 250) // Половина времени анимации переворота
+      }, 250) // Half of flip animation time
     } else {
-      // Если карта не перевернута, сразу выполняем свайп
+      // If card is not flipped, perform swipe immediately
       if (direction === 'like') {
         handleLike()
       } else {
@@ -185,20 +204,20 @@ const HomePage = () => {
     }
   }
 
-  // Сброс индекса карточки при достижении конца
+  // Reset card index when reaching the end
   useEffect(() => {
     if (currentCardIndex >= startups.length) {
       setCurrentCardIndex(0)
     }
   }, [currentCardIndex])
 
-  // Сброс flip состояния при смене карточки
+  // Reset flip state when changing card
   useEffect(() => {
     setIsFlipped(false)
     resetCardStyles()
   }, [currentCardIndex])
 
-  // Очистка таймера при размонтировании
+  // Clean up timer on unmount
   useEffect(() => {
     return () => {
       lastTapRef.current = 0
@@ -207,7 +226,7 @@ const HomePage = () => {
 
 
 
-  // Если достигнут конец списка стартапов
+  // If reached end of startups list
   if (currentCardIndex >= startups.length) {
     return (
       <div className="screen active">
@@ -241,7 +260,7 @@ const HomePage = () => {
     )
   }
 
-  // Получаем текущий стартап
+  // Get current startup
   const currentStartup = startups[currentCardIndex]
 
   return (
@@ -260,7 +279,7 @@ const HomePage = () => {
 
       <div className="swipe-container">
         <div className="card-stack">
-          {/* Задняя карточка (следующая) */}
+          {/* Back card (next) */}
           {currentCardIndex + 1 < startups.length && (
             <div
               className="startup-card-container"
@@ -297,7 +316,7 @@ const HomePage = () => {
             </div>
           )}
 
-          {/* Основная карточка */}
+          {/* Main card */}
           <div
             ref={cardRef}
             className={`startup-card-container ${isDragging ? 'isDragging' : ''}`}
@@ -322,21 +341,21 @@ const HomePage = () => {
               const deltaY = e.clientY - startPos.y
               const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
 
-              // Устанавливаем isDragging только если движение больше 10px
+              // Set isDragging only if movement is greater than 10px
               if (!isDragging && distance > 10) {
                 setIsDragging(true)
               }
 
               if (isDragging && cardRef.current) {
-                // Плавное движение карты с поворотом
+                // Smooth card movement with rotation
                 const rotation = deltaX * 0.15
                 const scale = Math.max(0.8, 1 - Math.abs(deltaX) / 1000)
 
-                // Применяем стили к контейнеру карточки
+                // Apply styles to card container
                 const cardContainer = cardRef.current
                 cardContainer.style.transform = `translateX(${deltaX}px) translateY(${deltaY}px) rotate(${rotation}deg) scale(${scale})`
 
-                // Цветовые эффекты
+                // Color effects
                 if (deltaX > 50) {
                   cardContainer.style.boxShadow = `0 0 30px rgba(34, 197, 94, ${Math.min(0.6, Math.abs(deltaX) / 200)})`
                   cardContainer.style.borderRadius = '24px'
@@ -358,18 +377,18 @@ const HomePage = () => {
               e.stopPropagation()
               e.preventDefault()
 
-              // Если карта в процессе свайпа, игнорируем клик
+              // If card is in swipe process, ignore click
               if (isDragging) return
 
               const currentTime = Date.now()
               const timeSinceLastTap = currentTime - lastTapRef.current
 
               if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-                // Двойной тап - переворачиваем карту
+                // Double tap - flip card
                 setIsFlipped(prev => !prev)
                 lastTapRef.current = 0
               } else {
-                // Первый тап
+                // First tap
                 lastTapRef.current = currentTime
               }
             }}
@@ -382,18 +401,18 @@ const HomePage = () => {
                 const cardContainer = cardRef.current
 
                 if (Math.abs(deltaX) > 80) {
-                  // Горизонтальный свайп - лайк/пропуск с анимацией
+                  // Horizontal swipe - like/pass with animation
                   if (deltaX > 0) {
-                    // Свайп вправо - лайк
+                                          // Swipe right - like
                     handleSwipeWithFlip('like')
                   } else {
-                    // Свайп влево - пропуск
+                                          // Swipe left - pass
                     handleSwipeWithFlip('pass')
                   }
                 } else if (Math.abs(deltaY) > 100) {
-                  // Вертикальный свайп вниз - переход к деталям с анимацией
+                  // Vertical swipe down - go to details with animation
                   if (deltaY > 0) {
-                    // Свайп вниз - переход к деталям
+                                          // Swipe down - go to details
                     cardContainer.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
                     cardContainer.style.transform = 'translateY(100vh) rotate(10deg) scale(0.8)'
                     cardContainer.style.opacity = '0'
@@ -403,14 +422,14 @@ const HomePage = () => {
                       navigate(`/startup/${currentStartup.id}`)
                     }, 400)
                   } else {
-                    // Свайп вверх - возврат на место
+                    // Swipe up - return to place
                     cardContainer.style.transition = 'all 0.3s ease'
                     cardContainer.style.transform = 'translateY(0px) rotate(0deg)'
                     cardContainer.style.boxShadow = 'none'
                     cardContainer.style.borderRadius = '24px'
                   }
                 } else {
-                  // Возвращаем карточку на место
+                  // Return card to place
                   cardContainer.style.transition = 'all 0.3s ease'
                   cardContainer.style.transform = 'translateY(0px) rotate(0deg)'
                   cardContainer.style.boxShadow = 'none'
@@ -427,18 +446,18 @@ const HomePage = () => {
                 e.stopPropagation()
                 e.preventDefault()
 
-                // Если карта в процессе свайпа, игнорируем клик
+                // If card is in swipe process, ignore click
                 if (isDragging) return
 
                 const currentTime = Date.now()
                 const timeSinceLastTap = currentTime - lastTapRef.current
 
                 if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-                  // Двойной тап - переворачиваем карту
+                  // Double tap - flip card
                   setIsFlipped(prev => !prev)
                   lastTapRef.current = 0
                 } else {
-                  // Первый тап
+                  // First tap
                   lastTapRef.current = currentTime
                 }
               }}
@@ -610,29 +629,26 @@ const HomePage = () => {
                     </div>
                   </div>
 
-                  {/* Open Positions */}
+                  {/* Investment Required */}
                   <div className="bg-black/30 border border-white/20 rounded-xl p-4">
                     <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
                       <i
-                        className="fas fa-users"
+                        className="fas fa-dollar-sign"
                         style={{ color: getGradientColor(currentStartup.gradient) }}
                       ></i>
-                      Open Positions
+                      Investment Required
                     </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {currentStartup.roles.map((role, index) => (
-                        <span
-                          key={index}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium"
-                          style={{
-                            backgroundColor: `${getGradientColor(currentStartup.gradient)}20`,
-                            color: getGradientColor(currentStartup.gradient),
-                            border: `1px solid ${getGradientColor(currentStartup.gradient)}30`
-                          }}
-                        >
-                          {role}
-                        </span>
-                      ))}
+                    <div className="flex items-center justify-center">
+                      <span
+                        className="px-4 py-2 rounded-lg text-lg font-bold"
+                        style={{
+                          backgroundColor: `${getGradientColor(currentStartup.gradient)}20`,
+                          color: getGradientColor(currentStartup.gradient),
+                          border: `1px solid ${getGradientColor(currentStartup.gradient)}30`
+                        }}
+                      >
+                        ${currentStartup.investmentRequired || 'TBD'}
+                      </span>
                     </div>
                   </div>
 
@@ -721,6 +737,11 @@ const HomePage = () => {
           )}
         </div>
       </div>
+
+      {/* Tutorial Modal */}
+      {showTutorial && (
+        <OnboardingTutorial onComplete={handleTutorialComplete} />
+      )}
     </div>
   )
 }

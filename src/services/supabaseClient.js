@@ -1,14 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY
 
 // Security: Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
   // Don't expose actual values in console
-  console.error('❌ Supabase environment variables are missing or invalid')
-  console.error('Please check your .env file and ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set')
-  
+  console.error('Supabase environment variables are missing or invalid')
+  console.error('Please check your .env file and ensure VITE_PUBLIC_SUPABASE_URL and VITE_PUBLIC_SUPABASE_ANON_KEY are set')
+
   // In production, this should fail fast
   if (import.meta.env.PROD) {
     throw new Error('Supabase configuration is missing. Please check environment variables.')
@@ -17,7 +17,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 // Security: Validate URL format
 if (supabaseUrl && !supabaseUrl.startsWith('https://')) {
-  console.error('❌ Supabase URL must use HTTPS')
+  console.error('Supabase URL must use HTTPS')
   if (import.meta.env.PROD) {
     throw new Error('Supabase URL must use HTTPS in production')
   }
@@ -25,7 +25,7 @@ if (supabaseUrl && !supabaseUrl.startsWith('https://')) {
 
 // Security: Validate key format (basic check)
 if (supabaseAnonKey && supabaseAnonKey.length < 50) {
-  console.error('❌ Supabase anon key appears to be invalid')
+  console.error('Supabase anon key appears to be invalid')
   if (import.meta.env.PROD) {
     throw new Error('Invalid Supabase configuration')
   }
@@ -34,18 +34,24 @@ if (supabaseAnonKey && supabaseAnonKey.length < 50) {
 // Create a mock client for development if env vars are missing
 let supabase
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('⚠️ Creating mock Supabase client for development. Authentication will not work.')
-  
+  console.warn('Creating mock Supabase client for development. Authentication will not work.')
+
   // Mock Supabase client for development
   supabase = {
     auth: {
       getSession: async () => ({ data: { session: null }, error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
       signInWithPassword: async () => ({ error: { message: 'Supabase not configured' } }),
       signUp: async () => ({ error: { message: 'Supabase not configured' } }),
       signInWithOAuth: async () => ({ error: { message: 'Supabase not configured' } }),
       signOut: async () => ({ error: null })
-    }
+    },
+    from: () => ({
+      select: () => ({ data: [], error: null }),
+      insert: () => ({ data: null, error: { message: 'Supabase not configured' } }),
+      update: () => ({ data: null, error: { message: 'Supabase not configured' } }),
+      delete: () => ({ data: null, error: { message: 'Supabase not configured' } })
+    })
   }
 } else {
   // Real Supabase client

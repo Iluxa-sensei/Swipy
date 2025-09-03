@@ -1,4 +1,4 @@
-// Тестовые данные для чатов
+// Test data for chats
 export const chats = [
   {
     id: 1,
@@ -148,33 +148,33 @@ export const chats = [
   }
 ];
 
-// Функция для получения чата по ID
+// Function to get chat by ID
 export const getChatById = (chatId) => {
   return chats.find(chat => chat.id === parseInt(chatId)) || null;
 };
 
-// Функция для форматирования времени сообщения
+// Function to format message time
 export const formatMessageTime = (timestamp) => {
   const date = new Date(timestamp);
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
-// Функция для форматирования даты сообщения
+// Function to format message date
 export const formatMessageDate = (timestamp) => {
   const date = new Date(timestamp);
   return date.toLocaleDateString();
 };
 
-// Функция для получения или создания чата для стартапа
+// Function to get or create chat for startup
 export const getOrCreateChatForStartup = (startupId, startupData = null) => {
-  // Ищем существующий чат для этого стартапа
+  // Look for existing chat for this startup
   let existingChat = chats.find(chat => chat.startup.id === startupId);
 
   if (existingChat) {
     return existingChat;
   }
 
-  // Если чат не найден, создаем новый
+  // If chat not found, create new one
   const newChat = {
     id: chats.length + 1,
     startup: startupData ? {
@@ -191,7 +191,7 @@ export const getOrCreateChatForStartup = (startupId, startupData = null) => {
     messages: []
   };
 
-  // Добавляем новый чат в массив
+  // Add new chat to array
   chats.push(newChat);
 
   return newChat;

@@ -1,0 +1,7 @@
+export { supabase } from './supabaseClient.js'
+export { authService } from './authService.js'
+export { profileService } from './profileService.js'
+export { startupService } from './startupService.js'
+export { swipeService } from './swipeService.js'
+export { chatService } from './chatService.js'
+export { notificationService } from './notificationService.js'

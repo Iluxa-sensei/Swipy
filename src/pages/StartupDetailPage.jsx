@@ -9,7 +9,7 @@ const StartupDetailPage = () => {
     const { id } = useParams()
     const [startups, setStartups] = useState(defaultStartups)
 
-    // Загружаем созданные стартапы из профиля
+    // Load created startups from profile
     useEffect(() => {
         const loadCreatedStartups = () => {
             try {
@@ -17,7 +17,7 @@ const StartupDetailPage = () => {
                 if (profileData) {
                     const profile = JSON.parse(profileData)
                     if (profile.portfolio && profile.portfolio.length > 0) {
-                        // Преобразуем стартапы из профиля в формат для отображения
+                        // Transform startups from profile into display format
                         const createdStartups = profile.portfolio.map(startup => ({
                             id: startup.id,
                             name: startup.name,
@@ -25,7 +25,7 @@ const StartupDetailPage = () => {
                             category: startup.category,
                             stage: startup.stage,
                             description: startup.description,
-                            roles: startup.positions || ['Team Member'],
+                            investmentRequired: startup.investmentRequired || null,
                             gradient: startup.gradient || 'bg-gradient-primary',
                             funding: startup.funding,
                             teamSize: startup.teamSize,
@@ -34,7 +34,7 @@ const StartupDetailPage = () => {
                             image: startup.image || null
                         }))
 
-                        // Объединяем созданные стартапы с дефолтными
+                        // Combine created startups with default ones
                         setStartups([...createdStartups, ...defaultStartups])
                     }
                 }
@@ -161,26 +161,26 @@ const StartupDetailPage = () => {
                         </div>
                     )}
 
-                    <div>
-                        <h3 className="text-lg font-semibold text-text-primary mb-3">Open Roles</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {startup.roles.map((role, index) => (
-                                <span key={index} className="px-4 py-2 bg-glass-bg border border-glass-border rounded-full text-sm text-text-primary">
-                                    {role}
+                    {startup.investmentRequired && (
+                        <div>
+                            <h3 className="text-lg font-semibold text-text-primary mb-3">Investment Required</h3>
+                            <div className="flex flex-wrap gap-2">
+                                <span className="px-4 py-2 bg-glass-bg border border-glass-border rounded-full text-sm text-text-primary font-semibold">
+                                    ${startup.investmentRequired}
                                 </span>
-                            ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 
             <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
                 <button
-                    className="bg-accent-primary hover:bg-accent-primary/90 text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                    className="bg-gradient-to-r from-accent-primary to-blue-500 hover:from-accent-primary/90 hover:to-blue-500/90 text-white px-8 py-4 rounded-full font-semibold flex items-center gap-3 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 text-lg"
                     onClick={openChat}
                 >
-                    <i className="fas fa-comments text-sm"></i>
-                    Chat
+                    <i className="fas fa-comments text-xl"></i>
+                    Start Chat
                 </button>
             </div>
         </div>

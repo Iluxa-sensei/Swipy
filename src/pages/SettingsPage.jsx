@@ -8,8 +8,8 @@ const SettingsPage = () => {
 
     const clearProfile = () => {
         if (window.confirm('Are you sure you want to clear your saved profile data? This action cannot be undone.')) {
-            try { 
-                localStorage.removeItem('profile_data') 
+            try {
+                localStorage.removeItem('profile_data')
                 alert('Profile data cleared successfully')
             } catch (error) {
                 console.error('Error clearing profile data:', error)
@@ -20,8 +20,8 @@ const SettingsPage = () => {
     }
 
     const clearAll = () => {
-        if (window.confirm('⚠️ WARNING: This will delete ALL your local data including swipes, preferences, and settings. This action cannot be undone. Are you absolutely sure?')) {
-            try { 
+        if (window.confirm('WARNING: This will delete ALL your local data including swipes, preferences, and settings. This action cannot be undone. Are you absolutely sure?')) {
+            try {
                 // Only clear app-specific data, not all localStorage
                 const keysToRemove = [
                     'profile_data',
@@ -29,13 +29,13 @@ const SettingsPage = () => {
                     'filters_data',
                     'preferences_data'
                 ]
-                
+
                 keysToRemove.forEach(key => {
                     if (localStorage.getItem(key)) {
                         localStorage.removeItem(key)
                     }
                 })
-                
+
                 alert('App data cleared successfully')
             } catch (error) {
                 console.error('Error clearing app data:', error)
@@ -95,7 +95,7 @@ const SettingsPage = () => {
 
                 <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
                     <h3 className="text-text-primary font-semibold mb-2">Discover</h3>
-                    <button className="btn-secondary w-full" onClick={() => { 
+                    <button className="btn-secondary w-full" onClick={() => {
                         if (window.confirm('Clear all your likes and passes? This action cannot be undone.')) {
                             clearSwipes()
                             navigate('/saved')

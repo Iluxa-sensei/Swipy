@@ -17,22 +17,23 @@ export const FiltersProvider = ({ children }) => {
         locations: [],
         teamSize: '',
         funding: '',
-        roles: []
+        investmentRequired: ''
     })
 
-    // Загружаем фильтры из localStorage при инициализации
+            // Load filters from localStorage on initialization
     useEffect(() => {
         const savedFilters = localStorage.getItem('nextventures-filters')
         if (savedFilters) {
             try {
-                setFilters(JSON.parse(savedFilters))
+                const parsedFilters = JSON.parse(savedFilters)
+                setFilters(parsedFilters)
             } catch (error) {
                 console.error('Error loading filters:', error)
             }
         }
     }, [])
 
-    // Сохраняем фильтры в localStorage при изменении
+            // Save filters to localStorage on change
     useEffect(() => {
         localStorage.setItem('nextventures-filters', JSON.stringify(filters))
     }, [filters])
@@ -48,7 +49,7 @@ export const FiltersProvider = ({ children }) => {
             locations: [],
             teamSize: '',
             funding: '',
-            roles: []
+            investmentRequired: ''
         })
     }
 
@@ -81,13 +82,6 @@ export const FiltersProvider = ({ children }) => {
         }))
     }
 
-    const toggleRole = (role) => {
-        setFilters(prev => ({
-            ...prev,
-            roles: toggleArrayItem(prev.roles, role)
-        }))
-    }
-
     const setTeamSize = (size) => {
         setFilters(prev => ({
             ...prev,
@@ -102,10 +96,17 @@ export const FiltersProvider = ({ children }) => {
         }))
     }
 
+    const setInvestmentRequired = (amount) => {
+        setFilters(prev => ({
+            ...prev,
+            investmentRequired: prev.investmentRequired === amount ? '' : amount
+        }))
+    }
+
     const getActiveFiltersCount = () => {
         return filters.categories.length + filters.stages.length +
             filters.locations.length + (filters.teamSize ? 1 : 0) +
-            (filters.funding ? 1 : 0) + filters.roles.length
+            (filters.funding ? 1 : 0) + (filters.investmentRequired ? 1 : 0)
     }
 
     const value = {
@@ -115,9 +116,9 @@ export const FiltersProvider = ({ children }) => {
         toggleCategory,
         toggleStage,
         toggleLocation,
-        toggleRole,
         setTeamSize,
         setFunding,
+        setInvestmentRequired,
         getActiveFiltersCount
     }
 

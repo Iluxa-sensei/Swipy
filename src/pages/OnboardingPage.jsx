@@ -1,31 +1,26 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import OnboardingTutorial from '../components/OnboardingTutorial'
+import LocationSelector from '../components/LocationSelector'
 
 const OnboardingPage = () => {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [userData, setUserData] = useState({
     name: '',
+    username: '', // Add username
     title: '',
-    experience: '',
-    skills: [],
+    role: '', // Add role
     interests: [],
     location: '',
+    locationContinent: '', // Add continent
+    locationCountry: '', // Add country
+    locationCity: '', // Add city
     bio: ''
   })
+  const [showTutorial, setShowTutorial] = useState(false)
 
-  const experienceLevels = [
-    "Entry Level (0-2 years)",
-    "Mid Level (3-5 years)",
-    "Senior Level (5+ years)",
-    "Lead/Manager (7+ years)"
-  ]
 
-  const skillOptions = [
-    "React", "Node.js", "Python", "JavaScript", "TypeScript",
-    "AWS", "Docker", "Kubernetes", "Machine Learning", "Data Science",
-    "Product Management", "UX Design", "UI Design", "Marketing", "Sales"
-  ]
 
   const interestCategories = [
     "AI/ML", "FinTech", "HealthTech", "EdTech", "Sustainability",
@@ -33,8 +28,12 @@ const OnboardingPage = () => {
   ]
 
   const locations = [
-    "San Francisco, CA", "New York, NY", "Austin, TX", "Boston, MA",
-    "Seattle, WA", "Los Angeles, CA", "Chicago, IL", "Remote", "Other"
+    'Remote', 'Asia', 'Europe', 'North America', 'South America', 'Africa', 'Australia'
+  ]
+
+  const roles = [
+    { value: 'founder', label: 'Founder', description: 'I want to create and grow startups' },
+    { value: 'investor', label: 'Investor', description: 'I want to invest in promising startups' }
   ]
 
   const handleInputChange = (field, value) => {
@@ -44,14 +43,7 @@ const OnboardingPage = () => {
     }))
   }
 
-  const handleSkillToggle = (skill) => {
-    setUserData(prev => ({
-      ...prev,
-      skills: prev.skills.includes(skill)
-        ? prev.skills.filter(s => s !== skill)
-        : [...prev.skills, skill]
-    }))
-  }
+
 
   const handleInterestToggle = (interest) => {
     setUserData(prev => ({
@@ -63,6 +55,28 @@ const OnboardingPage = () => {
   }
 
   const nextStep = () => {
+    // Check if current step is valid before proceeding
+    if (currentStep === 1) {
+      if (!userData.name || !userData.username || !userData.title) {
+        alert('Please fill in your name, username and professional title')
+        return
+      }
+    } else if (currentStep === 2) {
+      if (!userData.role) {
+        alert('Please select your role (Founder or Investor)')
+        return
+      }
+    } else if (currentStep === 3) {
+      if (userData.interests.length === 0 || !userData.locationContinent) {
+        alert('Please select at least one interest category and your preferred location')
+        return
+      }
+      if (userData.locationContinent !== 'Remote' && (!userData.locationCountry || !userData.locationCity)) {
+        alert('Please fill in both country and city for the selected continent')
+        return
+      }
+    }
+
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1)
     }
@@ -75,7 +89,31 @@ const OnboardingPage = () => {
   }
 
   const completeOnboarding = () => {
-    // Здесь можно добавить логику сохранения данных
+    // Check that role is selected
+    if (!userData.role) {
+      alert('Please select your role (Founder or Investor)')
+      return
+    }
+
+    // Ensure location is properly set
+    if (userData.locationContinent === 'Remote') {
+      userData.location = 'Remote'
+    } else if (userData.locationContinent && userData.locationCountry && userData.locationCity) {
+      userData.location = `${userData.locationCountry}, ${userData.locationCity}`
+    }
+
+    // Save user data to localStorage
+    localStorage.setItem('profile_data', JSON.stringify({
+      ...userData,
+      createdAt: new Date().toISOString()
+    }))
+
+    // Show tutorial instead of going to main page
+    setShowTutorial(true)
+  }
+
+  const handleTutorialComplete = () => {
+    setShowTutorial(false)
     navigate('/home')
   }
 
@@ -87,7 +125,7 @@ const OnboardingPage = () => {
       <h2 className="text-2xl font-bold text-text-primary mb-4">Welcome to NextVentures!</h2>
       <p className="text-text-secondary mb-8">Let's get to know you better to find the perfect startup match.</p>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <input
           type="text"
           placeholder="Your full name"
@@ -95,6 +133,7 @@ const OnboardingPage = () => {
           onChange={(e) => handleInputChange('name', e.target.value)}
           className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-colors duration-200"
         />
+
         <input
           type="text"
           placeholder="Professional title (e.g., Frontend Developer)"
@@ -102,47 +141,41 @@ const OnboardingPage = () => {
           onChange={(e) => handleInputChange('title', e.target.value)}
           className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-colors duration-200"
         />
+
+        <input
+          type="text"
+          placeholder="Username (e.g., @yourname)"
+          value={userData.username}
+          onChange={(e) => handleInputChange('username', e.target.value)}
+          className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-colors duration-200"
+        />
+
+
       </div>
     </div>
   )
 
   const renderStep2 = () => (
     <div>
-      <h2 className="text-2xl font-bold text-text-primary mb-6 text-center">Experience & Skills</h2>
+      <h2 className="text-2xl font-bold text-text-primary mb-6 text-center">Role Selection</h2>
 
       <div className="space-y-6">
         <div>
-          <label className="block text-text-primary font-medium mb-3">Experience Level</label>
+          <label className="block text-text-primary font-medium mb-3">Role *</label>
           <div className="space-y-3">
-            {experienceLevels.map((level) => (
+            {roles.map((role) => (
               <button
-                key={level}
-                className={`w-full p-4 rounded-2xl border transition-all duration-200 text-left ${userData.experience === level
+                key={role.value}
+                className={`w-full p-4 rounded-2xl border transition-all duration-200 text-left ${userData.role === role.value
                   ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white'
                   : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                   }`}
-                onClick={() => handleInputChange('experience', level)}
+                onClick={() => handleInputChange('role', role.value)}
               >
-                {level}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-text-primary font-medium mb-3">Skills (Select up to 5)</label>
-          <div className="grid grid-cols-2 gap-3">
-            {skillOptions.map((skill) => (
-              <button
-                key={skill}
-                className={`p-3 rounded-2xl border transition-all duration-200 text-sm ${userData.skills.includes(skill)
-                  ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white'
-                  : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
-                  }`}
-                onClick={() => handleSkillToggle(skill)}
-                disabled={!userData.skills.includes(skill) && userData.skills.length >= 5}
-              >
-                {skill}
+                <div className="text-left">
+                  <div className="font-semibold text-lg">{role.label}</div>
+                  <div className="text-sm opacity-80">{role.description}</div>
+                </div>
               </button>
             ))}
           </div>
@@ -175,17 +208,16 @@ const OnboardingPage = () => {
         </div>
 
         <div>
-          <label className="block text-text-primary font-medium mb-3">Preferred Location</label>
-          <select
+          <LocationSelector
             value={userData.location}
-            onChange={(e) => handleInputChange('location', e.target.value)}
-            className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary focus:outline-none focus:border-accent-primary transition-colors duration-200"
-          >
-            <option value="">Select location</option>
-            {locations.map((location) => (
-              <option key={location} value={location}>{location}</option>
-            ))}
-          </select>
+            onChange={(value) => handleInputChange('location', value)}
+            onContinentChange={(value) => handleInputChange('locationContinent', value)}
+            onCountryChange={(value) => handleInputChange('locationCountry', value)}
+            onCityChange={(value) => handleInputChange('locationCity', value)}
+            continentValue={userData.locationContinent}
+            countryValue={userData.locationCountry}
+            cityValue={userData.locationCity}
+          />
         </div>
       </div>
     </div>
@@ -211,11 +243,11 @@ const OnboardingPage = () => {
           <h3 className="text-text-primary font-semibold mb-3">Profile Summary</h3>
           <div className="space-y-2 text-sm text-text-secondary">
             <p><strong>Name:</strong> {userData.name || 'Not specified'}</p>
+            <p><strong>Username:</strong> {userData.username || 'Not specified'}</p>
             <p><strong>Title:</strong> {userData.title || 'Not specified'}</p>
-            <p><strong>Experience:</strong> {userData.experience || 'Not specified'}</p>
-            <p><strong>Skills:</strong> {userData.skills.length > 0 ? userData.skills.join(', ') : 'Not specified'}</p>
+            <p><strong>Role:</strong> {userData.role ? (userData.role === 'founder' ? 'Founder' : 'Investor') : 'Not specified'}</p>
             <p><strong>Interests:</strong> {userData.interests.length > 0 ? userData.interests.join(', ') : 'Not specified'}</p>
-            <p><strong>Location:</strong> {userData.location || 'Not specified'}</p>
+            <p><strong>Location:</strong> {userData.locationContinent === 'Remote' ? 'Remote' : userData.location || 'Not specified'}</p>
           </div>
         </div>
       </div>
@@ -276,9 +308,13 @@ const OnboardingPage = () => {
               className="btn-primary flex-1"
               onClick={nextStep}
               disabled={
-                (currentStep === 1 && (!userData.name || !userData.title)) ||
-                (currentStep === 2 && (!userData.experience || userData.skills.length === 0)) ||
-                (currentStep === 3 && (userData.interests.length === 0 || !userData.location))
+                (currentStep === 1 && (!userData.name || !userData.username || !userData.title)) ||
+                (currentStep === 2 && !userData.role) ||
+                (currentStep === 3 && (
+                  userData.interests.length === 0 ||
+                  !userData.locationContinent ||
+                  (userData.locationContinent !== 'Remote' && (!userData.locationCountry || !userData.locationCity))
+                ))
               }
             >
               Next
@@ -296,6 +332,11 @@ const OnboardingPage = () => {
           )}
         </div>
       </div>
+
+      {/* Tutorial Modal */}
+      {showTutorial && (
+        <OnboardingTutorial onComplete={handleTutorialComplete} />
+      )}
     </div>
   )
 }

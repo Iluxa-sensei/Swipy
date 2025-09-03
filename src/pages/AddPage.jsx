@@ -10,6 +10,12 @@ const AddPage = () => {
   const [showCustomCategory, setShowCustomCategory] = useState(false)
   const fileInputRef = useRef(null)
 
+
+
+  const locationOptions = [
+    'Remote', 'Asia', 'Europe', 'North America', 'South America', 'Africa', 'Australia'
+  ]
+
   const [formData, setFormData] = useState({
     startup: {
       name: '',
@@ -20,8 +26,11 @@ const AddPage = () => {
       fundingAmount: '',
       teamSize: '',
       location: '',
+      locationContinent: '', // Add continent
+      locationCountry: '', // Add country
+      locationCity: '', // Add city
       website: '',
-      positions: ['', '', ''],
+      investmentRequired: '', // Replace positions with investmentRequired
       image: null,
       logo: '',
       gradient: 'bg-gradient-primary'
@@ -45,12 +54,6 @@ const AddPage = () => {
 
   const newFundingOptions = [
     'Bootstrapped', 'Under $1K', 'Under $10K', 'Under $100K', '$500K+'
-  ]
-
-  const locationOptions = [
-    'Remote', 'San Francisco, CA', 'New York, NY', 'Austin, TX', 'Boston, MA',
-    'Seattle, WA', 'Los Angeles, CA', 'Chicago, IL', 'London, UK', 'Berlin, Germany',
-    'Toronto, Canada', 'Sydney, Australia', 'Singapore', 'Tokyo, Japan'
   ]
 
   const gradientOptions = [
@@ -154,7 +157,7 @@ const AddPage = () => {
     }
   }
 
-  // Функция для извлечения основного цвета из градиента
+  // Function to extract main color from gradient
   const getGradientColor = (gradientClass) => {
     const gradientMap = {
       'bg-gradient-primary': '#1565c0',
@@ -385,15 +388,59 @@ const AddPage = () => {
             </div>
           </div>
 
-          {/* Custom Location Dropdown */}
-          <CustomDropdown
-            label="Location"
-            options={locationOptions}
-            value={formData.startup.location}
-            onChange={handleLocationChange}
-            placeholder="Select location"
-            type="location"
-          />
+          {/* Location Selection */}
+          <div className="form-group">
+            <label className="block text-text-primary font-medium mb-2">Location</label>
+
+            {/* Step 1: Select Continent/Remote */}
+            <CustomDropdown
+              label=""
+              options={locationOptions}
+              value={formData.startup.locationContinent}
+              onChange={(value) => {
+                handleInputChange('startup', 'locationContinent', value)
+                if (value === 'Remote') {
+                  handleInputChange('startup', 'location', 'Remote')
+                  handleInputChange('startup', 'locationCountry', '')
+                  handleInputChange('startup', 'locationCity', '')
+                } else {
+                  handleInputChange('startup', 'location', '')
+                }
+              }}
+              placeholder="Select continent or Remote"
+              type="location"
+            />
+
+            {/* Step 2: If continent selected, show country and city fields */}
+            {formData.startup.locationContinent && formData.startup.locationContinent !== 'Remote' && (
+              <div className="mt-3 space-y-3">
+                <input
+                  type="text"
+                  className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300"
+                  placeholder="Country"
+                  value={formData.startup.locationCountry}
+                  onChange={(e) => {
+                    handleInputChange('startup', 'locationCountry', e.target.value)
+                    // Update full location name
+                    const fullLocation = `${e.target.value}, ${formData.startup.locationCity || ''}`.trim()
+                    handleInputChange('startup', 'location', fullLocation)
+                  }}
+                />
+                <input
+                  type="text"
+                  className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300"
+                  placeholder="City"
+                  value={formData.startup.locationCity}
+                  onChange={(e) => {
+                    handleInputChange('startup', 'locationCity', e.target.value)
+                    // Update full location name
+                    const fullLocation = `${formData.startup.locationCountry || ''}, ${e.target.value}`.trim()
+                    handleInputChange('startup', 'location', fullLocation)
+                  }}
+                />
+              </div>
+            )}
+          </div>
 
           {/* Website Field */}
           <div className="form-group">
@@ -408,6 +455,7 @@ const AddPage = () => {
                 placeholder="https://yourstartup.com"
                 value={formData.startup.website}
                 onChange={(e) => handleInputChange('startup', 'website', e.target.value)}
+                pattern="https?://.+"
               />
             </div>
           </div>
@@ -432,37 +480,20 @@ const AddPage = () => {
           </div>
 
           <div className="form-group">
-            <label className="block text-text-primary font-medium mb-2">Open Positions</label>
-            <div className="space-y-3">
-              {formData.startup.positions.map((position, index) => (
-                <div key={index} className="flex gap-3 items-center">
-                  <div className="flex-1 relative group">
-                    <input
-                      type="text"
-                      className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300 hover:border-accent-primary/70"
-                      placeholder={`Position ${index + 1}`}
-                      value={position}
-                      onChange={(e) => handleArrayChange('startup', 'positions', index, e.target.value)}
-                    />
-                    <div className="absolute top-0 right-0 h-full flex items-center pr-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className="text-xs text-text-secondary">{position.length}/50</span>
-                    </div>
-                  </div>
-                  <button
-                    className="w-12 h-12 bg-red-500/20 border border-red-500/50 rounded-xl flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/30 hover:border-red-400 transition-all duration-300 shadow-lg shadow-red-500/20"
-                    onClick={() => removeArrayItem('startup', 'positions', index)}
-                  >
-                    <i className="fas fa-minus"></i>
-                  </button>
-                </div>
-              ))}
-              <button
-                className="w-full p-3 bg-glass-bg border border-glass-border rounded-xl text-text-secondary hover:text-blue-700 hover:border-blue-700 transition-all duration-300 flex items-center justify-center"
-                onClick={() => addArrayItem('startup', 'positions')}
-              >
-                <i className="fas fa-plus mr-2"></i>
-                Add Position
-              </button>
+            <label className="block text-text-primary font-medium mb-2">Investment Required</label>
+            <div className="relative">
+              <input
+                type="number"
+                className="w-full p-4 pr-12 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300 hover:border-accent-primary/70"
+                placeholder="Enter investment amount"
+                value={formData.startup.investmentRequired || ''}
+                onChange={(e) => handleInputChange('startup', 'investmentRequired', e.target.value)}
+                min="0"
+                step="1000"
+              />
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <span className="text-text-secondary font-semibold">$</span>
+              </div>
             </div>
           </div>
         </div>
@@ -473,14 +504,14 @@ const AddPage = () => {
             className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white w-full hover:scale-[1.02] transition-transform duration-300 shadow-lg shadow-blue-700/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 font-semibold rounded-2xl py-4"
             disabled={!formData.startup.name || !formData.startup.category || formData.startup.description.length > 100 || formData.startup.name.length > 15}
             onClick={() => {
-              // Простая валидация и сохранение
+              // Simple validation and saving
               console.log('Startup data:', formData.startup)
 
-              // Сохраняем стартап в профиль пользователя
+              // Save startup to user profile
               const profileData = localStorage.getItem('profile_data')
               const currentProfile = profileData ? JSON.parse(profileData) : {}
 
-              // Создаем объект стартапа
+              // Create startup object
               const newStartup = {
                 id: Date.now(),
                 name: formData.startup.name,
@@ -493,20 +524,20 @@ const AddPage = () => {
                 website: formData.startup.website,
                 gradient: formData.startup.gradient,
                 image: formData.startup.image,
-                positions: formData.startup.positions.filter(pos => pos.trim() !== ''),
+                investmentRequired: formData.startup.investmentRequired,
                 createdAt: new Date().toISOString()
               }
 
-              // Добавляем стартап в портфолио
+              // Add startup to portfolio
               const updatedPortfolio = [...(currentProfile.portfolio || []), newStartup]
 
-              // Обновляем профиль
+              // Update profile
               const updatedProfile = {
                 ...currentProfile,
                 portfolio: updatedPortfolio
               }
 
-              // Сохраняем обновленный профиль
+              // Save updated profile
               localStorage.setItem('profile_data', JSON.stringify(updatedProfile))
 
               alert('Startup created successfully!')
@@ -690,30 +721,27 @@ const AddPage = () => {
                         </div>
                       )}
 
-                      {/* Open Positions */}
-                      {formData.startup.positions.filter(pos => pos.trim() !== '').length > 0 && (
+                      {/* Investment Required */}
+                      {formData.startup.investmentRequired && (
                         <div className="bg-black/30 border border-white/20 rounded-xl p-4">
                           <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
                             <i
-                              className="fas fa-users"
+                              className="fas fa-dollar-sign"
                               style={{ color: getGradientColor(formData.startup.gradient) }}
                             ></i>
-                            Open Positions
+                            Investment Required
                           </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {formData.startup.positions.filter(pos => pos.trim() !== '').map((role, index) => (
-                              <span
-                                key={index}
-                                className="px-3 py-1.5 rounded-lg text-xs font-medium"
-                                style={{
-                                  backgroundColor: `${getGradientColor(formData.startup.gradient)}20`,
-                                  color: getGradientColor(formData.startup.gradient),
-                                  border: `1px solid ${getGradientColor(formData.startup.gradient)}30`
-                                }}
-                              >
-                                {role}
-                              </span>
-                            ))}
+                          <div className="text-center">
+                            <span
+                              className="px-4 py-2 rounded-lg text-lg font-bold"
+                              style={{
+                                backgroundColor: `${getGradientColor(formData.startup.gradient)}20`,
+                                color: getGradientColor(formData.startup.gradient),
+                                border: `1px solid ${getGradientColor(formData.startup.gradient)}30`
+                              }}
+                            >
+                              ${formData.startup.investmentRequired}
+                            </span>
                           </div>
                         </div>
                       )}

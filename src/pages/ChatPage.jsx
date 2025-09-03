@@ -12,14 +12,14 @@ const ChatPage = () => {
   const [showMainMenu, setShowMainMenu] = useState(false)
   const [archivedChats, setArchivedChats] = useState([])
 
-  // Загружаем данные чатов
+  // Load chat data
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Загружаем архивные чаты
+      // Load archived chats
       const archived = JSON.parse(localStorage.getItem('archivedChats') || '[]')
       setArchivedChats(archived)
 
-      // Преобразуем данные чатов в формат для отображения
+      // Transform chat data into display format
       const formattedChats = chats.map((chat, index) => {
         const lastMessage = chat.messages[chat.messages.length - 1]
         return {
@@ -31,11 +31,11 @@ const ChatPage = () => {
           unreadCount: Math.floor(Math.random() * 5) + (lastMessage.sender === 'startup' ? 1 : 0),
           avatar: chat.startup.logo,
           gradient: chat.startup.gradient,
-          isOnline: index < 2, // Первые 2 чата показывать как онлайн
+          isOnline: index < 2, // First 2 chats show as online
           lastSeen: index >= 2 ? 'Last seen 2h ago' : null,
-          isTyping: index === 0 && Math.random() > 0.7, // Иногда показывать печатание
-          isFavorite: index === 1, // Второй чат - избранный
-          isPinned: index === 0 // Первый чат - закреплен
+          isTyping: index === 0 && Math.random() > 0.7, // Sometimes show typing
+          isFavorite: index === 1, // Second chat - favorite
+          isPinned: index === 0 // First chat - pinned
         }
       })
 
@@ -46,7 +46,7 @@ const ChatPage = () => {
     return () => clearTimeout(timer)
   }, [])
 
-  // Отметить все как прочитанные
+  // Mark all as read
   const markAllAsRead = () => {
     setChatList(prev => prev.map(chat => ({
       ...chat,
@@ -56,13 +56,13 @@ const ChatPage = () => {
     setShowMainMenu(false)
   }
 
-  // Показать архив
+  // Show archive
   const showArchived = () => {
     setFilter('archived')
     setShowMainMenu(false)
   }
 
-  // Функция переключения избранного
+  // Function to toggle favorite
   const toggleFavorite = (chatId, e) => {
     e.stopPropagation()
     setChatList(prev => prev.map(chat =>
@@ -70,12 +70,12 @@ const ChatPage = () => {
     ))
   }
 
-  // Функция архивирования чата
+  // Function to archive chat
   const archiveChat = (chatId, e) => {
     e.stopPropagation()
     const chatToArchive = chatList.find(chat => chat.id === chatId)
     if (chatToArchive) {
-      // Добавляем в архив
+      // Add to archive
       const archivedChat = {
         ...chatToArchive,
         archivedAt: new Date().toISOString()
@@ -84,14 +84,14 @@ const ChatPage = () => {
       setArchivedChats(newArchived)
       localStorage.setItem('archivedChats', JSON.stringify(newArchived))
 
-      // Удаляем из основного списка
+      // Remove from main list
       setChatList(prev => prev.filter(chat => chat.id !== chatId))
     }
   }
 
 
 
-  // Фильтрация чатов
+  // Chat filtering
   const filteredChats = (() => {
     if (filter === 'archived') {
       return archivedChats.filter(chat =>
@@ -126,7 +126,7 @@ const ChatPage = () => {
     })
   })()
 
-  // Сортировка: закрепленные наверху, потом по времени
+        // Sorting: pinned at top, then by time
   const sortedChats = [...filteredChats].sort((a, b) => {
     if (a.isPinned && !b.isPinned) return -1
     if (!a.isPinned && b.isPinned) return 1
