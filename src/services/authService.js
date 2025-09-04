@@ -41,17 +41,22 @@ export const authService = {
 
             // If registration is successful, create profile
             if (data.user) {
-                await profileService.upsertProfile({
-                    id: data.user.id,
-                    full_name: profileData.full_name || '',
-                    avatar_url: null
-                })
+                try {
+                    await profileService.upsertProfile({
+                        id: data.user.id,
+                        full_name: profileData.full_name || '',
+                        avatar_url: null
+                    })
+                } catch (profileError) {
+                    console.warn('Profile creation failed, but user was created:', profileError)
+                    // Don't throw error here, user registration was successful
+                }
             }
 
-            return data
+            return { success: true, data, error: null }
         } catch (error) {
             console.error('Error signing up:', error)
-            throw error
+            return { success: false, data: null, error }
         }
     },
 

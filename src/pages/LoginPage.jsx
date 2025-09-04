@@ -92,9 +92,9 @@ const LoginPage = () => {
         const redirectTo = location.state?.from?.pathname || '/home'
         navigate(redirectTo)
       } else {
-        const { error } = await authService.signUp(formData.email, formData.password, { full_name: formData.name })
-        if (error) {
-          alert(error.message)
+        const result = await authService.signUp(formData.email, formData.password, { full_name: formData.name })
+        if (!result.success) {
+          alert(result.error?.message || 'Registration failed. Please try again.')
           return
         }
         // Show email confirmation modal
@@ -102,7 +102,11 @@ const LoginPage = () => {
       }
     } catch (error) {
       console.error('Authentication error:', error)
-      alert('An unexpected error occurred. Please try again.')
+      if (isLogin) {
+        alert('Sign in failed. Please check your credentials and try again.')
+      } else {
+        alert('Registration failed. Please try again or contact support if the problem persists.')
+      }
     } finally {
       setIsSubmitting(false)
     }
