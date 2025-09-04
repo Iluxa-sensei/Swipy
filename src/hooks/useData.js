@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { startupService, swipeService, chatService, profileService } from '../services/index.js'
 import { useFilters } from '../context/FiltersContext'
+import { sampleStartups } from '../data/startups.js'
 
 // Hook for working with startups
 export const useStartups = () => {
@@ -60,6 +61,9 @@ export const useStartups = () => {
         } catch (err) {
             console.error('useStartups: Error fetching startups:', err)
             setError(err.message)
+            // Fallback to sample data if there's an error
+            console.log('useStartups: Falling back to sample data due to error')
+            setStartups(sampleStartups)
         } finally {
             console.log('useStartups: Setting loading to false')
             setLoading(false)

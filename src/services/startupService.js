@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient.js'
+import { sampleStartups } from '../data/startups.js'
 
 export const startupService = {
     // Get all startups
@@ -8,13 +9,7 @@ export const startupService = {
 
             const { data, error } = await supabase
                 .from('startups')
-                .select(`
-          *,
-          profiles!startups_owner_id_fkey (
-            full_name,
-            avatar_url
-          )
-        `)
+                .select('*')
                 .order('created_at', { ascending: false })
 
             console.log('startupService.getAllStartups: Supabase response:', { data, error })
@@ -28,7 +23,8 @@ export const startupService = {
             return data || []
         } catch (error) {
             console.error('startupService.getAllStartups: Error:', error)
-            return []
+            console.log('startupService.getAllStartups: Falling back to sample data')
+            return sampleStartups
         }
     },
 

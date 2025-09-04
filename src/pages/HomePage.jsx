@@ -3,12 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import { useStartups, useSwipes, useAuth } from '../hooks'
 import { chatService } from '../services'
 import OnboardingTutorial from '../components/OnboardingTutorial'
+import { sampleStartups } from '../data/startups.js'
 
 const HomePage = () => {
+  // Test import
+  console.log('HomePage: sampleStartups imported:', sampleStartups)
+  console.log('HomePage: sampleStartups length:', sampleStartups?.length)
+
   const { user } = useAuth()
   const { startups, loading: startupsLoading, error: startupsError } = useStartups()
   const { likeStartup, passStartup, loading: swipesLoading } = useSwipes(user?.id)
 
+  // ALL HOOKS MUST BE AT THE TOP - NO EXCEPTIONS!
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [debugMode, setDebugMode] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -21,6 +27,66 @@ const HomePage = () => {
   const cardRef = useRef(null)
   const lastTapRef = useRef(0)
   const navigate = useNavigate()
+
+  // Debug logging
+  console.log('=== HomePage Debug ===')
+  console.log('user:', user)
+  console.log('startups:', startups)
+  console.log('startupsLoading:', startupsLoading)
+  console.log('startupsError:', startupsError)
+  console.log('startups.length:', startups?.length)
+  console.log('=====================')
+
+  // Fallback to sample data if no startups loaded
+  const displayStartups = startups && startups.length > 0 ? startups : sampleStartups
+  console.log('displayStartups:', displayStartups)
+
+  // ALL useEffect hooks must be here too - AFTER displayStartups is defined
+  useEffect(() => {
+    const tutorialCompleted = localStorage.getItem('tutorial-completed')
+    if (!tutorialCompleted) {
+      const timer = setTimeout(() => setShowTutorial(true), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (currentCardIndex >= displayStartups.length) {
+      setCurrentCardIndex(0)
+    }
+  }, [currentCardIndex, displayStartups.length])
+
+  useEffect(() => {
+    if (!startupsLoading && (!startups || startups.length === 0)) {
+      console.log('HomePage: No startups loaded, forcing fallback to sample data')
+    }
+  }, [startupsLoading, startups])
+
+  useEffect(() => {
+    setIsFlipped(false)
+    resetCardStyles()
+  }, [currentCardIndex])
+
+  useEffect(() => {
+    return () => {
+      lastTapRef.current = 0
+    }
+  }, [])
+
+  // Force fallback if still no data
+  if (!displayStartups || displayStartups.length === 0) {
+    console.log('HomePage: No startups available, forcing sample data')
+    return (
+      <div className="screen active">
+        <div className="bg-red-500 text-white p-4">
+          <h1>Debug: No startups loaded</h1>
+          <p>startups: {JSON.stringify(startups)}</p>
+          <p>sampleStartups: {JSON.stringify(sampleStartups)}</p>
+          <p>displayStartups: {JSON.stringify(displayStartups)}</p>
+        </div>
+      </div>
+    )
+  }
 
 
 
@@ -116,15 +182,7 @@ const HomePage = () => {
 
 
 
-  // Check if tutorial should be shown
-  useEffect(() => {
-    const tutorialCompleted = localStorage.getItem('tutorial-completed')
-    if (!tutorialCompleted) {
-      // Small delay for smoothness
-      const timer = setTimeout(() => setShowTutorial(true), 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [])
+
 
   // Function to show startup details
   const handleShowDetails = (startup) => {
@@ -250,30 +308,12 @@ const HomePage = () => {
     }
   }
 
-  // Reset card index when reaching the end
-  useEffect(() => {
-    if (currentCardIndex >= startups.length) {
-      setCurrentCardIndex(0)
-    }
-  }, [currentCardIndex])
 
-  // Reset flip state when changing card
-  useEffect(() => {
-    setIsFlipped(false)
-    resetCardStyles()
-  }, [currentCardIndex])
-
-  // Clean up timer on unmount
-  useEffect(() => {
-    return () => {
-      lastTapRef.current = 0
-    }
-  }, [])
 
 
 
   // If reached end of startups list
-  if (currentCardIndex >= startups.length) {
+  if (currentCardIndex >= displayStartups.length) {
     return (
       <div className="screen active">
         <div className="header">
@@ -307,10 +347,10 @@ const HomePage = () => {
   }
 
   // Get current startup
-  const currentStartup = startups[currentCardIndex]
+  const currentStartup = displayStartups[currentCardIndex]
 
   // Show empty state if no startups
-  if (startups.length === 0) {
+  if (displayStartups.length === 0) {
     return (
       <div className="screen active">
         <div className="header">
@@ -346,6 +386,11 @@ const HomePage = () => {
 
   return (
     <div className="screen active">
+      {/* Debug info */}
+      <div className="bg-red-500 text-white p-2 text-xs">
+        Debug: startups={startups?.length || 0}, displayStartups={displayStartups?.length || 0}, loading={startupsLoading ? 'true' : 'false'}
+      </div>
+
       <div className="header">
         <button className="header-btn" onClick={() => navigate('/filters')}>
           <i className="fas fa-filter"></i>
@@ -361,7 +406,7 @@ const HomePage = () => {
       <div className="swipe-container">
         <div className="card-stack">
           {/* Back card (next) */}
-          {currentCardIndex + 1 < startups.length && (
+          {currentCardIndex + 1 < displayStartups.length && (
             <div
               className="startup-card-container"
               style={{
@@ -373,16 +418,16 @@ const HomePage = () => {
             >
               <div className="startup-card">
                 <div className="card-image">
-                  <div className={`${startups[currentCardIndex + 1].gradient} w-full h-full relative overflow-hidden`}>
-                    {startups[currentCardIndex + 1].image ? (
+                  <div className={`${displayStartups[currentCardIndex + 1].gradient} w-full h-full relative overflow-hidden`}>
+                    {displayStartups[currentCardIndex + 1].image ? (
                       <img
-                        src={startups[currentCardIndex + 1].image}
-                        alt={startups[currentCardIndex + 1].name}
+                        src={displayStartups[currentCardIndex + 1].image}
+                        alt={displayStartups[currentCardIndex + 1].name}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="company-logo">
-                        <span className="text-white font-bold text-xl">{startups[currentCardIndex + 1].logo}</span>
+                        <span className="text-white font-bold text-xl">{displayStartups[currentCardIndex + 1].logo}</span>
                       </div>
                     )}
                     <div className="gradient-overlay opacity-70"></div>
@@ -390,7 +435,7 @@ const HomePage = () => {
                 </div>
                 <div className="card-content">
                   <div className="card-header">
-                    <h3 className="card-title">{startups[currentCardIndex + 1].name}</h3>
+                    <h3 className="card-title">{displayStartups[currentCardIndex + 1].name}</h3>
                   </div>
                 </div>
               </div>

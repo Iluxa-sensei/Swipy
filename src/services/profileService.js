@@ -23,9 +23,23 @@ export const profileService = {
         try {
             console.log('profileService.upsertProfile called with:', profileData)
 
+            // Clean up profile data - remove empty strings and set defaults
+            const cleanProfileData = {
+                ...profileData,
+                full_name: profileData.full_name || 'New User',
+                bio: profileData.bio || null,
+                location: profileData.location || null,
+                website: profileData.website || null,
+                username: profileData.username || null,
+                role: profileData.role || null,
+                interests: profileData.interests || null
+            }
+
+            console.log('profileService.upsertProfile: Cleaned profile data:', cleanProfileData)
+
             const { data, error } = await supabase
                 .from('profiles')
-                .upsert([profileData], {
+                .upsert([cleanProfileData], {
                     onConflict: 'id'
                 })
                 .select()
