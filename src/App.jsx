@@ -38,7 +38,7 @@ function App() {
   }
 
   // Determine whether to show bottom navigation
-  const showBottomNav = !['onboarding', 'login'].includes(currentScreen) && !currentScreen.startsWith('chat-detail')
+  const showBottomNav = !['onboarding', 'login', 'reset-password'].includes(currentScreen) && !currentScreen.startsWith('chat-detail')
 
   return (
     <FiltersProvider>

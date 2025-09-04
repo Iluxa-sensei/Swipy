@@ -329,18 +329,7 @@ const LoginPage = () => {
           </p>
         </div>
 
-        {/* Guest Access */}
-        {!session && (
-          <div className="text-center mt-6">
-            <button
-              type="button"
-              onClick={() => navigate('/home')}
-              className="text-text-secondary hover:text-text-primary transition-colors duration-200 focus:outline-none"
-            >
-              Continue as Guest
-            </button>
-          </div>
-        )}
+
 
         {/* Bottom spacing for laptops */}
         <div className="h-20"></div>
