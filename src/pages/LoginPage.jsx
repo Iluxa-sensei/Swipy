@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { supabase } from '../services/supabaseClient.js'
+import { authService } from '../services/authService.js'
 import { useAuth } from '../providers/AuthProvider.jsx'
 
 const LoginPage = () => {
@@ -9,6 +9,7 @@ const LoginPage = () => {
   const { session } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showEmailModal, setShowEmailModal] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -49,7 +50,7 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (isSubmitting) return
     setIsSubmitting(true)
 
@@ -83,10 +84,7 @@ const LoginPage = () => {
       }
 
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password
-        })
+        const { error } = await authService.signIn(formData.email, formData.password)
         if (error) {
           alert(error.message)
           return
@@ -94,18 +92,13 @@ const LoginPage = () => {
         const redirectTo = location.state?.from?.pathname || '/home'
         navigate(redirectTo)
       } else {
-        const { error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            data: { full_name: formData.name }
-          }
-        })
+        const { error } = await authService.signUp(formData.email, formData.password, { full_name: formData.name })
         if (error) {
           alert(error.message)
           return
         }
-        navigate('/onboarding')
+        // Show email confirmation modal
+        setShowEmailModal(true)
       }
     } catch (error) {
       console.error('Authentication error:', error)
@@ -117,13 +110,10 @@ const LoginPage = () => {
 
   const signInWithProvider = async (provider) => {
     if (isSubmitting) return
-    
+
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: window.location.origin + '/home'
-        }
+      const { error } = await authService.signInWithOAuth(provider, {
+        redirectTo: `${window.location.origin}/auth/callback`
       })
       if (error) alert(error.message)
     } catch (error) {
@@ -146,8 +136,7 @@ const LoginPage = () => {
 
   const handleForgotPassword = (e) => {
     e.preventDefault()
-    // TODO: Implement forgot password flow
-    alert('Password reset functionality coming soon')
+    navigate('/reset-password')
   }
 
   const toggleMode = () => {
@@ -159,6 +148,11 @@ const LoginPage = () => {
       name: '',
       agreeToTerms: false
     })
+  }
+
+  const handleEmailModalOK = () => {
+    setShowEmailModal(false)
+    navigate('/onboarding')
   }
 
   return (
@@ -306,10 +300,10 @@ const LoginPage = () => {
 
         {/* Social Login */}
         <div className="space-y-4">
-          <button 
-            type="button" 
+          <button
+            type="button"
             disabled={isSubmitting}
-            onClick={() => signInWithProvider('google')} 
+            onClick={() => signInWithProvider('google')}
             className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary hover:bg-glass-border transition-colors duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i className="fab fa-google text-xl"></i>
@@ -347,7 +341,42 @@ const LoginPage = () => {
             </button>
           </div>
         )}
+
+        {/* Bottom spacing for laptops */}
+        <div className="h-20"></div>
       </div>
+
+      {/* Email Confirmation Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-bg-secondary rounded-3xl max-w-sm w-full shadow-2xl border border-glass-border overflow-hidden animate-slide-up">
+            <div className="p-8 text-center">
+              {/* Success Icon */}
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-3xl">
+                <i className="fas fa-envelope"></i>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl font-bold text-text-primary mb-3">
+                Check Your Email
+              </h3>
+
+              {/* Description */}
+              <p className="text-text-secondary leading-relaxed mb-6">
+                We've sent you a confirmation email. Please check your inbox and click the verification link to complete your account setup.
+              </p>
+
+              {/* OK Button */}
+              <button
+                onClick={handleEmailModalOK}
+                className="w-full py-3 px-6 bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white rounded-2xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

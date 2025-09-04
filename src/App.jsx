@@ -17,6 +17,8 @@ import StartupDetailPage from './pages/StartupDetailPage'
 import SavedPage from './pages/SavedPage'
 import ProfileEditPage from './pages/ProfileEditPage'
 import SettingsPage from './pages/SettingsPage'
+import OAuthCallback from './components/OAuthCallback'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 
 
 function App() {
@@ -45,6 +47,8 @@ function App() {
           <Routes>
             <Route path="/" element={<LoginPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/auth/callback" element={<OAuthCallback />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/home" element={<HomePage />} />
               <Route path="/startup/:id" element={<StartupDetailPage />} />

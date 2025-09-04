@@ -149,17 +149,9 @@ const OnboardingTutorial = ({ onComplete }) => {
                             onClick={nextStep}
                             className="flex-1 py-3 px-4 bg-gradient-to-r from-accent-primary to-blue-500 text-white rounded-2xl font-medium hover:from-accent-primary/90 hover:to-blue-500/90 transition-all duration-200 hover:scale-105"
                         >
-                            {currentStep === steps.length - 1 ? 'Start' : 'Next'}
+                            {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
                         </button>
                     </div>
-
-                    {/* Skip Button */}
-                    <button
-                        onClick={skipTutorial}
-                        className="mt-4 text-text-secondary text-sm hover:text-text-primary transition-colors duration-200"
-                    >
-                        Skip Tutorial
-                    </button>
                 </div>
             </div>
         </div>

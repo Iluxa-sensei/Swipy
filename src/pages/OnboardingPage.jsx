@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks'
 import { profileService } from '../services'
+import LocationSelector from '../components/LocationSelector'
 
 const OnboardingPage = () => {
   const navigate = useNavigate()
@@ -12,13 +13,15 @@ const OnboardingPage = () => {
 
   const [userData, setUserData] = useState({
     full_name: '',
+    username: '',
     bio: '',
     location: '',
+    locationContinent: '',
+    locationCountry: '',
+    locationCity: '',
     website: '',
     role: '',
-    interests: [],
-    experience_level: '',
-    goals: []
+    interests: []
   })
 
   // Check if user is authenticated
@@ -35,23 +38,8 @@ const OnboardingPage = () => {
   ]
 
   const roles = [
-    { value: 'founder', label: 'Founder', description: 'I want to create and grow startups', icon: '🚀' },
-    { value: 'investor', label: 'Investor', description: 'I want to invest in promising startups', icon: '💰' },
-    { value: 'developer', label: 'Developer', description: 'I want to join startup teams', icon: '👨‍💻' },
-    { value: 'designer', label: 'Designer', description: 'I want to design for startups', icon: '🎨' }
-  ]
-
-  const experienceLevels = [
-    { value: 'beginner', label: 'Beginner', description: '0-2 years experience' },
-    { value: 'intermediate', label: 'Intermediate', description: '3-5 years experience' },
-    { value: 'advanced', label: 'Advanced', description: '6+ years experience' }
-  ]
-
-  const goals = [
-    { value: 'network', label: 'Network', description: 'Connect with other professionals' },
-    { value: 'learn', label: 'Learn', description: 'Learn from successful founders' },
-    { value: 'collaborate', label: 'Collaborate', description: 'Find collaboration opportunities' },
-    { value: 'mentor', label: 'Mentor', description: 'Help others grow' }
+    { value: 'founder', label: 'Founder', description: 'I want to create and grow startups', icon: 'fas fa-rocket' },
+    { value: 'investor', label: 'Investor', description: 'I want to invest in promising startups', icon: 'fas fa-chart-line' }
   ]
 
   const handleInputChange = (field, value) => {
@@ -70,20 +58,11 @@ const OnboardingPage = () => {
     }))
   }
 
-  const handleGoalToggle = (goal) => {
-    setUserData(prev => ({
-      ...prev,
-      goals: prev.goals.includes(goal)
-        ? prev.goals.filter(g => g !== goal)
-        : [...prev.goals, goal]
-    }))
-  }
-
   const nextStep = () => {
     // Validate current step before proceeding
     if (currentStep === 1) {
-      if (!userData.full_name.trim()) {
-        setError('Please enter your full name')
+      if (!userData.full_name.trim() || !userData.username.trim()) {
+        setError('Please enter your full name and username')
         return
       }
     } else if (currentStep === 2) {
@@ -96,23 +75,14 @@ const OnboardingPage = () => {
         setError('Please select at least one interest category')
         return
       }
-      if (!userData.location.trim()) {
-        setError('Please enter your location')
-        return
-      }
-    } else if (currentStep === 4) {
-      if (!userData.experience_level) {
-        setError('Please select your experience level')
-        return
-      }
-      if (userData.goals.length === 0) {
-        setError('Please select at least one goal')
+      if (!userData.locationContinent) {
+        setError('Please select your continent')
         return
       }
     }
 
     setError(null)
-    if (currentStep < 5) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1)
     }
   }
@@ -134,13 +104,14 @@ const OnboardingPage = () => {
       // Prepare profile data for Supabase
       const profileData = {
         full_name: userData.full_name,
+        username: userData.username,
         bio: userData.bio,
-        location: userData.location,
+        location: userData.locationContinent === 'Remote'
+          ? 'Remote'
+          : `${userData.locationCity}, ${userData.locationCountry}, ${userData.locationContinent}`,
         website: userData.website,
         role: userData.role,
         interests: userData.interests,
-        experience_level: userData.experience_level,
-        goals: userData.goals,
         onboarding_completed: true
       }
 
@@ -158,12 +129,8 @@ const OnboardingPage = () => {
     }
   }
 
-  const skipOnboarding = () => {
-    navigate('/home')
-  }
-
   // Calculate progress percentage
-  const progress = (currentStep / 5) * 100
+  const progress = (currentStep / 4) * 100
 
   return (
     <div className="screen active">
@@ -179,12 +146,7 @@ const OnboardingPage = () => {
       <div className="header">
         <div className="w-10"></div>
         <h1 className="text-lg font-bold">Welcome to Swipy</h1>
-        <button
-          className="header-btn text-sm"
-          onClick={skipOnboarding}
-        >
-          Skip
-        </button>
+        <div className="w-10"></div>
       </div>
 
       {/* Error Message */}
@@ -221,6 +183,19 @@ const OnboardingPage = () => {
                   onChange={(e) => handleInputChange('full_name', e.target.value)}
                   className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
                   placeholder="Enter your full name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-2">
+                  Username *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Username (e.g., @yourname)"
+                  value={userData.username}
+                  onChange={(e) => handleInputChange('username', e.target.value)}
+                  className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-colors duration-200"
                 />
               </div>
 
@@ -267,12 +242,14 @@ const OnboardingPage = () => {
                   key={role.value}
                   onClick={() => handleInputChange('role', role.value)}
                   className={`w-full p-6 text-left border-2 rounded-2xl transition-all duration-200 hover:scale-[1.02] ${userData.role === role.value
-                      ? 'border-accent-primary bg-accent-primary/10'
-                      : 'border-glass-border bg-glass-bg hover:border-accent-primary/50'
+                    ? 'border-accent-primary bg-accent-primary/10'
+                    : 'border-glass-border bg-glass-bg hover:border-accent-primary/50'
                     }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="text-3xl">{role.icon}</div>
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center">
+                      <i className={`${role.icon} text-white text-xl`}></i>
+                    </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-text-primary mb-1">{role.label}</h3>
                       <p className="text-text-secondary text-sm">{role.description}</p>
@@ -307,8 +284,8 @@ const OnboardingPage = () => {
                       key={interest}
                       onClick={() => handleInterestToggle(interest)}
                       className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${userData.interests.includes(interest)
-                          ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
-                          : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
+                        ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                        : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                         }`}
                     >
                       {interest}
@@ -320,83 +297,23 @@ const OnboardingPage = () => {
               {/* Location */}
               <div>
                 <h3 className="text-lg font-semibold text-text-primary mb-4">Location</h3>
-                <input
-                  type="text"
+                <LocationSelector
                   value={userData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
-                  placeholder="City, Country or Remote"
+                  onChange={(value) => handleInputChange('location', value)}
+                  onContinentChange={(value) => handleInputChange('locationContinent', value)}
+                  onCountryChange={(value) => handleInputChange('locationCountry', value)}
+                  onCityChange={(value) => handleInputChange('locationCity', value)}
+                  continentValue={userData.locationContinent}
+                  countryValue={userData.locationCountry}
+                  cityValue={userData.locationCity}
                 />
               </div>
             </div>
           </div>
         )}
 
-        {/* Step 4: Experience & Goals */}
+        {/* Step 4: Review & Complete */}
         {currentStep === 4 && (
-          <div className="p-6 space-y-6 animate-fade-in">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-text-primary mb-2">Experience & Goals</h2>
-              <p className="text-text-secondary">Help us understand your background and aspirations</p>
-            </div>
-
-            <div className="space-y-6">
-              {/* Experience Level */}
-              <div>
-                <h3 className="text-lg font-semibold text-text-primary mb-4">Experience Level</h3>
-                <div className="space-y-3">
-                  {experienceLevels.map((level) => (
-                    <button
-                      key={level.value}
-                      onClick={() => handleInputChange('experience_level', level.value)}
-                      className={`w-full p-4 text-left border-2 rounded-2xl transition-all duration-200 hover:scale-[1.02] ${userData.experience_level === level.value
-                          ? 'border-accent-primary bg-accent-primary/10'
-                          : 'border-glass-border bg-glass-bg hover:border-accent-primary/50'
-                        }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-semibold text-text-primary">{level.label}</h4>
-                          <p className="text-text-secondary text-sm">{level.description}</p>
-                        </div>
-                        {userData.experience_level === level.value && (
-                          <div className="w-5 h-5 bg-accent-primary rounded-full flex items-center justify-center">
-                            <i className="fas fa-check text-white text-xs"></i>
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Goals */}
-              <div>
-                <h3 className="text-lg font-semibold text-text-primary mb-4">What are your goals?</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {goals.map((goal) => (
-                    <button
-                      key={goal.value}
-                      onClick={() => handleGoalToggle(goal.value)}
-                      className={`p-4 rounded-2xl border transition-all duration-200 hover:scale-105 ${userData.goals.includes(goal.value)
-                          ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
-                          : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
-                        }`}
-                    >
-                      <div className="text-center">
-                        <h4 className="font-semibold mb-1">{goal.label}</h4>
-                        <p className="text-xs opacity-80">{goal.description}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 5: Review & Complete */}
-        {currentStep === 5 && (
           <div className="p-6 space-y-6 animate-fade-in">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-text-primary mb-2">Review Your Profile</h2>
@@ -412,7 +329,7 @@ const OnboardingPage = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-text-primary">{userData.full_name}</h3>
-                  <p className="text-text-secondary">{userData.role}</p>
+                  <p className="text-text-secondary">@{userData.username}</p>
                 </div>
               </div>
 
@@ -425,12 +342,16 @@ const OnboardingPage = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium text-text-primary mb-1">Location</h4>
-                  <p className="text-text-secondary text-sm">{userData.location}</p>
+                  <h4 className="font-medium text-text-primary mb-1">Role</h4>
+                  <p className="text-text-secondary text-sm capitalize">{userData.role}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-text-primary mb-1">Experience</h4>
-                  <p className="text-text-secondary text-sm">{userData.experience_level}</p>
+                  <h4 className="font-medium text-text-primary mb-1">Location</h4>
+                  <p className="text-text-secondary text-sm">
+                    {userData.locationContinent === 'Remote'
+                      ? 'Remote'
+                      : `${userData.locationCity}, ${userData.locationCountry}, ${userData.locationContinent}`}
+                  </p>
                 </div>
               </div>
 
@@ -441,19 +362,6 @@ const OnboardingPage = () => {
                     {userData.interests.map((interest) => (
                       <span key={interest} className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm">
                         {interest}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {userData.goals.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-text-primary mb-2">Goals</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {userData.goals.map((goal) => (
-                      <span key={goal} className="px-3 py-1 bg-blue-500/20 text-blue-600 rounded-full text-sm">
-                        {goal}
                       </span>
                     ))}
                   </div>
@@ -471,18 +379,23 @@ const OnboardingPage = () => {
             onClick={prevStep}
             disabled={currentStep === 1}
             className={`px-6 py-3 rounded-2xl font-medium transition-all duration-200 ${currentStep === 1
-                ? 'bg-glass-bg text-text-secondary cursor-not-allowed'
-                : 'bg-glass-bg text-text-primary hover:bg-glass-border hover:scale-105'
+              ? 'bg-glass-bg text-text-secondary cursor-not-allowed'
+              : 'bg-glass-bg text-text-primary hover:bg-glass-border hover:scale-105'
               }`}
           >
             <i className="fas fa-arrow-left mr-2"></i>
             Back
           </button>
 
-          {currentStep < 5 ? (
+          {currentStep < 4 ? (
             <button
               onClick={nextStep}
-              className="px-8 py-3 bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white rounded-2xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+              disabled={
+                (currentStep === 1 && (!userData.full_name.trim() || !userData.username.trim())) ||
+                (currentStep === 2 && !userData.role) ||
+                (currentStep === 3 && (userData.interests.length === 0 || !userData.locationContinent))
+              }
+              className="px-8 py-3 bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white rounded-2xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
               <i className="fas fa-arrow-right ml-2"></i>

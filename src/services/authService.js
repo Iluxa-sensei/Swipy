@@ -77,7 +77,11 @@ export const authService = {
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider,
                 options: {
-                    redirectTo: options.redirectTo || window.location.origin,
+                    redirectTo: options.redirectTo || `${window.location.origin}/auth/callback`,
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent',
+                    },
                     ...options
                 }
             })
@@ -106,7 +110,7 @@ export const authService = {
     async resetPassword(email) {
         try {
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/reset-password`
+                redirectTo: `${window.location.origin}/reset-password?type=recovery`
             })
 
             if (error) throw error
