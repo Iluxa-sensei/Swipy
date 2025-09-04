@@ -146,14 +146,14 @@ const OnboardingPage = () => {
       const profileData = {
         id: user.id,
         full_name: userData.full_name,
-        username: userData.username,
-        bio: userData.bio,
+        username: userData.username || null,
+        bio: userData.bio || null,
         location: userData.locationContinent === 'Remote'
           ? 'Remote'
           : `${userData.locationCity}, ${userData.locationCountry}, ${userData.locationContinent}`,
-        website: userData.website,
-        role: userData.role,
-        interests: userData.interests,
+        website: userData.website || null,
+        role: userData.role || null,
+        interests: userData.interests && userData.interests.length > 0 ? userData.interests : null,
         onboarding_completed: true
       }
 

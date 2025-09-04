@@ -5,10 +5,14 @@ create extension if not exists "uuid-ossp";
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
+  username text,
   avatar_url text,
   bio text,
   location text,
   website text,
+  role text,
+  interests text[],
+  onboarding_completed boolean default false,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
