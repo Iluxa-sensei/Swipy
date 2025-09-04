@@ -4,6 +4,8 @@ export const startupService = {
     // Get all startups
     async getAllStartups() {
         try {
+            console.log('startupService.getAllStartups: Starting to fetch startups...')
+
             const { data, error } = await supabase
                 .from('startups')
                 .select(`
@@ -15,10 +17,17 @@ export const startupService = {
         `)
                 .order('created_at', { ascending: false })
 
-            if (error) throw error
+            console.log('startupService.getAllStartups: Supabase response:', { data, error })
+
+            if (error) {
+                console.error('startupService.getAllStartups: Supabase error:', error)
+                throw error
+            }
+
+            console.log('startupService.getAllStartups: Returning data:', data)
             return data || []
         } catch (error) {
-            console.error('Error fetching startups:', error)
+            console.error('startupService.getAllStartups: Error:', error)
             return []
         }
     },

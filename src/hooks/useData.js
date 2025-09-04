@@ -11,14 +11,19 @@ export const useStartups = () => {
 
     const fetchStartups = useCallback(async () => {
         try {
+            console.log('useStartups: Starting to fetch startups...')
             setLoading(true)
             setError(null)
+
+            console.log('useStartups: Calling startupService.getAllStartups()...')
             let data = await startupService.getAllStartups()
+            console.log('useStartups: Received data from startupService:', data)
 
             // Apply filters if any are active
             if (filters && Object.values(filters).some(value =>
                 Array.isArray(value) ? value.length > 0 : value !== ''
             )) {
+                console.log('useStartups: Applying filters:', filters)
                 data = data.filter(startup => {
                     // Filter by industry
                     if (filters.industries.length > 0 && !filters.industries.includes(startup.industry)) {
@@ -47,12 +52,16 @@ export const useStartups = () => {
 
                     return true
                 })
+                console.log('useStartups: Data after filtering:', data)
             }
 
+            console.log('useStartups: Setting startups state with:', data)
             setStartups(data)
         } catch (err) {
+            console.error('useStartups: Error fetching startups:', err)
             setError(err.message)
         } finally {
+            console.log('useStartups: Setting loading to false')
             setLoading(false)
         }
     }, [filters])

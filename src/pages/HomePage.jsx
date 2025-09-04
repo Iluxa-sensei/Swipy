@@ -8,7 +8,7 @@ const HomePage = () => {
   const { user } = useAuth()
   const { startups, loading: startupsLoading, error: startupsError } = useStartups()
   const { likeStartup, passStartup, loading: swipesLoading } = useSwipes(user?.id)
-  
+
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [debugMode, setDebugMode] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -42,7 +42,13 @@ const HomePage = () => {
   }
 
   // Simple test render for debugging
-  console.log('HomePage component rendering...')
+  console.log('HomePage component rendering...', {
+    user,
+    startups,
+    startupsLoading,
+    startupsError,
+    currentCardIndex
+  })
 
   // Show loading state
   if (startupsLoading) {
