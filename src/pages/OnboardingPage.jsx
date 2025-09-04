@@ -24,12 +24,35 @@ const OnboardingPage = () => {
     interests: []
   })
 
-  // Check if user is authenticated
+  // Check if user is authenticated and load existing profile
   useEffect(() => {
     if (!user?.id) {
       navigate('/login')
       return
     }
+
+    // Load existing profile data if available
+    const loadExistingProfile = async () => {
+      try {
+        const existingProfile = await profileService.getProfile(user.id)
+        if (existingProfile) {
+          setUserData(prev => ({
+            ...prev,
+            full_name: existingProfile.full_name || '',
+            username: existingProfile.username || '',
+            bio: existingProfile.bio || '',
+            location: existingProfile.location || '',
+            website: existingProfile.website || '',
+            role: existingProfile.role || '',
+            interests: existingProfile.interests || []
+          }))
+        }
+      } catch (error) {
+        console.warn('Could not load existing profile:', error)
+      }
+    }
+
+    loadExistingProfile()
   }, [user?.id, navigate])
 
   const interestCategories = [
@@ -103,6 +126,7 @@ const OnboardingPage = () => {
 
       // Prepare profile data for Supabase
       const profileData = {
+        id: user.id, // Add user ID for upsert
         full_name: userData.full_name,
         username: userData.username,
         bio: userData.bio,
@@ -115,8 +139,14 @@ const OnboardingPage = () => {
         onboarding_completed: true
       }
 
-      // Update profile in Supabase
-      await profileService.updateProfile(user.id, profileData)
+      // Use upsertProfile instead of updateProfile to create if doesn't exist
+      const result = await profileService.upsertProfile(profileData)
+
+      if (!result) {
+        throw new Error('Failed to create/update profile')
+      }
+
+      console.log('Profile created/updated successfully:', result)
 
       // Navigate to home page
       navigate('/home')
