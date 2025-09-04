@@ -21,6 +21,8 @@ export const profileService = {
     // Create or update profile
     async upsertProfile(profileData) {
         try {
+            console.log('profileService.upsertProfile called with:', profileData)
+
             const { data, error } = await supabase
                 .from('profiles')
                 .upsert([profileData], {
@@ -29,10 +31,23 @@ export const profileService = {
                 .select()
                 .single()
 
-            if (error) throw error
+            console.log('Supabase upsert response:', { data, error })
+
+            if (error) {
+                console.error('Supabase upsert error:', error)
+                throw error
+            }
+
+            console.log('Profile upserted successfully:', data)
             return data
         } catch (error) {
             console.error('Error upserting profile:', error)
+            console.error('Error details:', {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint
+            })
             throw error
         }
     },

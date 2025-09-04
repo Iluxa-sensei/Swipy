@@ -26,15 +26,24 @@ const OnboardingPage = () => {
 
   // Check if user is authenticated and load existing profile
   useEffect(() => {
+    console.log('OnboardingPage useEffect - user:', user)
+    console.log('OnboardingPage useEffect - user.id:', user?.id)
+
     if (!user?.id) {
+      console.log('No user ID, redirecting to login')
       navigate('/login')
       return
     }
 
+    console.log('User authenticated, loading existing profile...')
+
     // Load existing profile data if available
     const loadExistingProfile = async () => {
       try {
+        console.log('Loading profile for user:', user.id)
         const existingProfile = await profileService.getProfile(user.id)
+        console.log('Existing profile loaded:', existingProfile)
+
         if (existingProfile) {
           setUserData(prev => ({
             ...prev,
@@ -46,6 +55,8 @@ const OnboardingPage = () => {
             role: existingProfile.role || '',
             interests: existingProfile.interests || []
           }))
+        } else {
+          console.log('No existing profile found, starting fresh')
         }
       } catch (error) {
         console.warn('Could not load existing profile:', error)
@@ -118,15 +129,22 @@ const OnboardingPage = () => {
   }
 
   const completeOnboarding = async () => {
-    if (!user?.id) return
+    if (!user?.id) {
+      console.error('No user ID found')
+      setError('User not authenticated')
+      return
+    }
 
     try {
       setLoading(true)
       setError(null)
 
+      console.log('Starting onboarding completion for user:', user.id)
+      console.log('User data:', userData)
+
       // Prepare profile data for Supabase
       const profileData = {
-        id: user.id, // Add user ID for upsert
+        id: user.id,
         full_name: userData.full_name,
         username: userData.username,
         bio: userData.bio,
@@ -139,11 +157,16 @@ const OnboardingPage = () => {
         onboarding_completed: true
       }
 
+      console.log('Profile data to upsert:', profileData)
+
       // Use upsertProfile instead of updateProfile to create if doesn't exist
+      console.log('Calling profileService.upsertProfile...')
       const result = await profileService.upsertProfile(profileData)
 
+      console.log('Upsert result:', result)
+
       if (!result) {
-        throw new Error('Failed to create/update profile')
+        throw new Error('Failed to create/update profile - no result returned')
       }
 
       console.log('Profile created/updated successfully:', result)
@@ -153,7 +176,13 @@ const OnboardingPage = () => {
 
     } catch (err) {
       console.error('Error completing onboarding:', err)
-      setError('Failed to complete onboarding. Please try again.')
+      console.error('Error details:', {
+        message: err.message,
+        code: err.code,
+        details: err.details,
+        hint: err.hint
+      })
+      setError(`Failed to complete onboarding: ${err.message}`)
     } finally {
       setLoading(false)
     }

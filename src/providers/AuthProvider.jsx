@@ -14,27 +14,32 @@ export const AuthProvider = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
+        console.log('AuthProvider: Initializing authentication...')
+
         // Security: Get initial session
         const currentSession = await authService.getCurrentSession()
+        console.log('AuthProvider: Current session:', currentSession)
 
         if (!isMounted) return
 
         if (currentSession) {
           // Basic session validation
           if (!currentSession.user?.id || !currentSession.access_token) {
-            console.warn('Invalid session data, clearing session')
+            console.warn('AuthProvider: Invalid session data, clearing session')
             setSession(null)
           } else {
+            console.log('AuthProvider: Setting valid session:', currentSession)
             setSession(currentSession)
           }
         } else {
+          console.log('AuthProvider: No session found')
           setSession(null)
         }
 
         setLoading(false)
       } catch (error) {
         if (!isMounted) return
-        console.error('Auth initialization error:', error)
+        console.error('AuthProvider: Auth initialization error:', error)
         setError('Failed to initialize authentication')
         setLoading(false)
       }

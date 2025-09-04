@@ -5,11 +5,19 @@ export const authService = {
     // Get current session
     async getCurrentSession() {
         try {
+            console.log('authService.getCurrentSession: Calling supabase.auth.getSession()')
             const { data: { session }, error } = await supabase.auth.getSession()
-            if (error) throw error
+            console.log('authService.getCurrentSession: Supabase response:', { session, error })
+
+            if (error) {
+                console.error('authService.getCurrentSession: Supabase error:', error)
+                throw error
+            }
+
+            console.log('authService.getCurrentSession: Returning session:', session)
             return session
         } catch (error) {
-            console.error('Error getting session:', error)
+            console.error('authService.getCurrentSession: Error:', error)
             return null
         }
     },
