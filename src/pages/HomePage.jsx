@@ -6,10 +6,6 @@ import OnboardingTutorial from '../components/OnboardingTutorial'
 import { sampleStartups } from '../data/startups.js'
 
 const HomePage = () => {
-  // Test import
-  console.log('HomePage: sampleStartups imported:', sampleStartups)
-  console.log('HomePage: sampleStartups length:', sampleStartups?.length)
-
   const { user } = useAuth()
   const { startups, loading: startupsLoading, error: startupsError } = useStartups()
   const { likeStartup, passStartup, loading: swipesLoading } = useSwipes(user?.id)
@@ -28,18 +24,8 @@ const HomePage = () => {
   const lastTapRef = useRef(0)
   const navigate = useNavigate()
 
-  // Debug logging
-  console.log('=== HomePage Debug ===')
-  console.log('user:', user)
-  console.log('startups:', startups)
-  console.log('startupsLoading:', startupsLoading)
-  console.log('startupsError:', startupsError)
-  console.log('startups.length:', startups?.length)
-  console.log('=====================')
-
   // Fallback to sample data if no startups loaded
   const displayStartups = startups && startups.length > 0 ? startups : sampleStartups
-  console.log('displayStartups:', displayStartups)
 
   // ALL useEffect hooks must be here too - AFTER displayStartups is defined
   useEffect(() => {
@@ -58,7 +44,7 @@ const HomePage = () => {
 
   useEffect(() => {
     if (!startupsLoading && (!startups || startups.length === 0)) {
-      console.log('HomePage: No startups loaded, forcing fallback to sample data')
+      // No startups loaded, will use sample data
     }
   }, [startupsLoading, startups])
 
@@ -75,14 +61,34 @@ const HomePage = () => {
 
   // Force fallback if still no data
   if (!displayStartups || displayStartups.length === 0) {
-    console.log('HomePage: No startups available, forcing sample data')
     return (
       <div className="screen active">
-        <div className="bg-red-500 text-white p-4">
-          <h1>Debug: No startups loaded</h1>
-          <p>startups: {JSON.stringify(startups)}</p>
-          <p>sampleStartups: {JSON.stringify(sampleStartups)}</p>
-          <p>displayStartups: {JSON.stringify(displayStartups)}</p>
+        <div className="header">
+          <button className="header-btn" onClick={() => navigate('/filters')}>
+            <i className="fas fa-filter"></i>
+          </button>
+          <h1 className=" text-3xl font-bold animate-super-gradient">
+            Swipy
+          </h1>
+          <button className="header-btn" onClick={() => navigate('/saved')}>
+            <i className="fas fa-bookmark"></i>
+          </button>
+        </div>
+
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <i className="fas fa-rocket text-3xl text-white"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-text-primary mb-4">No Startups Available</h2>
+            <p className="text-text-secondary mb-8">Startups will appear here once they are created by founders.</p>
+            <button
+              className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+              onClick={() => navigate('/add')}
+            >
+              Create First Startup
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -93,28 +99,21 @@ const HomePage = () => {
   // Function to extract main color from gradient
   const getGradientColor = (gradientClass) => {
     const gradientMap = {
-      'bg-gradient-primary': '#1565c0',
-      'bg-gradient-secondary': '#f093fb',
-      'bg-gradient-tertiary': '#4facfe',
-      'bg-gradient-quaternary': '#43e97b',
-      'bg-gradient-quinary': '#fa709a',
-      'bg-gradient-senary': '#a8edea',
-      'bg-gradient-septenary': '#ff9a9e',
-      'bg-gradient-octonary': '#ffecd2',
-      'bg-gradient-nonary': '#ff9a9e',
-      'bg-gradient-denary': '#a18cd1'
+      'bg-gradient-to-br from-blue-300 to-blue-700': '#1565c0',
+      'bg-gradient-to-br from-pink-300 to-red-500': '#f093fb',
+      'bg-gradient-to-br from-cyan-300 to-blue-500': '#4facfe',
+      'bg-gradient-to-br from-green-300 to-teal-500': '#43e97b',
+      'bg-gradient-to-br from-pink-400 to-yellow-400': '#fa709a',
+      'bg-gradient-to-br from-teal-300 to-pink-300': '#a8edea',
+      'bg-gradient-to-br from-pink-400 to-pink-200': '#ff9a9e',
+      'bg-gradient-to-br from-orange-200 to-orange-400': '#ffecd2',
+      'bg-gradient-to-br from-pink-400 to-orange-300': '#ff9a9e',
+      'bg-gradient-to-br from-purple-400 to-pink-400': '#a18cd1'
     }
     return gradientMap[gradientClass] || '#2196f3'
   }
 
-  // Simple test render for debugging
-  console.log('HomePage component rendering...', {
-    user,
-    startups,
-    startupsLoading,
-    startupsError,
-    currentCardIndex
-  })
+  // Component rendering
 
   // Show loading state
   if (startupsLoading) {
@@ -124,7 +123,7 @@ const HomePage = () => {
           <button className="header-btn" onClick={() => navigate('/filters')}>
             <i className="fas fa-filter"></i>
           </button>
-          <h1 className="header-title text-3xl font-bold animate-super-gradient">
+          <h1 className=" text-3xl font-bold animate-super-gradient">
             Swipy
           </h1>
           <button className="header-btn" onClick={() => navigate('/saved')}>
@@ -153,7 +152,7 @@ const HomePage = () => {
           <button className="header-btn" onClick={() => navigate('/filters')}>
             <i className="fas fa-filter"></i>
           </button>
-          <h1 className="header-title text-3xl font-bold animate-super-gradient">
+          <h1 className=" text-3xl font-bold animate-super-gradient">
             Swipy
           </h1>
           <button className="header-btn" onClick={() => navigate('/saved')}>
@@ -245,7 +244,6 @@ const HomePage = () => {
     setTimeout(async () => {
       try {
         await likeStartup(currentStartup.id)
-        console.log('Startup liked successfully')
       } catch (error) {
         console.error('Error liking startup:', error)
         // You can show a toast notification here
@@ -270,7 +268,6 @@ const HomePage = () => {
     setTimeout(async () => {
       try {
         await passStartup(currentStartup.id)
-        console.log('Startup passed successfully')
       } catch (error) {
         console.error('Error passing startup:', error)
         // You can show a toast notification here
@@ -320,7 +317,7 @@ const HomePage = () => {
           <button className="header-btn" onClick={() => navigate('/filters')}>
             <i className="fas fa-filter"></i>
           </button>
-          <h1 className="header-title bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent text-3xl font-bold">Swipy</h1>
+          <h1 className=" bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent text-3xl font-bold">Swipy</h1>
           <button className="header-btn" onClick={() => navigate('/saved')}>
             <i className="fas fa-bookmark"></i>
           </button>
@@ -357,7 +354,7 @@ const HomePage = () => {
           <button className="header-btn" onClick={() => navigate('/filters')}>
             <i className="fas fa-filter"></i>
           </button>
-          <h1 className="header-title text-3xl font-bold animate-super-gradient">
+          <h1 className=" text-3xl font-bold animate-super-gradient">
             Swipy
           </h1>
           <button className="header-btn" onClick={() => navigate('/saved')}>
@@ -386,16 +383,11 @@ const HomePage = () => {
 
   return (
     <div className="screen active">
-      {/* Debug info */}
-      <div className="bg-red-500 text-white p-2 text-xs">
-        Debug: startups={startups?.length || 0}, displayStartups={displayStartups?.length || 0}, loading={startupsLoading ? 'true' : 'false'}
-      </div>
-
       <div className="header">
         <button className="header-btn" onClick={() => navigate('/filters')}>
           <i className="fas fa-filter"></i>
         </button>
-        <h1 className="header-title text-3xl font-bold animate-super-gradient">
+        <h1 className="text-3xl font-bold animate-super-gradient">
           Swipy
         </h1>
         <button className="header-btn" onClick={() => navigate('/saved')}>
