@@ -550,20 +550,52 @@ const PortfolioTab = ({ startups, setStartups, userId, navigate }) => {
 
     const deleteStartup = async (startupId) => {
         try {
-            const { error } = await supabase
+            console.log('Deleting startup with ID:', startupId)
+
+            // First, check if the startup exists and belongs to the user
+            const { data: existingStartup, error: fetchError } = await supabase
+                .from('startups')
+                .select('id, name, owner_id')
+                .eq('id', startupId)
+                .eq('owner_id', userId)
+                .single()
+
+            if (fetchError) {
+                console.error('Error fetching startup:', fetchError)
+                throw new Error('Startup not found or access denied')
+            }
+
+            if (!existingStartup) {
+                throw new Error('Startup not found')
+            }
+
+            console.log('Found startup to delete:', existingStartup)
+
+            // Delete the startup
+            const { error: deleteError } = await supabase
                 .from('startups')
                 .delete()
                 .eq('id', startupId)
+                .eq('owner_id', userId) // Extra security check
 
-            if (error) throw error
+            if (deleteError) {
+                console.error('Error deleting startup:', deleteError)
+                throw deleteError
+            }
+
+            console.log('Startup deleted successfully')
 
             // Update local state
             setStartups(prev => prev.filter(startup => startup.id !== startupId))
             setShowDeleteModal(false)
             setStartupToDelete(null)
+
+            // Show success message
+            alert('Startup deleted successfully!')
+
         } catch (error) {
             console.error('Error deleting startup:', error)
-            alert('Error deleting startup')
+            alert(`Error deleting startup: ${error.message || 'Unknown error'}`)
         }
     }
 
