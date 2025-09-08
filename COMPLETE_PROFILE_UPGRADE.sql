@@ -1,8 +1,6 @@
 -- Complete Profile System Upgrade
 -- This script creates a comprehensive profile system with portfolio, achievements, and more
 
--- First, run the profile schema enhancement
-\i ENHANCE_PROFILE_SCHEMA.sql
 
 -- Add profile completion percentage to existing profiles
 UPDATE public.profiles 
