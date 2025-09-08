@@ -6,8 +6,12 @@ export const ProtectedRoute = () => {
   const { session, loading, hasValidSession, error } = useAuth()
   const location = useLocation()
 
-  // Security: Show loading state while checking authentication
-  if (loading) {
+  // Check for cached session to avoid loading screen
+  const cachedSession = sessionStorage.getItem('swipy_session')
+  const hasCachedSession = cachedSession && JSON.parse(cachedSession)?.user?.id
+
+  // Security: Show loading state while checking authentication (only if no cached session)
+  if (loading && !hasCachedSession) {
     return (
       <div className="screen active">
         <div className="flex items-center justify-center h-full">
@@ -21,7 +25,7 @@ export const ProtectedRoute = () => {
   }
 
   // Security: Handle authentication errors (only in production)
-  if (error && !loading && import.meta.env.PROD) {
+  if (error && !loading && import.meta.env.PROD && !hasCachedSession) {
     return (
       <div className="screen active">
         <div className="p-6 text-center">
@@ -42,38 +46,38 @@ export const ProtectedRoute = () => {
   }
 
   // In development mode, allow access if Supabase is not configured
-  if (import.meta.env.DEV && !hasValidSession && !session) {
+  if (import.meta.env.DEV && !hasValidSession && !session && !hasCachedSession) {
     console.warn('ProtectedRoute: Development mode - allowing access without authentication')
     return <Outlet />
   }
 
   // Security: Check for valid session with proper validation
-  if (!hasValidSession) {
+  if (!hasValidSession && !hasCachedSession) {
     // Security: Store attempted location for redirect after login
     const redirectPath = location.pathname !== '/' ? location.pathname : '/home'
     return (
-      <Navigate 
-        to="/login" 
-        replace 
-        state={{ 
-          from: { 
+      <Navigate
+        to="/login"
+        replace
+        state={{
+          from: {
             pathname: redirectPath,
             search: location.search,
             hash: location.hash
-          } 
-        }} 
+          }
+        }}
       />
     )
   }
 
   // Security: Additional session validation
-  if (!session?.user?.id || !session?.access_token) {
+  if ((!session?.user?.id || !session?.access_token) && !hasCachedSession) {
     console.warn('ProtectedRoute: Invalid session detected, redirecting to login')
     return <Navigate to="/login" replace />
   }
 
   // Security: Check if user is confirmed (for email signup)
-  if (session.user && !session.user.email_confirmed_at && session.user.app_metadata?.provider === 'email') {
+  if (session?.user && !session.user.email_confirmed_at && session.user.app_metadata?.provider === 'email' && !hasCachedSession) {
     return (
       <div className="screen active">
         <div className="p-6 text-center">

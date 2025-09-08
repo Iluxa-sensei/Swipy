@@ -544,67 +544,137 @@ const ProfileTab = ({
 }
 
 // Portfolio Tab Component (renamed from StartupsTab)
-const PortfolioTab = ({ startups, setStartups, userId, navigate }) => (
-    <div className="space-y-8">
-        <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
-            <div className="flex items-center gap-3 mb-8">
-                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
-                    <i className="fas fa-briefcase text-white text-xl"></i>
-                </div>
-                <h3 className="text-2xl font-bold text-white">Portfolio</h3>
-            </div>
+const PortfolioTab = ({ startups, setStartups, userId, navigate }) => {
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [startupToDelete, setStartupToDelete] = useState(null)
 
-            {startups.length === 0 ? (
-                <div className="text-center py-16">
-                    <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-8">
-                        <i className="fas fa-rocket text-white text-3xl"></i>
+    const deleteStartup = async (startupId) => {
+        try {
+            const { error } = await supabase
+                .from('startups')
+                .delete()
+                .eq('id', startupId)
+
+            if (error) throw error
+
+            // Update local state
+            setStartups(prev => prev.filter(startup => startup.id !== startupId))
+            setShowDeleteModal(false)
+            setStartupToDelete(null)
+        } catch (error) {
+            console.error('Error deleting startup:', error)
+            alert('Error deleting startup')
+        }
+    }
+
+    const handleDeleteClick = (startup) => {
+        setStartupToDelete(startup)
+        setShowDeleteModal(true)
+    }
+
+    return (
+        <div className="space-y-8">
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
+                        <i className="fas fa-briefcase text-white text-xl"></i>
                     </div>
-                    <h4 className="text-2xl font-bold text-white mb-4">No Startups Yet</h4>
-                    <p className="text-white/60 mb-8 text-lg">Create your first startup to showcase your entrepreneurial journey</p>
-                    <button
-                        className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300"
-                        onClick={() => navigate('/add')}
-                    >
-                        <i className="fas fa-plus mr-2"></i>Create Your First Startup
-                    </button>
+                    <h3 className="text-2xl font-bold text-white">Portfolio</h3>
                 </div>
-            ) : (
-                <div className="grid grid-cols-1 gap-6">
-                    {startups.map((startup) => (
-                        <div key={startup.id} className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <h4 className="text-xl font-bold text-white mb-2">{startup.name}</h4>
-                                    <p className="text-white/70 mb-4">{startup.description}</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {startup.category && (
-                                            <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-medium">
-                                                {startup.category}
-                                            </span>
-                                        )}
-                                        {startup.stage && (
-                                            <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm font-medium">
-                                                {startup.stage}
-                                            </span>
-                                        )}
+
+                {startups.length === 0 ? (
+                    <div className="text-center py-16">
+                        <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                            <i className="fas fa-rocket text-white text-3xl"></i>
+                        </div>
+                        <h4 className="text-2xl font-bold text-white mb-4">No Startups Yet</h4>
+                        <p className="text-white/60 mb-8 text-lg">Create your first startup to showcase your entrepreneurial journey</p>
+                        <button
+                            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300"
+                            onClick={() => navigate('/add')}
+                        >
+                            <i className="fas fa-plus mr-2"></i>Create Your First Startup
+                        </button>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 gap-6">
+                        {startups.map((startup) => (
+                            <div key={startup.id} className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                        <h4 className="text-xl font-bold text-white mb-2">{startup.name}</h4>
+                                        <p className="text-white/70 mb-4">{startup.description}</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {startup.category && (
+                                                <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-medium">
+                                                    {startup.category}
+                                                </span>
+                                            )}
+                                            {startup.stage && (
+                                                <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm font-medium">
+                                                    {startup.stage}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex space-x-3 ml-6">
+                                        <button
+                                            className="text-blue-400 hover:text-blue-300 p-2 hover:bg-blue-500/20 rounded-xl transition-all duration-300"
+                                            onClick={() => navigate(`/startup/${startup.id}`)}
+                                        >
+                                            <i className="fas fa-eye text-lg"></i>
+                                        </button>
+                                        <button
+                                            className="text-red-400 hover:text-red-300 p-2 hover:bg-red-500/20 rounded-xl transition-all duration-300"
+                                            onClick={() => handleDeleteClick(startup)}
+                                        >
+                                            <i className="fas fa-trash text-lg"></i>
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="flex space-x-3 ml-6">
-                                    <button
-                                        className="text-blue-400 hover:text-blue-300 p-2 hover:bg-blue-500/20 rounded-xl transition-all duration-300"
-                                        onClick={() => navigate(`/startup/${startup.id}`)}
-                                    >
-                                        <i className="fas fa-eye text-lg"></i>
-                                    </button>
-                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && startupToDelete && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 max-w-md mx-4">
+                        <div className="text-center">
+                            <div className="w-20 h-20 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i className="fas fa-exclamation-triangle text-white text-3xl"></i>
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-4">Delete Startup</h3>
+                            <p className="text-white/70 mb-6">
+                                Are you sure you want to delete <span className="font-semibold text-white">{startupToDelete.name}</span>?
+                                This action cannot be undone.
+                            </p>
+                            <div className="flex space-x-4">
+                                <button
+                                    onClick={() => {
+                                        setShowDeleteModal(false)
+                                        setStartupToDelete(null)
+                                    }}
+                                    className="flex-1 bg-white/10 border border-white/20 text-white px-6 py-3 rounded-2xl font-semibold hover:bg-white/20 transition-all duration-300"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => deleteStartup(startupToDelete.id)}
+                                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg hover:shadow-red-500/25 transition-all duration-300"
+                                >
+                                    Confirm
+                                </button>
                             </div>
                         </div>
-                    ))}
+                    </div>
                 </div>
             )}
         </div>
-    </div>
-)
+    )
+}
 
 // Achievements Tab Component
 const AchievementsTab = ({ achievements, setAchievements, userId }) => {

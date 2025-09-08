@@ -21,6 +21,24 @@ export const AuthProvider = ({ children }) => {
           return
         }
 
+        // Check for cached session first
+        const cachedSession = sessionStorage.getItem('swipy_session')
+        if (cachedSession) {
+          try {
+            const parsedSession = JSON.parse(cachedSession)
+            if (parsedSession && parsedSession.user?.id && parsedSession.access_token) {
+              console.log('AuthProvider: Using cached session')
+              setSession(parsedSession)
+              setInitialized(true)
+              setLoading(false)
+              return
+            }
+          } catch (e) {
+            console.warn('AuthProvider: Invalid cached session, clearing')
+            sessionStorage.removeItem('swipy_session')
+          }
+        }
+
         console.log('AuthProvider: Initializing authentication...')
 
         // Security: Get initial session
@@ -34,13 +52,17 @@ export const AuthProvider = ({ children }) => {
           if (!currentSession.user?.id || !currentSession.access_token) {
             console.warn('AuthProvider: Invalid session data, clearing session')
             setSession(null)
+            sessionStorage.removeItem('swipy_session')
           } else {
             console.log('AuthProvider: Setting valid session:', currentSession)
             setSession(currentSession)
+            // Cache the session
+            sessionStorage.setItem('swipy_session', JSON.stringify(currentSession))
           }
         } else {
           console.log('AuthProvider: No session found')
           setSession(null)
+          sessionStorage.removeItem('swipy_session')
         }
 
         setInitialized(true)
@@ -65,16 +87,19 @@ export const AuthProvider = ({ children }) => {
               case 'SIGNED_IN':
                 if (newSession?.user?.id && newSession?.access_token) {
                   setSession(newSession)
+                  sessionStorage.setItem('swipy_session', JSON.stringify(newSession))
                   setError(null)
                 }
                 break
               case 'SIGNED_OUT':
                 setSession(null)
+                sessionStorage.removeItem('swipy_session')
                 setError(null)
                 break
               case 'TOKEN_REFRESHED':
                 if (newSession?.user?.id && newSession?.access_token) {
                   setSession(newSession)
+                  sessionStorage.setItem('swipy_session', JSON.stringify(newSession))
                   setError(null)
                 }
                 break
