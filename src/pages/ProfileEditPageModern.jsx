@@ -10,6 +10,7 @@ const ProfileEditPageModern = () => {
     const [activeTab, setActiveTab] = useState('profile')
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
+    const [showSuccessModal, setShowSuccessModal] = useState(false)
 
     // Profile data with existing values
     const [profile, setProfile] = useState({
@@ -152,7 +153,15 @@ const ProfileEditPageModern = () => {
                 })
 
             if (error) throw error
-            alert('Profile saved successfully!')
+
+            // Show success modal
+            setShowSuccessModal(true)
+
+            // Navigate to profile after 2 seconds
+            setTimeout(() => {
+                navigate('/profile')
+            }, 2000)
+
         } catch (error) {
             console.error('Error saving profile:', error)
             alert('Error saving profile')
@@ -252,6 +261,25 @@ const ProfileEditPageModern = () => {
                     />
                 )}
             </div>
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 max-w-md mx-4">
+                        <div className="text-center">
+                            <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i className="fas fa-check text-white text-3xl"></i>
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-4">Profile Updated!</h3>
+                            <p className="text-white/70 mb-6">Your profile has been successfully updated.</p>
+                            <div className="flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-6 w-6 border-2 border-transparent border-t-white mr-3"></div>
+                                <span className="text-white/70">Redirecting to profile...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
@@ -281,6 +309,30 @@ const ProfileTab = ({
 
     return (
         <div className="space-y-8">
+            {/* Avatar Section */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                        <i className="fas fa-camera text-white text-xl"></i>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">Profile Picture</h3>
+                </div>
+
+                <div className="flex items-center gap-6">
+                    <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span className="text-white text-2xl font-bold">
+                            {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U'}
+                        </span>
+                    </div>
+                    <div>
+                        <p className="text-white/70 mb-2">Avatar functionality coming soon</p>
+                        <button className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-xl hover:bg-white/20 transition-all duration-300">
+                            <i className="fas fa-upload mr-2"></i>Upload Photo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {/* Basic Information */}
             <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
                 <div className="flex items-center gap-3 mb-6">
@@ -350,7 +402,7 @@ const ProfileTab = ({
                     <h3 className="text-2xl font-bold text-white">Location</h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-6">
                     <div>
                         <label className="block text-sm font-semibold text-white/80 mb-3">Continent</label>
                         <select
@@ -371,35 +423,24 @@ const ProfileTab = ({
 
                     <div>
                         <label className="block text-sm font-semibold text-white/80 mb-3">Country</label>
-                        <select
+                        <input
+                            type="text"
                             value={selectedCountry}
-                            onChange={(e) => {
-                                setSelectedCountry(e.target.value)
-                                setSelectedCity('')
-                            }}
-                            disabled={!selectedContinent}
-                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 disabled:opacity-50"
-                        >
-                            <option value="" className="bg-gray-800">Select Country</option>
-                            {selectedContinent && countries[selectedContinent]?.map(country => (
-                                <option key={country} value={country} className="bg-gray-800">{country}</option>
-                            ))}
-                        </select>
+                            onChange={(e) => setSelectedCountry(e.target.value)}
+                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                            placeholder="Enter your country"
+                        />
                     </div>
 
                     <div>
                         <label className="block text-sm font-semibold text-white/80 mb-3">City</label>
-                        <select
+                        <input
+                            type="text"
                             value={selectedCity}
                             onChange={(e) => setSelectedCity(e.target.value)}
-                            disabled={!selectedCountry}
-                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 disabled:opacity-50"
-                        >
-                            <option value="" className="bg-gray-800">Select City</option>
-                            {selectedCountry && cities[selectedCountry]?.map(city => (
-                                <option key={city} value={city} className="bg-gray-800">{city}</option>
-                            ))}
-                        </select>
+                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                            placeholder="Enter your city"
+                        />
                     </div>
                 </div>
             </div>
@@ -506,19 +547,11 @@ const ProfileTab = ({
 const PortfolioTab = ({ startups, setStartups, userId, navigate }) => (
     <div className="space-y-8">
         <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
-                        <i className="fas fa-briefcase text-white text-xl"></i>
-                    </div>
-                    <h3 className="text-2xl font-bold text-white">Portfolio</h3>
+            <div className="flex items-center gap-3 mb-8">
+                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
+                    <i className="fas fa-briefcase text-white text-xl"></i>
                 </div>
-                <button
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300"
-                    onClick={() => navigate('/add')}
-                >
-                    <i className="fas fa-plus mr-2"></i>Create Startup
-                </button>
+                <h3 className="text-2xl font-bold text-white">Portfolio</h3>
             </div>
 
             {startups.length === 0 ? (
@@ -563,12 +596,6 @@ const PortfolioTab = ({ startups, setStartups, userId, navigate }) => (
                                     >
                                         <i className="fas fa-eye text-lg"></i>
                                     </button>
-                                    <button className="text-green-400 hover:text-green-300 p-2 hover:bg-green-500/20 rounded-xl transition-all duration-300">
-                                        <i className="fas fa-edit text-lg"></i>
-                                    </button>
-                                    <button className="text-red-400 hover:text-red-300 p-2 hover:bg-red-500/20 rounded-xl transition-all duration-300">
-                                        <i className="fas fa-trash text-lg"></i>
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -580,71 +607,85 @@ const PortfolioTab = ({ startups, setStartups, userId, navigate }) => (
 )
 
 // Achievements Tab Component
-const AchievementsTab = ({ achievements, setAchievements, userId }) => (
-    <div className="space-y-8">
-        <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
+const AchievementsTab = ({ achievements, setAchievements, userId }) => {
+    const deleteAchievement = async (achievementId) => {
+        try {
+            const { error } = await supabase
+                .from('achievements')
+                .delete()
+                .eq('id', achievementId)
+
+            if (error) throw error
+
+            // Update local state
+            setAchievements(prev => prev.filter(ach => ach.id !== achievementId))
+        } catch (error) {
+            console.error('Error deleting achievement:', error)
+            alert('Error deleting achievement')
+        }
+    }
+
+    return (
+        <div className="space-y-8">
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
+                <div className="flex items-center gap-3 mb-8">
                     <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center">
                         <i className="fas fa-trophy text-white text-xl"></i>
                     </div>
                     <h3 className="text-2xl font-bold text-white">Achievements</h3>
                 </div>
-                <button className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg hover:shadow-yellow-500/25 transition-all duration-300">
-                    <i className="fas fa-plus mr-2"></i>Add Achievement
-                </button>
-            </div>
 
-            {achievements.length === 0 ? (
-                <div className="text-center py-16">
-                    <div className="w-24 h-24 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-8">
-                        <i className="fas fa-trophy text-white text-3xl"></i>
+                {achievements.length === 0 ? (
+                    <div className="text-center py-16">
+                        <div className="w-24 h-24 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                            <i className="fas fa-trophy text-white text-3xl"></i>
+                        </div>
+                        <h4 className="text-2xl font-bold text-white mb-4">No Achievements Yet</h4>
+                        <p className="text-white/60 mb-8 text-lg">Start building your profile to unlock achievements and badges</p>
+                        <button className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:shadow-lg hover:shadow-yellow-500/25 transition-all duration-300">
+                            <i className="fas fa-plus mr-2"></i>Add Your First Achievement
+                        </button>
                     </div>
-                    <h4 className="text-2xl font-bold text-white mb-4">No Achievements Yet</h4>
-                    <p className="text-white/60 mb-8 text-lg">Start building your profile to unlock achievements and badges</p>
-                    <button className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:shadow-lg hover:shadow-yellow-500/25 transition-all duration-300">
-                        <i className="fas fa-plus mr-2"></i>Add Your First Achievement
-                    </button>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 gap-6">
-                    {achievements.map((achievement, index) => (
-                        <div key={index} className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
-                            <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center">
-                                    <i className="fas fa-trophy text-white text-2xl"></i>
-                                </div>
-                                <div className="flex-1">
-                                    <h4 className="text-xl font-bold text-white mb-2">{achievement.title}</h4>
-                                    <p className="text-white/70 mb-3">{achievement.description}</p>
-                                    <div className="flex items-center gap-4 text-sm">
-                                        <span className="text-yellow-400 font-semibold">
-                                            <i className="fas fa-calendar mr-1"></i>
-                                            {new Date(achievement.date_earned).toLocaleDateString()}
-                                        </span>
-                                        {achievement.issuer && (
-                                            <span className="text-white/60">
-                                                <i className="fas fa-building mr-1"></i>
-                                                {achievement.issuer}
+                ) : (
+                    <div className="grid grid-cols-1 gap-6">
+                        {achievements.map((achievement, index) => (
+                            <div key={index} className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center">
+                                        <i className="fas fa-trophy text-white text-2xl"></i>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-xl font-bold text-white mb-2">{achievement.title}</h4>
+                                        <p className="text-white/70 mb-3">{achievement.description}</p>
+                                        <div className="flex items-center gap-4 text-sm">
+                                            <span className="text-yellow-400 font-semibold">
+                                                <i className="fas fa-calendar mr-1"></i>
+                                                {new Date(achievement.date_earned).toLocaleDateString()}
                                             </span>
-                                        )}
+                                            {achievement.issuer && (
+                                                <span className="text-white/60">
+                                                    <i className="fas fa-building mr-1"></i>
+                                                    {achievement.issuer}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <button
+                                            className="text-red-400 hover:text-red-300 p-2 hover:bg-red-500/20 rounded-xl transition-all duration-300"
+                                            onClick={() => deleteAchievement(achievement.id)}
+                                        >
+                                            <i className="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="flex space-x-2">
-                                    <button className="text-blue-400 hover:text-blue-300 p-2 hover:bg-blue-500/20 rounded-xl transition-all duration-300">
-                                        <i className="fas fa-edit"></i>
-                                    </button>
-                                    <button className="text-red-400 hover:text-red-300 p-2 hover:bg-red-500/20 rounded-xl transition-all duration-300">
-                                        <i className="fas fa-trash"></i>
-                                    </button>
-                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
-    </div>
-)
+    )
+}
 
 export default ProfileEditPageModern

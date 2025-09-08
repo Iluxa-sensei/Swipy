@@ -7,6 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -14,6 +15,12 @@ export const AuthProvider = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
+        // Check if already initialized to prevent unnecessary re-initialization
+        if (initialized) {
+          setLoading(false)
+          return
+        }
+
         console.log('AuthProvider: Initializing authentication...')
 
         // Security: Get initial session
@@ -36,6 +43,7 @@ export const AuthProvider = ({ children }) => {
           setSession(null)
         }
 
+        setInitialized(true)
         setLoading(false)
       } catch (error) {
         if (!isMounted) return

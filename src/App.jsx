@@ -17,6 +17,7 @@ import StartupDetailPage from './pages/StartupDetailPage'
 import SavedPage from './pages/SavedPage'
 import ProfileEditPage from './pages/ProfileEditPageModern'
 import SettingsPage from './pages/SettingsPage'
+import ActivityDashboardPage from './pages/ActivityDashboardPage'
 import OAuthCallback from './components/OAuthCallback'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 
@@ -58,6 +59,7 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<ProfileEditPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/activity-dashboard" element={<ActivityDashboardPage />} />
               <Route path="/add" element={<AddPage />} />
               <Route path="/filters" element={<FiltersPage />} />
 

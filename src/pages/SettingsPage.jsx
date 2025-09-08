@@ -105,6 +105,11 @@ const SettingsPage = () => {
                         Edit Profile
                     </button>
                     <div className="h-3"></div>
+                    <button className="btn-secondary w-full" onClick={() => navigate('/activity-dashboard')}>
+                        <i className="fas fa-chart-line"></i>
+                        Activity Dashboard
+                    </button>
+                    <div className="h-3"></div>
                     <button className="btn-secondary w-full" onClick={clearProfile}>
                         <i className="fas fa-trash"></i>
                         Clear Saved Profile

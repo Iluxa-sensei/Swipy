@@ -306,24 +306,6 @@ const ProfilePage = () => {
         {/* Tab Content */}
         {activeTab === 'profile' && (
           <div className="animate-fade-in">
-            {/* Enhanced Stats */}
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-                <i className="fas fa-chart-line text-blue-400"></i>
-                Activity Dashboard
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                {stats.map((stat, index) => (
-                  <div key={index} className="bg-gradient-to-br from-bg-secondary/50 to-bg-secondary/30 border border-glass-border rounded-2xl p-5 text-center hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-blue-400/20">
-                    <div className="w-14 h-14 bg-gradient-to-br from-blue-300 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                      <i className={`${stat.icon} text-white text-xl`}></i>
-                    </div>
-                    <div className="text-3xl font-bold text-text-primary mb-2">{stat.value}</div>
-                    <div className="text-sm text-text-secondary font-medium">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
             {/* Skills */}
             {profile?.skills && profile.skills.length > 0 && (
