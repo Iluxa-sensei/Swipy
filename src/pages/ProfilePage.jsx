@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth, useProfile } from '../hooks'
+import { profileServiceEnhanced } from '../services/profileServiceEnhanced'
 
 const ProfilePage = () => {
   const navigate = useNavigate()
@@ -8,6 +9,8 @@ const ProfilePage = () => {
   const { profile, loading: profileLoading, error: profileError } = useProfile(user?.id)
   const [activeTab, setActiveTab] = useState('profile')
   const [isOnline, setIsOnline] = useState(true)
+  const [completeProfile, setCompleteProfile] = useState(null)
+  const [loadingComplete, setLoadingComplete] = useState(false)
 
   // If no user, redirect to login
   useEffect(() => {
@@ -15,6 +18,25 @@ const ProfilePage = () => {
       navigate('/login')
     }
   }, [user, navigate])
+
+  // Load complete profile data
+  useEffect(() => {
+    if (user?.id && profile) {
+      loadCompleteProfile()
+    }
+  }, [user?.id, profile])
+
+  const loadCompleteProfile = async () => {
+    setLoadingComplete(true)
+    try {
+      const data = await profileServiceEnhanced.getCompleteProfile(user.id)
+      setCompleteProfile(data)
+    } catch (error) {
+      console.error('Error loading complete profile:', error)
+    } finally {
+      setLoadingComplete(false)
+    }
+  }
 
   const hasProfile = profile && profile.full_name
   const userRole = profile?.role || 'founder'
@@ -375,64 +397,86 @@ const ProfilePage = () => {
               <i className="fas fa-rocket text-blue-400"></i>
               My Startups
             </h3>
-            <div className="grid grid-cols-1 gap-6">
-              {userProfile.portfolio.map((startup) => (
-                <div key={startup.id} className="bg-bg-secondary/80 border border-glass-border rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-blue-400/20">
-                  <div className={`h-32 ${startup.gradient || 'bg-gradient-primary'} relative`}>
-                    {startup.image && (
-                      <img src={startup.image} alt={startup.name} className="w-full h-full object-cover" />
-                    )}
-                    <div className="absolute inset-0 bg-black/20"></div>
-                    <div className="absolute top-4 right-4 flex gap-2">
-                      {startup.funding && (
-                        <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-semibold text-white">
-                          {startup.funding}
-                        </span>
-                      )}
-                      {startup.stage && (
-                        <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-semibold text-white">
-                          {startup.stage}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <h4 className="text-xl font-bold text-text-primary mb-2">{startup.name}</h4>
-                    <p className="text-text-secondary mb-3 leading-relaxed">{startup.description}</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      <span className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm font-medium">
-                        {startup.category}
-                      </span>
-                      {startup.teamSize && (
-                        <span className="px-3 py-1 bg-bg-secondary/80 text-text-secondary rounded-full text-sm font-medium">
-                          Team: {startup.teamSize}
-                        </span>
-                      )}
-                      {startup.location && (
-                        <span className="px-3 py-1 bg-bg-secondary/80 text-text-secondary rounded-full text-sm font-medium">
-                          📍 {startup.location}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        className="btn-secondary flex-1 hover:bg-accent-primary hover:text-white transition-all duration-200"
-                        onClick={() => navigate(`/startup/${startup.id}`)}
-                      >
-                        <i className="fas fa-eye"></i>
-                        View Details
-                      </button>
-                      <button
-                        className="btn-secondary hover:bg-accent-primary hover:text-white transition-all duration-200"
-                        onClick={() => navigate('/profile/edit')}
-                      >
-                        <i className="fas fa-edit"></i>
-                      </button>
-                    </div>
-                  </div>
+            {loadingComplete ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p className="text-text-secondary">Loading startups...</p>
+              </div>
+            ) : completeProfile?.startups?.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <i className="fas fa-rocket text-3xl text-white"></i>
                 </div>
-              ))}
-            </div>
+                <h3 className="text-xl font-bold text-text-primary mb-2">No Startups Yet</h3>
+                <p className="text-text-secondary mb-6">Create your first startup to showcase your entrepreneurial journey</p>
+                <button
+                  className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
+                  onClick={() => navigate('/add')}
+                >
+                  <i className="fas fa-plus mr-2"></i>
+                  Create Startup
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6">
+                {completeProfile?.startups?.map((startup) => (
+                  <div key={startup.id} className="bg-bg-secondary/80 border border-glass-border rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-blue-400/20">
+                    <div className={`h-32 ${startup.gradient || 'bg-gradient-primary'} relative`}>
+                      {startup.image && (
+                        <img src={startup.image} alt={startup.name} className="w-full h-full object-cover" />
+                      )}
+                      <div className="absolute inset-0 bg-black/20"></div>
+                      <div className="absolute top-4 right-4 flex gap-2">
+                        {startup.funding && (
+                          <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-semibold text-white">
+                            {startup.funding}
+                          </span>
+                        )}
+                        {startup.stage && (
+                          <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-semibold text-white">
+                            {startup.stage}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <h4 className="text-xl font-bold text-text-primary mb-2">{startup.name}</h4>
+                      <p className="text-text-secondary mb-3 leading-relaxed">{startup.description}</p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <span className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm font-medium">
+                          {startup.category}
+                        </span>
+                        {startup.teamSize && (
+                          <span className="px-3 py-1 bg-bg-secondary/80 text-text-secondary rounded-full text-sm font-medium">
+                            Team: {startup.teamSize}
+                          </span>
+                        )}
+                        {startup.location && (
+                          <span className="px-3 py-1 bg-bg-secondary/80 text-text-secondary rounded-full text-sm font-medium">
+                            📍 {startup.location}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          className="btn-secondary flex-1 hover:bg-accent-primary hover:text-white transition-all duration-200"
+                          onClick={() => navigate(`/startup/${startup.id}`)}
+                        >
+                          <i className="fas fa-eye"></i>
+                          View Details
+                        </button>
+                        <button
+                          className="btn-secondary hover:bg-accent-primary hover:text-white transition-all duration-200"
+                          onClick={() => navigate('/profile/edit')}
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -458,36 +502,45 @@ const ProfilePage = () => {
               <i className="fas fa-trophy text-blue-400"></i>
               Achievements & Badges
             </h3>
-            <div className="grid grid-cols-1 gap-4">
-              {userProfile.achievements.map((achievement, index) => (
-                <div key={index} className={`flex items-center gap-4 p-5 border rounded-2xl transition-all duration-300 hover:scale-[1.02] ${achievement.unlocked
-                  ? 'bg-gradient-to-r from-blue-400/10 to-blue-600/10 border-blue-400/30 shadow-lg shadow-blue-400/10'
-                  : 'bg-glass-bg border-glass-border opacity-60'
-                  }`}>
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${achievement.unlocked
-                    ? 'bg-gradient-to-br from-blue-300 to-blue-700 shadow-lg'
-                    : 'bg-gray-600'
-                    }`}>
-                    <i className={`${achievement.icon} text-white text-2xl ${achievement.unlocked ? 'animate-pulse' : ''}`}></i>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-text-primary font-bold text-lg mb-1">{achievement.title}</h4>
-                    <p className="text-text-secondary">{achievement.description}</p>
-                    {achievement.unlocked && (
-                      <div className="text-blue-400 text-sm font-semibold mt-2 flex items-center gap-1">
-                        <i className="fas fa-check-circle"></i>
-                        Unlocked
-                      </div>
-                    )}
-                  </div>
-                  {!achievement.unlocked && (
-                    <div className="text-gray-500">
-                      <i className="fas fa-lock text-2xl"></i>
-                    </div>
-                  )}
+            {loadingComplete ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p className="text-text-secondary">Loading achievements...</p>
+              </div>
+            ) : completeProfile?.achievements?.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-24 h-24 bg-gradient-to-br from-yellow-300 to-yellow-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <i className="fas fa-trophy text-3xl text-white"></i>
                 </div>
-              ))}
-            </div>
+                <h3 className="text-xl font-bold text-text-primary mb-2">No Achievements Yet</h3>
+                <p className="text-text-secondary mb-6">Start building your profile to unlock achievements and badges</p>
+                <button
+                  className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
+                  onClick={() => navigate('/profile/edit')}
+                >
+                  <i className="fas fa-edit mr-2"></i>
+                  Complete Profile
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {completeProfile?.achievements?.map((achievement, index) => (
+                  <div key={index} className="flex items-center gap-4 p-5 border border-glass-border rounded-2xl transition-all duration-300 hover:scale-[1.02] bg-bg-secondary/80">
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-br from-yellow-300 to-yellow-700 shadow-lg">
+                      <i className="fas fa-trophy text-white text-2xl"></i>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-text-primary font-bold text-lg mb-1">{achievement.title}</h4>
+                      <p className="text-text-secondary">{achievement.description}</p>
+                      <div className="text-yellow-400 text-sm font-semibold mt-2 flex items-center gap-1">
+                        <i className="fas fa-calendar"></i>
+                        {new Date(achievement.date_earned).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

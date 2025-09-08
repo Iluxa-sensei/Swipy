@@ -250,12 +250,8 @@ const HomePageFixed = () => {
     // Get current startup
     const currentStartup = displayStartups[currentCardIndex]
 
-    return (
-        <div className="screen active">
-            {/* Debug info */}
-            <div className="bg-blue-500 text-white p-2 text-xs">
-                Fixed HomePage: user={user?.id ? 'logged in' : 'not logged in'}, startups={startups?.length || 0}, loading={startupsLoading ? 'true' : 'false'}, displayStartups={displayStartups?.length || 0}
-            </div>
+  return (
+    <div className="screen active">
 
             <div className="header">
                 <button className="header-btn" onClick={() => navigate('/filters')}>
