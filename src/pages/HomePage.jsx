@@ -27,6 +27,17 @@ const HomePage = () => {
   // Fallback to sample data if no startups loaded
   const displayStartups = startups && startups.length > 0 ? startups : sampleStartups
 
+  // Debug logging
+  console.log('=== HomePage Debug Info ===')
+  console.log('user:', user)
+  console.log('startups:', startups)
+  console.log('startupsLoading:', startupsLoading)
+  console.log('startupsError:', startupsError)
+  console.log('sampleStartups:', sampleStartups)
+  console.log('displayStartups:', displayStartups)
+  console.log('displayStartups.length:', displayStartups?.length)
+  console.log('===========================')
+
   // ALL useEffect hooks must be here too - AFTER displayStartups is defined
   useEffect(() => {
     const tutorialCompleted = localStorage.getItem('tutorial-completed')
@@ -383,6 +394,11 @@ const HomePage = () => {
 
   return (
     <div className="screen active">
+      {/* Debug info */}
+      <div className="bg-blue-500 text-white p-2 text-xs">
+        Debug: user={user?.id ? 'logged in' : 'not logged in'}, startups={startups?.length || 0}, loading={startupsLoading ? 'true' : 'false'}, displayStartups={displayStartups?.length || 0}
+      </div>
+
       <div className="header">
         <button className="header-btn" onClick={() => navigate('/filters')}>
           <i className="fas fa-filter"></i>
