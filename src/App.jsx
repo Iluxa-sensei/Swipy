@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import { ProtectedRouteSimple as ProtectedRoute } from './components/ProtectedRouteSimple.jsx'
+import { FiltersProvider } from './context/FiltersContext'
+import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 
 import BottomNavigation from './components/BottomNavigation'
-import HomePage from './pages/HomePageSimple'
+import HomePage from './pages/HomePageFixed'
 import NotificationsPage from './pages/NotificationsPage'
 import ChatPage from './pages/ChatPage'
 import ProfilePage from './pages/ProfilePage'
@@ -40,38 +41,40 @@ function App() {
   const showBottomNav = !['onboarding', 'login', 'reset-password'].includes(currentScreen) && !currentScreen.startsWith('chat-detail')
 
   return (
-    <div className="mobile-container">
-      <div className="flex-1 overflow-hidden relative">
-        <Routes>
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/auth/callback" element={<OAuthCallback />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/startup/:id" element={<StartupDetailPage />} />
-            <Route path="/saved" element={<SavedPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/chat" element={<ChatPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/profile/edit" element={<ProfileEditPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/add" element={<AddPage />} />
-            <Route path="/filters" element={<FiltersPage />} />
+    <FiltersProvider>
+      <div className="mobile-container">
+        <div className="flex-1 overflow-hidden relative">
+          <Routes>
+            <Route path="/" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/auth/callback" element={<OAuthCallback />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/startup/:id" element={<StartupDetailPage />} />
+              <Route path="/saved" element={<SavedPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/profile/edit" element={<ProfileEditPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/add" element={<AddPage />} />
+              <Route path="/filters" element={<FiltersPage />} />
 
-            <Route path="/chat-detail/:chatId" element={<ChatDetailPage />} />
-            <Route path="/onboarding" element={<OnboardingPage />} />
-          </Route>
-        </Routes>
+              <Route path="/chat-detail/:chatId" element={<ChatDetailPage />} />
+              <Route path="/onboarding" element={<OnboardingPage />} />
+            </Route>
+          </Routes>
+        </div>
+
+        {showBottomNav && (
+          <BottomNavigation
+            currentScreen={currentScreen}
+            onScreenChange={handleScreenChange}
+          />
+        )}
       </div>
-
-      {showBottomNav && (
-        <BottomNavigation
-          currentScreen={currentScreen}
-          onScreenChange={handleScreenChange}
-        />
-      )}
-    </div>
+    </FiltersProvider>
   )
 }
 
