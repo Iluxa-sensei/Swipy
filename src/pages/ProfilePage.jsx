@@ -230,9 +230,9 @@ const ProfilePage = () => {
 
           {/* Professional Info */}
           <div className="flex items-center justify-center gap-6 text-sm text-text-secondary mb-4">
-            {userProfile.title && <span><i className="fas fa-briefcase mr-1"></i>{userProfile.title}</span>}
+            {userProfile.job_title && <span><i className="fas fa-briefcase mr-1"></i>{userProfile.job_title}</span>}
             {userProfile.location && <span><i className="fas fa-map-marker-alt mr-1"></i>{userProfile.location}</span>}
-            {userProfile.experience && <span><i className="fas fa-clock mr-1"></i>{userProfile.experience} years</span>}
+            {userProfile.experience_years > 0 && <span><i className="fas fa-clock mr-1"></i>{userProfile.experience_years} years</span>}
           </div>
 
           {/* Quick Stats */}
@@ -255,32 +255,29 @@ const ProfilePage = () => {
           )}
 
           {/* Social Links */}
-          <div className="text-center mb-4">
-            <span className="text-text-secondary text-sm">Social Links (Optional)</span>
-          </div>
-          {(userProfile.socials.github || userProfile.socials.linkedin || userProfile.socials.instagram || userProfile.socials.website) && (
-            <div className="flex items-center justify-center gap-3">
-              {userProfile.socials.github && (
-                <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-gray-600 hover:text-white transition-all duration-200 hover:scale-110" href={userProfile.socials.github} target="_blank" rel="noreferrer">
-                  <i className="fab fa-github text-lg"></i>
-                </a>
-              )}
-              {userProfile.socials.linkedin && (
-                <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-blue-600 hover:text-white transition-all duration-200 hover:scale-110" href={userProfile.socials.linkedin} target="_blank" rel="noreferrer">
-                  <i className="fab fa-linkedin text-lg"></i>
-                </a>
-              )}
-              {userProfile.socials.instagram && (
-                <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-pink-600 hover:text-white transition-all duration-200 hover:scale-110" href={userProfile.socials.instagram} target="_blank" rel="noreferrer">
-                  <i className="fab fa-instagram text-lg"></i>
-                </a>
-              )}
-              {userProfile.socials.website && (
-                <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-accent-primary hover:text-white transition-all duration-200 hover:scale-110" href={userProfile.socials.website} target="_blank" rel="noreferrer">
-                  <i className="fas fa-globe text-lg"></i>
-                </a>
-              )}
-            </div>
+          {(profile?.github_url || profile?.linkedin_url || profile?.website) && (
+            <>
+              <div className="text-center mb-4">
+                <span className="text-text-secondary text-sm">Social Links</span>
+              </div>
+              <div className="flex items-center justify-center gap-3">
+                {profile?.github_url && (
+                  <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-gray-600 hover:text-white transition-all duration-200 hover:scale-110" href={profile.github_url} target="_blank" rel="noreferrer">
+                    <i className="fab fa-github text-lg"></i>
+                  </a>
+                )}
+                {profile?.linkedin_url && (
+                  <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-blue-600 hover:text-white transition-all duration-200 hover:scale-110" href={profile.linkedin_url} target="_blank" rel="noreferrer">
+                    <i className="fab fa-linkedin text-lg"></i>
+                  </a>
+                )}
+                {profile?.website && (
+                  <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-accent-primary hover:text-white transition-all duration-200 hover:scale-110" href={profile.website} target="_blank" rel="noreferrer">
+                    <i className="fas fa-globe text-lg"></i>
+                  </a>
+                )}
+              </div>
+            </>
           )}
         </div>
 
@@ -328,15 +325,15 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Skills - only for founders */}
-            {userRole === 'founder' && userProfile.skills.length > 0 && (
+            {/* Skills */}
+            {profile?.skills && profile.skills.length > 0 && (
               <div className="p-6 border-t border-glass-border">
                 <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
                   <i className="fas fa-code text-blue-400"></i>
                   Technical Skills
                 </h3>
                 <div className="flex flex-wrap gap-3">
-                  {userProfile.skills.map((skill, index) => (
+                  {profile.skills.map((skill, index) => (
                     <span key={index} className="px-4 py-2 bg-bg-secondary/80 border border-glass-border rounded-full text-sm text-text-primary hover:bg-bg-secondary transition-colors duration-200 font-medium">
                       {skill}
                     </span>
@@ -346,44 +343,30 @@ const ProfilePage = () => {
             )}
 
             {/* Enhanced Bio */}
-            <div className="p-6 border-t border-glass-border">
-              <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-                <i className="fas fa-info-circle text-blue-400"></i>
-                About Me (Optional)
-              </h3>
-              <div className="bg-bg-secondary/80 border border-glass-border rounded-2xl p-6">
-                <p className="text-text-primary leading-relaxed text-lg">{userProfile.bio || 'No bio provided'}</p>
+            {profile?.bio && (
+              <div className="p-6 border-t border-glass-border">
+                <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+                  <i className="fas fa-info-circle text-blue-400"></i>
+                  About Me
+                </h3>
+                <div className="bg-bg-secondary/80 border border-glass-border rounded-2xl p-6">
+                  <p className="text-text-primary leading-relaxed text-lg">{profile.bio}</p>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Certifications - only for founders */}
-            {userRole === 'founder' && userProfile.certifications.length > 0 && (
+            {/* Certifications */}
+            {profile?.certifications && profile.certifications.length > 0 && (
               <div className="p-6 border-t border-glass-border">
                 <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
                   <i className="fas fa-certificate text-blue-400"></i>
                   Certifications
                 </h3>
-                <div className="space-y-3">
-                  {userProfile.certifications.map((cert, index) => (
-                    <div key={index} className="flex items-center gap-4 p-4 bg-bg-secondary/80 border border-glass-border rounded-xl hover:scale-[1.02] transition-all duration-200">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${cert.verified ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                        <i className={`fas ${cert.verified ? 'fa-check-circle' : 'fa-clock'}`}></i>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-text-primary font-semibold">{cert.name}</h4>
-                        <div className="flex items-center gap-3 text-sm text-text-secondary">
-                          <span>{cert.issuer}</span>
-                          <span>•</span>
-                          <span>{cert.year}</span>
-                          {cert.verified && (
-                            <>
-                              <span>•</span>
-                              <span className="text-green-400 font-medium">Verified</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                <div className="flex flex-wrap gap-3">
+                  {profile.certifications.map((cert, index) => (
+                    <span key={index} className="px-4 py-2 bg-bg-secondary/80 border border-glass-border rounded-full text-sm text-text-primary hover:bg-bg-secondary transition-colors duration-200 font-medium">
+                      {cert}
+                    </span>
                   ))}
                 </div>
               </div>
