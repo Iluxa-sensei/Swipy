@@ -11,6 +11,8 @@ const ProfileEditPageModern = () => {
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
     const [showSuccessModal, setShowSuccessModal] = useState(false)
+    const [avatarFile, setAvatarFile] = useState(null)
+    const [avatarPreview, setAvatarPreview] = useState(null)
 
     // Profile data with existing values
     const [profile, setProfile] = useState({
@@ -135,9 +137,66 @@ const ProfileEditPageModern = () => {
         }
     }
 
+    const handleAvatarUpload = (event) => {
+        const file = event.target.files[0]
+        if (file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file')
+                return
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB')
+                return
+            }
+
+            setAvatarFile(file)
+
+            // Create preview
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                setAvatarPreview(e.target.result)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
+
+    const uploadAvatar = async () => {
+        if (!avatarFile) return null
+
+        try {
+            const fileExt = avatarFile.name.split('.').pop()
+            const fileName = `${user.id}-${Date.now()}.${fileExt}`
+            const filePath = `avatars/${fileName}`
+
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, avatarFile)
+
+            if (uploadError) throw uploadError
+
+            const { data } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(filePath)
+
+            return data.publicUrl
+        } catch (error) {
+            console.error('Error uploading avatar:', error)
+            return null
+        }
+    }
+
     const saveProfile = async () => {
         setSaving(true)
         try {
+            // Upload avatar if selected
+            let avatarUrl = null
+            if (avatarFile) {
+                avatarUrl = await uploadAvatar()
+            }
+
             // Build location string from dropdowns
             const locationString = selectedCity && selectedCountry && selectedContinent
                 ? `${selectedCity}, ${selectedCountry}, ${selectedContinent}`
@@ -149,6 +208,7 @@ const ProfileEditPageModern = () => {
                     id: user.id,
                     ...profile,
                     location: locationString,
+                    avatar_url: avatarUrl || profile.avatar_url,
                     updated_at: new Date().toISOString()
                 })
 
@@ -319,16 +379,43 @@ const ProfileTab = ({
                 </div>
 
                 <div className="flex items-center gap-6">
-                    <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <span className="text-white text-2xl font-bold">
-                            {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U'}
-                        </span>
+                    <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+                        {avatarPreview ? (
+                            <img
+                                src={avatarPreview}
+                                alt="Avatar preview"
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <span className="text-white text-2xl font-bold">
+                                {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U'}
+                            </span>
+                        )}
                     </div>
                     <div>
-                        <p className="text-white/70 mb-2">Avatar functionality coming soon</p>
-                        <button className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-xl hover:bg-white/20 transition-all duration-300">
+                        <p className="text-white/70 mb-2">
+                            {avatarFile ? 'New photo selected' : 'Upload a profile picture'}
+                        </p>
+                        <label className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-xl hover:bg-white/20 transition-all duration-300 cursor-pointer inline-block">
                             <i className="fas fa-upload mr-2"></i>Upload Photo
-                        </button>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleAvatarUpload}
+                                className="hidden"
+                            />
+                        </label>
+                        {avatarFile && (
+                            <button
+                                onClick={() => {
+                                    setAvatarFile(null)
+                                    setAvatarPreview(null)
+                                }}
+                                className="ml-3 text-red-400 hover:text-red-300 text-sm"
+                            >
+                                <i className="fas fa-times mr-1"></i>Remove
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
