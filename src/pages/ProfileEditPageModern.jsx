@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../hooks'
 import { supabase } from '../services/supabaseClient'
 
 const ProfileEditPageModern = () => {
@@ -188,8 +188,8 @@ const ProfileEditPageModern = () => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${activeTab === tab.id
-                                    ? 'bg-white text-blue-600 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-600 hover:text-gray-900'
                                 }`}
                         >
                             <span className="mr-1">{tab.icon}</span>
