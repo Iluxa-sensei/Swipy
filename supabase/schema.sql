@@ -25,10 +25,18 @@ create table if not exists public.startups (
   description text,
   website text,
   logo_url text,
+  logo text,
   industry text,
+  category text,
   stage text,
   funding_round text,
+  funding text,
   team_size text,
+  teamSize text,
+  location text,
+  gradient text default 'bg-gradient-to-br from-blue-300 to-blue-700',
+  investmentRequired text,
+  image text,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
@@ -96,6 +104,12 @@ alter table public.messages enable row level security;
 alter table public.notifications enable row level security;
 
 -- Policies: profiles (self only)
+DROP POLICY IF EXISTS "Profiles are viewable by users themselves" ON public.profiles;
+DROP POLICY IF EXISTS "Users can upsert their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Profiles are viewable by authenticated users" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
+
 create policy "Profiles are viewable by users themselves" on public.profiles
   for select using (auth.uid() = id);
 create policy "Users can upsert their own profile" on public.profiles
@@ -104,6 +118,11 @@ create policy "Users can update their own profile" on public.profiles
   for update using (auth.uid() = id);
 
 -- Policies: startups
+DROP POLICY IF EXISTS "Startups are readable by authenticated" ON public.startups;
+DROP POLICY IF EXISTS "Owners can insert startups" ON public.startups;
+DROP POLICY IF EXISTS "Owners can update their startups" ON public.startups;
+DROP POLICY IF EXISTS "Owners can delete their startups" ON public.startups;
+
 create policy "Startups are readable by authenticated" on public.startups
   for select using (auth.role() = 'authenticated');
 create policy "Owners can insert startups" on public.startups
@@ -114,12 +133,18 @@ create policy "Owners can delete their startups" on public.startups
   for delete using (auth.uid() = owner_id);
 
 -- Policies: likes and passes (user-owned)
+DROP POLICY IF EXISTS "Users can manage their likes" ON public.likes;
+DROP POLICY IF EXISTS "Users can manage their passes" ON public.passes;
+
 create policy "Users can manage their likes" on public.likes
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "Users can manage their passes" on public.passes
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- Policies: chats
+DROP POLICY IF EXISTS "Users can view their chats" ON public.chats;
+DROP POLICY IF EXISTS "Users can create chats" ON public.chats;
+
 create policy "Users can view their chats" on public.chats
   for select using (
     exists (
@@ -129,6 +154,8 @@ create policy "Users can view their chats" on public.chats
   );
 
 -- Participants policy
+DROP POLICY IF EXISTS "Users can view chat participants of their chats" ON public.chat_participants;
+
 create policy "Users can view chat participants of their chats" on public.chat_participants
   for select using (
     user_id = auth.uid() or exists (
@@ -138,6 +165,9 @@ create policy "Users can view chat participants of their chats" on public.chat_p
   );
 
 -- Messages policy
+DROP POLICY IF EXISTS "Users can read messages in their chats" ON public.messages;
+DROP POLICY IF EXISTS "Users can send messages to their chats" ON public.messages;
+
 create policy "Users can read messages in their chats" on public.messages
   for select using (
     exists (
@@ -154,10 +184,15 @@ create policy "Users can send messages to their chats" on public.messages
   );
 
 -- Notifications policy
+DROP POLICY IF EXISTS "Users can view their own notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Users can update their own notifications" ON public.notifications;
+
 create policy "Users can view their own notifications" on public.notifications
   for select using (auth.uid() = user_id);
 create policy "Users can update their own notifications" on public.notifications
   for update using (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "System can insert notifications" ON public.notifications;
 create policy "System can insert notifications" on public.notifications
   for insert with check (true);
 
@@ -170,25 +205,15 @@ begin
 end;
 $$ language plpgsql;
 
-do $$ begin
-  if not exists (
-    select 1 from pg_trigger where tgname = 'startups_set_updated_at'
-  ) then
-    create trigger startups_set_updated_at
-      before update on public.startups
-      for each row execute procedure public.set_updated_at();
-  end if;
-end $$;
+DROP TRIGGER IF EXISTS startups_set_updated_at ON public.startups;
+create trigger startups_set_updated_at
+  before update on public.startups
+  for each row execute procedure public.set_updated_at();
 
-do $$ begin
-  if not exists (
-    select 1 from pg_trigger where tgname = 'profiles_set_updated_at'
-  ) then
-    create trigger profiles_set_updated_at
-      before update on public.profiles
-      for each row execute procedure public.set_updated_at();
-  end if;
-end $$;
+DROP TRIGGER IF EXISTS profiles_set_updated_at ON public.profiles;
+create trigger profiles_set_updated_at
+  before update on public.profiles
+  for each row execute procedure public.set_updated_at();
 
 -- Function to create profile on user signup
 create or replace function public.handle_new_user()
@@ -201,7 +226,7 @@ end;
 $$ language plpgsql security definer;
 
 -- Trigger to automatically create profile
-drop trigger if exists on_auth_user_created on auth.users;
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
@@ -225,7 +250,7 @@ end;
 $$ language plpgsql security definer;
 
 -- Trigger for startup likes
-drop trigger if exists on_startup_like on public.likes;
+DROP TRIGGER IF EXISTS on_startup_like ON public.likes;
 create trigger on_startup_like
   after insert on public.likes
   for each row execute procedure public.handle_startup_like();
@@ -259,7 +284,7 @@ end;
 $$ language plpgsql security definer;
 
 -- Trigger for mutual matches
-drop trigger if exists on_mutual_match on public.likes;
+DROP TRIGGER IF EXISTS on_mutual_match ON public.likes;
 create trigger on_mutual_match
   after insert on public.likes
   for each row execute procedure public.handle_mutual_match();
