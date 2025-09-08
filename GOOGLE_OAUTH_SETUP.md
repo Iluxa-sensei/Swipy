@@ -30,7 +30,7 @@
      ```
      http://localhost:3000/auth/callback
      https://your-vercel-domain.vercel.app/auth/callback
-     https://your-supabase-project.supabase.co/auth/v1/callback
+     https://your-supabase-proje ct.supabase.co/auth/v1/callback
      ```
 
 #### 1.3 Получение credentials
