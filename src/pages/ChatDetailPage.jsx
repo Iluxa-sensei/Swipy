@@ -331,9 +331,9 @@ const ChatDetailPage = () => {
 
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="relative">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div className={`w-12 h-12 ${chat?.startup_gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'} rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300`}>
               <span className="text-white font-bold text-lg">
-                {otherParticipant?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                {chat?.startup_logo || chat?.startup_name?.charAt(0)?.toUpperCase() || 'S'}
               </span>
             </div>
             {/* Online status */}
@@ -341,9 +341,9 @@ const ChatDetailPage = () => {
           </div>
 
           <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold text-text-primary truncate">{otherParticipant?.full_name || 'Unknown User'}</h1>
+            <h1 className="text-lg font-bold text-text-primary truncate">{chat?.startup_name || 'Unknown Startup'}</h1>
             <div className="text-sm text-text-secondary">
-              <span>Chat with {otherParticipant?.full_name || 'Unknown User'}</span>
+              <span>Chat about {chat?.startup_name || 'startup'} with {otherParticipant?.full_name || 'Unknown User'}</span>
             </div>
           </div>
         </div>

@@ -20,23 +20,22 @@ const ChatPage = () => {
 
   // Transform chat data into display format
   const chatList = chats.map((chat) => {
-    const lastMessage = chat.messages?.[chat.messages.length - 1]
-    const otherParticipant = chat.participants?.find(p => p.id !== user?.id)
-
     return {
-      id: chat.id,
-      name: otherParticipant?.full_name || 'Unknown User',
-      lastMessage: lastMessage?.body || 'No messages yet',
-      time: lastMessage ? formatMessageTime(lastMessage.created_at) : 'Just now',
-      unread: lastMessage?.sender_id !== user?.id && !lastMessage?.read,
+      id: chat.chat_id,
+      name: chat.startup_name || 'Unknown Startup',
+      lastMessage: chat.last_message_body || 'No messages yet',
+      time: chat.last_message_at ? formatMessageTime(chat.last_message_at) : 'Just now',
+      unread: chat.last_message_sender_id !== user?.id && chat.unread_count > 0,
       unreadCount: chat.unread_count || 0,
-      avatar: otherParticipant?.avatar_url || otherParticipant?.full_name?.charAt(0)?.toUpperCase(),
-      gradient: 'bg-gradient-primary',
+      avatar: chat.startup_logo || chat.startup_name?.charAt(0)?.toUpperCase() || 'S',
+      gradient: chat.startup_gradient || 'bg-gradient-to-br from-blue-300 to-blue-700',
       isOnline: false,
-      lastSeen: otherParticipant?.last_seen,
+      lastSeen: null,
       isTyping: false,
       isFavorite: false,
-      isPinned: false
+      isPinned: false,
+      startupId: chat.startup_id,
+      otherParticipant: chat.other_participant
     }
   })
 
@@ -121,9 +120,6 @@ const ChatPage = () => {
         chat.name.toLowerCase().includes(searchQuery.toLowerCase())
       ).map(chat => ({
         ...chat,
-        name: chat.startup.name,
-        avatar: chat.startup.logo,
-        gradient: chat.startup.gradient,
         lastMessage: `Archived on ${new Date(chat.archivedAt).toLocaleDateString()}`,
         time: new Date(chat.archivedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         unread: false,

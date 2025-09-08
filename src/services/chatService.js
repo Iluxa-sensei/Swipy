@@ -1,28 +1,11 @@
 import { supabase } from './supabaseClient.js'
 
 export const chatService = {
-    // Get all user chats
+    // Get all user chats with startup information
     async getUserChats(userId) {
         try {
             const { data, error } = await supabase
-                .from('chat_participants')
-                .select(`
-          chat_id,
-          chats (
-            id,
-            created_at,
-            chat_participants!chat_participants_chat_id_fkey (
-              user_id,
-              profiles!chat_participants_user_id_fkey (
-                id,
-                full_name,
-                avatar_url
-              )
-            )
-          )
-        `)
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false })
+                .rpc('get_user_chats_with_startups', { p_user_id: userId })
 
             if (error) throw error
             return data || []
@@ -32,13 +15,31 @@ export const chatService = {
         }
     },
 
-    // Create new chat
-    async createChat(participantIds) {
+    // Create or get chat for a specific startup
+    async getOrCreateStartupChat(startupId, userId) {
+        try {
+            const { data, error } = await supabase
+                .rpc('get_or_create_startup_chat', {
+                    p_startup_id: startupId,
+                    p_user_id: userId
+                })
+
+            if (error) throw error
+            return data
+        } catch (error) {
+            console.error('Error creating/getting startup chat:', error)
+            throw error
+        }
+    },
+
+    // Create new chat (legacy method)
+    async createChat(participantIds, startupId = null) {
         try {
             // Create chat
+            const chatData = startupId ? { startup_id: startupId } : {}
             const { data: chat, error: chatError } = await supabase
                 .from('chats')
-                .insert([{}])
+                .insert([chatData])
                 .select()
                 .single()
 
@@ -115,30 +116,33 @@ export const chatService = {
         }
     },
 
-    // Get chat info
+    // Get chat info with startup details
     async getChatInfo(chatId) {
         try {
             const { data, error } = await supabase
-                .from('chats')
-                .select(`
-          *,
-          chat_participants!chat_participants_chat_id_fkey (
-            user_id,
-            profiles!chat_participants_user_id_fkey (
-              id,
-              full_name,
-              avatar_url
-            )
-          )
-        `)
-                .eq('id', chatId)
-                .single()
+                .rpc('get_chat_with_startup', { p_chat_id: chatId })
 
             if (error) throw error
-            return data
+            return data?.[0] || null
         } catch (error) {
             console.error('Error fetching chat info:', error)
             return null
+        }
+    },
+
+    // Mark chat as read
+    async markChatAsRead(chatId, userId) {
+        try {
+            const { error } = await supabase
+                .rpc('mark_chat_as_read', {
+                    p_chat_id: chatId,
+                    p_user_id: userId
+                })
+
+            if (error) throw error
+        } catch (error) {
+            console.error('Error marking chat as read:', error)
+            throw error
         }
     },
 

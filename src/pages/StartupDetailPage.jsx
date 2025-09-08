@@ -21,7 +21,7 @@ const StartupDetailPage = () => {
     useEffect(() => {
         const loadSwipeStatus = async () => {
             if (!user?.id || !startup?.id) return
-            
+
             try {
                 const status = await getSwipeStatus(startup.id)
                 setSwipeStatus(status)
@@ -41,15 +41,9 @@ const StartupDetailPage = () => {
 
         try {
             setIsLoading(true)
-            // Create or get existing chat
-            const chat = await chatService.getChatBetweenUsers(user.id, startup.owner_id)
-            if (chat) {
-                navigate(`/chat-detail/${chat.id}`)
-            } else {
-                // Create new chat
-                const newChat = await chatService.createChat([user.id, startup.owner_id])
-                navigate(`/chat-detail/${newChat.id}`)
-            }
+            // Create or get existing chat for this startup
+            const chatId = await chatService.getOrCreateStartupChat(startup.id, user.id)
+            navigate(`/chat-detail/${chatId}`)
         } catch (error) {
             console.error('Error opening chat:', error)
             alert('Failed to open chat. Please try again.')
