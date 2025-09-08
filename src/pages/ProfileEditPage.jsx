@@ -1,229 +1,188 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks'
-import { profileService } from '../services'
+import { useAuth, useProfile } from '../hooks'
+import { supabase } from '../services/supabaseClient'
 
-const ProfileEditPage = () => {
+const ProfileEditPageModern = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
-    const [activeTab, setActiveTab] = useState('basic')
-    const [loading, setLoading] = useState(true)
+    const { profile: existingProfile } = useProfile(user?.id)
+    const [activeTab, setActiveTab] = useState('profile')
+    const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
-    const [error, setError] = useState(null)
-    const [success, setSuccess] = useState('')
+    const [showSuccessModal, setShowSuccessModal] = useState(false)
 
-    const [form, setForm] = useState({
+    // Profile data with existing values
+    const [profile, setProfile] = useState({
         full_name: '',
         bio: '',
         location: '',
         website: '',
-        avatar_url: '',
+        linkedin_url: '',
+        github_url: '',
+        company: '',
+        job_title: '',
+        experience_years: 0,
+        skills: [],
+        availability: 'Available',
         hourly_rate: '',
-        response_time: '',
-        profile_views: 0,
-        matches: 0,
-        applications: 0,
-        days_active: 0
+        timezone: ''
     })
 
-    // Load profile data from Supabase
+    // Portfolio data (renamed from startups)
+    const [userStartups, setUserStartups] = useState([])
+    const [achievements, setAchievements] = useState([])
+
+    // Location data
+    const [selectedContinent, setSelectedContinent] = useState('')
+    const [selectedCountry, setSelectedCountry] = useState('')
+    const [selectedCity, setSelectedCity] = useState('')
+
+    const continents = [
+        'North America', 'South America', 'Europe', 'Asia', 'Africa', 'Oceania'
+    ]
+
+    const countries = {
+        'North America': ['United States', 'Canada', 'Mexico'],
+        'South America': ['Brazil', 'Argentina', 'Chile', 'Colombia'],
+        'Europe': ['United Kingdom', 'Germany', 'France', 'Spain', 'Italy', 'Netherlands', 'Sweden', 'Norway'],
+        'Asia': ['China', 'Japan', 'South Korea', 'India', 'Singapore', 'Thailand'],
+        'Africa': ['South Africa', 'Nigeria', 'Kenya', 'Egypt'],
+        'Oceania': ['Australia', 'New Zealand']
+    }
+
+    const cities = {
+        'United States': ['New York', 'Los Angeles', 'San Francisco', 'Chicago', 'Boston', 'Seattle'],
+        'Canada': ['Toronto', 'Vancouver', 'Montreal', 'Calgary'],
+        'United Kingdom': ['London', 'Manchester', 'Birmingham', 'Edinburgh'],
+        'Germany': ['Berlin', 'Munich', 'Hamburg', 'Frankfurt'],
+        'France': ['Paris', 'Lyon', 'Marseille', 'Toulouse'],
+        'Spain': ['Madrid', 'Barcelona', 'Valencia', 'Seville'],
+        'Italy': ['Rome', 'Milan', 'Naples', 'Turin'],
+        'Netherlands': ['Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht'],
+        'Sweden': ['Stockholm', 'Gothenburg', 'Malmo', 'Uppsala'],
+        'Norway': ['Oslo', 'Bergen', 'Trondheim', 'Stavanger'],
+        'China': ['Beijing', 'Shanghai', 'Shenzhen', 'Guangzhou'],
+        'Japan': ['Tokyo', 'Osaka', 'Kyoto', 'Yokohama'],
+        'South Korea': ['Seoul', 'Busan', 'Incheon', 'Daegu'],
+        'India': ['Mumbai', 'Delhi', 'Bangalore', 'Chennai'],
+        'Singapore': ['Singapore'],
+        'Thailand': ['Bangkok', 'Chiang Mai', 'Phuket', 'Pattaya'],
+        'Australia': ['Sydney', 'Melbourne', 'Brisbane', 'Perth'],
+        'New Zealand': ['Auckland', 'Wellington', 'Christchurch', 'Hamilton']
+    }
+
     useEffect(() => {
-        const loadProfile = async () => {
-            if (!user?.id) {
-                navigate('/login')
-                return
-            }
+        if (user && existingProfile) {
+            loadProfileData()
+        }
+    }, [user, existingProfile])
 
-            try {
-                setLoading(true)
-                setError(null)
+    const loadProfileData = async () => {
+        setLoading(true)
+        try {
+            // Use existing profile data first
+            if (existingProfile) {
+                setProfile({
+                    full_name: existingProfile.full_name || '',
+                    bio: existingProfile.bio || '',
+                    location: existingProfile.location || '',
+                    website: existingProfile.website || '',
+                    linkedin_url: existingProfile.linkedin_url || '',
+                    github_url: existingProfile.github_url || '',
+                    company: existingProfile.company || '',
+                    job_title: existingProfile.job_title || '',
+                    experience_years: existingProfile.experience_years || 0,
+                    skills: existingProfile.skills || [],
+                    availability: existingProfile.availability || 'Available',
+                    hourly_rate: existingProfile.hourly_rate || '',
+                    timezone: existingProfile.timezone || ''
+                })
 
-                const profile = await profileService.getProfile(user.id)
-                if (profile) {
-                    setForm({
-                        full_name: profile.full_name || '',
-                        bio: profile.bio || '',
-                        location: profile.location || '',
-                        website: profile.website || '',
-                        avatar_url: profile.avatar_url || '',
-                        hourly_rate: profile.hourly_rate || '',
-                        response_time: profile.response_time || '',
-                        profile_views: profile.profile_views || 0,
-                        matches: profile.matches || 0,
-                        applications: profile.applications || 0,
-                        days_active: profile.days_active || 0
-                    })
+                // Parse location for dropdowns
+                if (existingProfile.location) {
+                    const locationParts = existingProfile.location.split(', ')
+                    if (locationParts.length >= 3) {
+                        setSelectedCity(locationParts[0])
+                        setSelectedCountry(locationParts[1])
+                        setSelectedContinent(locationParts[2])
+                    }
                 }
-            } catch (err) {
-                console.error('Error loading profile:', err)
-                setError('Failed to load profile. Please try again.')
-            } finally {
-                setLoading(false)
             }
-        }
 
-        loadProfile()
-    }, [user?.id, navigate])
+            // Load achievements
+            const { data: achievementsData } = await supabase
+                .from('achievements')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('date_earned', { ascending: false })
 
-    // Handle form input changes
-    const handleInputChange = (field, value) => {
-        setForm(prev => ({
-            ...prev,
-            [field]: value
-        }))
-    }
+            setAchievements(achievementsData || [])
 
-    // Handle social media input changes
-    const handleSocialChange = (platform, value) => {
-        setForm(prev => ({
-            ...prev,
-            socials: {
-                ...prev.socials,
-                [platform]: value
-            }
-        }))
-    }
+            // Load user startups (portfolio)
+            const { data: startups } = await supabase
+                .from('startups')
+                .select('*')
+                .eq('owner_id', user.id)
+                .order('created_at', { ascending: false })
 
-    // Handle avatar upload
-    const handleAvatarUpload = async (e) => {
-        const file = e.target.files[0]
-        if (!file || !user?.id) return
+            setUserStartups(startups || [])
 
-        try {
-            setSaving(true)
-            setError(null)
-
-            // Upload avatar to Supabase Storage
-            const avatarUrl = await profileService.uploadAvatar(user.id, file)
-
-            // Update form with new avatar URL
-            setForm(prev => ({
-                ...prev,
-                avatar_url: avatarUrl
-            }))
-
-            setSuccess('Avatar uploaded successfully!')
-            setTimeout(() => setSuccess(''), 3000)
-
-        } catch (err) {
-            console.error('Error uploading avatar:', err)
-            setError('Failed to upload avatar. Please try again.')
+        } catch (error) {
+            console.error('Error loading profile data:', error)
         } finally {
-            setSaving(false)
+            setLoading(false)
         }
     }
 
-    // Handle form submission
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        if (!user?.id) return
-
+    const saveProfile = async () => {
+        setSaving(true)
         try {
-            setSaving(true)
-            setError(null)
+            // Build location string from dropdowns
+            const locationString = selectedCity && selectedCountry && selectedContinent
+                ? `${selectedCity}, ${selectedCountry}, ${selectedContinent}`
+                : profile.location
 
-            // Prepare profile data for Supabase
-            const profileData = {
-                full_name: form.full_name,
-                bio: form.bio,
-                location: form.location,
-                website: form.website,
-                avatar_url: form.avatar_url,
-                hourly_rate: form.hourly_rate,
-                response_time: form.response_time
-            }
+            const { error } = await supabase
+                .from('profiles')
+                .upsert({
+                    id: user.id,
+                    ...profile,
+                    location: locationString,
+                    updated_at: new Date().toISOString()
+                })
 
-            // Update profile in Supabase
-            await profileService.updateProfile(user.id, profileData)
+            if (error) throw error
 
-            setSuccess('Profile updated successfully!')
+            // Show success modal
+            setShowSuccessModal(true)
+
+            // Navigate to profile after 2 seconds
             setTimeout(() => {
-                setSuccess('')
                 navigate('/profile')
             }, 2000)
 
-        } catch (err) {
-            console.error('Error updating profile:', err)
-            setError('Failed to update profile. Please try again.')
+        } catch (error) {
+            console.error('Error saving profile:', error)
+            alert('Error saving profile')
         } finally {
             setSaving(false)
         }
     }
 
-    // Delete avatar
-    const handleDeleteAvatar = async () => {
-        if (!user?.id || !form.avatar_url) return
+    const tabs = [
+        { id: 'profile', label: 'Profile', icon: 'fas fa-user' },
+        { id: 'portfolio', label: 'Portfolio', icon: 'fas fa-briefcase' },
+        { id: 'achievements', label: 'Achievements', icon: 'fas fa-trophy' }
+    ]
 
-        try {
-            setSaving(true)
-            setError(null)
-
-            await profileService.deleteAvatar(user.id)
-
-            setForm(prev => ({
-                ...prev,
-                avatar_url: ''
-            }))
-
-            setSuccess('Avatar removed successfully!')
-            setTimeout(() => setSuccess(''), 3000)
-
-        } catch (err) {
-            console.error('Error deleting avatar:', err)
-            setError('Failed to delete avatar. Please try again.')
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    // Show loading state
     if (loading) {
         return (
-            <div className="screen active">
-                <div className="header">
-                    <button className="header-btn" onClick={() => navigate('/profile')}>
-                        <i className="fas fa-arrow-left"></i>
-                    </button>
-                    <h1>Loading...</h1>
-                    <div className="w-10"></div>
-                </div>
-                <div className="flex-1 flex items-center justify-center">
+            <div className="screen active bg-black/90 backdrop-blur-xl">
+                <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                        <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
-                            <i className="fas fa-spinner fa-spin text-3xl text-white"></i>
-                        </div>
-                        <h2 className="text-2xl font-bold text-text-primary mb-4">Loading Profile</h2>
-                        <p className="text-text-secondary">Please wait...</p>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    // Show error state
-    if (error && !form.full_name) {
-        return (
-            <div className="screen active">
-                <div className="header">
-                    <button className="header-btn" onClick={() => navigate('/profile')}>
-                        <i className="fas fa-arrow-left"></i>
-                    </button>
-                    <h1>Error</h1>
-                    <div className="w-10"></div>
-                </div>
-                <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                        <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
-                        </div>
-                        <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Profile</h2>
-                        <p className="text-text-secondary mb-6">{error}</p>
-                        <button
-                            className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
-                            onClick={() => window.location.reload()}
-                        >
-                            Retry
-                        </button>
+                        <div className="animate-spin rounded-full h-16 w-16 border-2 border-transparent border-t-blue-500 border-r-blue-500 mx-auto mb-6"></div>
+                        <p className="text-white/70 text-lg font-medium">Loading profile...</p>
                     </div>
                 </div>
             </div>
@@ -231,253 +190,604 @@ const ProfileEditPage = () => {
     }
 
     return (
-        <div className="screen active">
+        <div className="screen active bg-black/90 backdrop-blur-xl">
             {/* Header */}
-            <div className="header">
-                <button className="header-btn" onClick={() => navigate('/profile')}>
-                    <i className="fas fa-arrow-left"></i>
-                </button>
-                <h1>Edit Profile</h1>
+            <div className="header bg-black/50 backdrop-blur-xl border-b border-white/10">
                 <button
-                    className="header-btn"
-                    onClick={handleSubmit}
+                    className="header-btn text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
+                    onClick={() => navigate('/profile')}
+                >
+                    <i className="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h1 className="header-title text-white font-bold text-xl">Edit Profile</h1>
+                <button
+                    className="header-btn text-green-400 hover:text-green-300 hover:bg-green-500/20 transition-all duration-300"
+                    onClick={saveProfile}
                     disabled={saving}
                 >
-                    <i className={`fas ${saving ? 'fa-spinner fa-spin' : 'fa-save'}`}></i>
+                    {saving ? <i className="fas fa-spinner fa-spin text-xl"></i> : <i className="fas fa-check text-xl"></i>}
                 </button>
             </div>
 
-            {/* Success Message */}
-            {success && (
-                <div className="mx-4 mt-4 p-4 bg-green-500/20 border border-green-500/30 rounded-2xl">
-                    <div className="flex items-center gap-3 text-green-600">
-                        <i className="fas fa-check-circle"></i>
-                        <span className="font-medium">{success}</span>
-                    </div>
+            {/* Tab Navigation */}
+            <div className="px-6 py-4">
+                <div className="flex space-x-2 bg-white/5 backdrop-blur-xl rounded-2xl p-2 border border-white/10">
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === tab.id
+                                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/25'
+                                : 'text-white/60 hover:text-white hover:bg-white/10'
+                                }`}
+                        >
+                            <i className={`${tab.icon} mr-2`}></i>
+                            {tab.label}
+                        </button>
+                    ))}
                 </div>
-            )}
+            </div>
 
-            {/* Error Message */}
-            {error && (
-                <div className="mx-4 mt-4 p-4 bg-red-500/20 border border-red-500/30 rounded-2xl">
-                    <div className="flex items-center gap-3 text-red-600">
-                        <i className="fas fa-exclamation-circle"></i>
-                        <span className="font-medium">{error}</span>
-                    </div>
-                </div>
-            )}
+            {/* Tab Content */}
+            <div className="flex-1 overflow-y-auto px-6 pb-20">
+                {activeTab === 'profile' && (
+                    <ProfileTab
+                        profile={profile}
+                        setProfile={setProfile}
+                        selectedContinent={selectedContinent}
+                        setSelectedContinent={setSelectedContinent}
+                        selectedCountry={selectedCountry}
+                        setSelectedCountry={setSelectedCountry}
+                        selectedCity={selectedCity}
+                        setSelectedCity={setSelectedCity}
+                        continents={continents}
+                        countries={countries}
+                        cities={cities}
+                    />
+                )}
+                {activeTab === 'portfolio' && (
+                    <PortfolioTab
+                        startups={userStartups}
+                        setStartups={setUserStartups}
+                        userId={user.id}
+                        navigate={navigate}
+                    />
+                )}
+                {activeTab === 'achievements' && (
+                    <AchievementsTab
+                        achievements={achievements}
+                        setAchievements={setAchievements}
+                        userId={user.id}
+                    />
+                )}
+            </div>
 
-            {/* Form */}
-            <div className="flex-1 overflow-y-auto pb-6">
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    {/* Basic Information */}
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-semibold text-text-primary">Basic Information</h2>
-
-                        {/* Avatar Section */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-4">
-                                <div className="relative">
-                                    <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-300 to-blue-700 flex items-center justify-center">
-                                        {form.avatar_url ? (
-                                            <img
-                                                src={form.avatar_url}
-                                                alt="Profile"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <span className="text-white text-2xl font-bold">
-                                                {form.full_name ? form.full_name.charAt(0).toUpperCase() : 'U'}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {/* Upload Button */}
-                                    <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-accent-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-accent-primary/90 transition-all duration-200 shadow-lg">
-                                        <i className="fas fa-camera text-white text-sm"></i>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleAvatarUpload}
-                                            className="hidden"
-                                            disabled={saving}
-                                        />
-                                    </label>
-                                </div>
-
-                                <div className="flex-1 space-y-2">
-                                    <div className="text-sm text-text-secondary">
-                                        Upload a profile picture to make your profile stand out
-                                    </div>
-                                    {form.avatar_url && (
-                                        <button
-                                            type="button"
-                                            onClick={handleDeleteAvatar}
-                                            disabled={saving}
-                                            className="text-sm text-red-500 hover:text-red-600 transition-colors duration-200"
-                                        >
-                                            Remove avatar
-                                        </button>
-                                    )}
-                                </div>
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 max-w-md mx-4">
+                        <div className="text-center">
+                            <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i className="fas fa-check text-white text-3xl"></i>
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-4">Profile Updated!</h3>
+                            <p className="text-white/70 mb-6">Your profile has been successfully updated.</p>
+                            <div className="flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-6 w-6 border-2 border-transparent border-t-white mr-3"></div>
+                                <span className="text-white/70">Redirecting to profile...</span>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
 
-                        {/* Name */}
-                        <div>
-                            <label className="block text-sm font-medium text-text-primary mb-2">
-                                Full Name *
-                            </label>
-                            <input
-                                type="text"
-                                value={form.full_name}
-                                onChange={(e) => handleInputChange('full_name', e.target.value)}
-                                className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
-                                placeholder="Enter your full name"
-                                required
-                                disabled={saving}
-                            />
-                        </div>
+// Profile Tab Component
+const ProfileTab = ({
+    profile,
+    setProfile,
+    selectedContinent,
+    setSelectedContinent,
+    selectedCountry,
+    setSelectedCountry,
+    selectedCity,
+    setSelectedCity,
+    continents,
+    countries,
+    cities
+}) => {
+    const handleInputChange = (field, value) => {
+        setProfile(prev => ({ ...prev, [field]: value }))
+    }
 
-                        {/* Bio */}
-                        <div>
-                            <label className="block text-sm font-medium text-text-primary mb-2">
-                                Bio
-                            </label>
-                            <textarea
-                                value={form.bio}
-                                onChange={(e) => handleInputChange('bio', e.target.value)}
-                                rows={4}
-                                className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200 resize-none"
-                                placeholder="Tell us about yourself..."
-                                disabled={saving}
-                            />
-                        </div>
+    const handleSkillsChange = (skillsString) => {
+        const skillsArray = skillsString.split(',').map(skill => skill.trim()).filter(skill => skill)
+        setProfile(prev => ({ ...prev, skills: skillsArray }))
+    }
 
-                        {/* Location */}
-                        <div>
-                            <label className="block text-sm font-medium text-text-primary mb-2">
-                                Location
-                            </label>
-                            <input
-                                type="text"
-                                value={form.location}
-                                onChange={(e) => handleInputChange('location', e.target.value)}
-                                className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
-                                placeholder="City, Country"
-                                disabled={saving}
-                            />
-                        </div>
+    return (
+        <div className="space-y-8">
+            {/* Avatar Section */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                        <i className="fas fa-camera text-white text-xl"></i>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">Profile Picture</h3>
+                </div>
 
-                        {/* Website */}
-                        <div>
-                            <label className="block text-sm font-medium text-text-primary mb-2">
-                                Website
-                            </label>
-                            <input
-                                type="url"
-                                value={form.website}
-                                onChange={(e) => handleInputChange('website', e.target.value)}
-                                className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
-                                placeholder="https://yourwebsite.com"
-                                disabled={saving}
-                            />
-                        </div>
+                <div className="flex items-center gap-6">
+                    <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span className="text-white text-2xl font-bold">
+                            {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U'}
+                        </span>
+                    </div>
+                    <div>
+                        <p className="text-white/70 mb-2">Avatar functionality coming soon</p>
+                        <button className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-xl hover:bg-white/20 transition-all duration-300">
+                            <i className="fas fa-upload mr-2"></i>Upload Photo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Basic Information */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                        <i className="fas fa-user text-white text-xl"></i>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">Basic Information</h3>
+                </div>
+
+                <div className="space-y-6">
+                    <div>
+                        <label className="block text-sm font-semibold text-white/80 mb-3">Full Name</label>
+                        <input
+                            type="text"
+                            value={profile.full_name}
+                            onChange={(e) => handleInputChange('full_name', e.target.value)}
+                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                            placeholder="Enter your full name"
+                        />
                     </div>
 
-                    {/* Professional Information */}
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-semibold text-text-primary">Professional Information</h2>
+                    <div>
+                        <label className="block text-sm font-semibold text-white/80 mb-3">Bio</label>
+                        <textarea
+                            value={profile.bio}
+                            onChange={(e) => handleInputChange('bio', e.target.value)}
+                            rows={4}
+                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 resize-none"
+                            placeholder="Tell us about yourself..."
+                        />
+                    </div>
 
-                        {/* Hourly Rate */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-text-primary mb-2">
-                                Hourly Rate ($)
-                            </label>
+                            <label className="block text-sm font-semibold text-white/80 mb-3">Experience (years)</label>
                             <input
                                 type="number"
-                                value={form.hourly_rate}
-                                onChange={(e) => handleInputChange('hourly_rate', e.target.value)}
-                                className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
-                                placeholder="50"
-                                min="0"
-                                disabled={saving}
+                                value={profile.experience_years}
+                                onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
+                                className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                placeholder="0"
                             />
                         </div>
 
-                        {/* Response Time */}
                         <div>
-                            <label className="block text-sm font-medium text-text-primary mb-2">
-                                Response Time
-                            </label>
+                            <label className="block text-sm font-semibold text-white/80 mb-3">Availability</label>
                             <select
-                                value={form.response_time}
-                                onChange={(e) => handleInputChange('response_time', e.target.value)}
-                                className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
-                                disabled={saving}
+                                value={profile.availability}
+                                onChange={(e) => handleInputChange('availability', e.target.value)}
+                                className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                             >
-                                <option value="">Select response time</option>
-                                <option value="1 hour">Within 1 hour</option>
-                                <option value="4 hours">Within 4 hours</option>
-                                <option value="24 hours">Within 24 hours</option>
-                                <option value="48 hours">Within 48 hours</option>
+                                <option value="Available" className="bg-gray-800">Available</option>
+                                <option value="Busy" className="bg-gray-800">Busy</option>
+                                <option value="Away" className="bg-gray-800">Away</option>
                             </select>
                         </div>
                     </div>
-
-                    {/* Stats Display (Read-only) */}
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-semibold text-text-primary">Profile Statistics</h2>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
-                                <div className="text-text-secondary text-sm">Profile Views</div>
-                                <div className="text-text-primary font-semibold text-lg">{form.profile_views}</div>
-                            </div>
-                            <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
-                                <div className="text-text-secondary text-sm">Matches</div>
-                                <div className="text-text-primary font-semibold text-lg">{form.matches}</div>
-                            </div>
-                            <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
-                                <div className="text-text-secondary text-sm">Applications</div>
-                                <div className="text-text-primary font-semibold text-lg">{form.applications}</div>
-                            </div>
-                            <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
-                                <div className="text-text-secondary text-sm">Days Active</div>
-                                <div className="text-text-primary font-semibold text-lg">{form.days_active}</div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
+                </div>
             </div>
 
-            {/* Bottom Action Bar */}
-            <div className="p-6 border-t border-glass-border bg-bg-secondary/80">
-                <div className="grid grid-cols-2 gap-3">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/profile')}
-                        className="btn-secondary hover:scale-105 transition-transform duration-200"
-                        disabled={saving}
-                    >
-                        <i className="fas fa-times mr-2"></i>
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        onClick={handleSubmit}
-                        disabled={saving}
-                        className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white hover:scale-105 transition-transform duration-200 font-semibold rounded-2xl py-4 shadow-lg hover:shadow-xl"
-                    >
-                        <i className={`fas ${saving ? 'fa-spinner fa-spin' : 'fa-save'} mr-2`}></i>
-                        {saving ? 'Saving...' : 'Save Changes'}
-                    </button>
+            {/* Location */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-600 rounded-2xl flex items-center justify-center">
+                        <i className="fas fa-map-marker-alt text-white text-xl"></i>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">Location</h3>
+                </div>
+
+                <div className="space-y-6">
+                    <div>
+                        <label className="block text-sm font-semibold text-white/80 mb-3">Continent</label>
+                        <select
+                            value={selectedContinent}
+                            onChange={(e) => {
+                                setSelectedContinent(e.target.value)
+                                setSelectedCountry('')
+                                setSelectedCity('')
+                            }}
+                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                        >
+                            <option value="" className="bg-gray-800">Select Continent</option>
+                            {continents.map(continent => (
+                                <option key={continent} value={continent} className="bg-gray-800">{continent}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-white/80 mb-3">Country</label>
+                        <input
+                            type="text"
+                            value={selectedCountry}
+                            onChange={(e) => setSelectedCountry(e.target.value)}
+                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                            placeholder="Enter your country"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-white/80 mb-3">City</label>
+                        <input
+                            type="text"
+                            value={selectedCity}
+                            onChange={(e) => setSelectedCity(e.target.value)}
+                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                            placeholder="Enter your city"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Professional Information */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center">
+                        <i className="fas fa-briefcase text-white text-xl"></i>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">Professional Information</h3>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-semibold text-white/80 mb-3">Company</label>
+                            <input
+                                type="text"
+                                value={profile.company}
+                                onChange={(e) => handleInputChange('company', e.target.value)}
+                                className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                placeholder="Your company"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-white/80 mb-3">Job Title</label>
+                            <input
+                                type="text"
+                                value={profile.job_title}
+                                onChange={(e) => handleInputChange('job_title', e.target.value)}
+                                className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                placeholder="Your position"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-white/80 mb-3">Skills</label>
+                        <input
+                            type="text"
+                            value={profile.skills.join(', ')}
+                            onChange={(e) => handleSkillsChange(e.target.value)}
+                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                            placeholder="React, Node.js, Python, etc."
+                        />
+                        <p className="text-xs text-white/50 mt-2">Separate skills with commas</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Links & Contact */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl flex items-center justify-center">
+                        <i className="fas fa-link text-white text-xl"></i>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">Links & Contact</h3>
+                </div>
+
+                <div className="space-y-6">
+                    <div>
+                        <label className="block text-sm font-semibold text-white/80 mb-3">Website</label>
+                        <input
+                            type="url"
+                            value={profile.website}
+                            onChange={(e) => handleInputChange('website', e.target.value)}
+                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                            placeholder="https://yourwebsite.com"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-semibold text-white/80 mb-3">LinkedIn</label>
+                            <input
+                                type="url"
+                                value={profile.linkedin_url}
+                                onChange={(e) => handleInputChange('linkedin_url', e.target.value)}
+                                className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                placeholder="https://linkedin.com/in/username"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-white/80 mb-3">GitHub</label>
+                            <input
+                                type="url"
+                                value={profile.github_url}
+                                onChange={(e) => handleInputChange('github_url', e.target.value)}
+                                className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                placeholder="https://github.com/username"
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     )
 }
 
-export default ProfileEditPage
+// Portfolio Tab Component (renamed from StartupsTab)
+const PortfolioTab = ({ startups, setStartups, userId, navigate }) => {
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [startupToDelete, setStartupToDelete] = useState(null)
 
+    const deleteStartup = async (startupId) => {
+        try {
+            console.log('Deleting startup with ID:', startupId)
 
+            // First, check if the startup exists and belongs to the user
+            const { data: existingStartup, error: fetchError } = await supabase
+                .from('startups')
+                .select('id, name, owner_id')
+                .eq('id', startupId)
+                .eq('owner_id', userId)
+                .single()
+
+            if (fetchError) {
+                console.error('Error fetching startup:', fetchError)
+                throw new Error('Startup not found or access denied')
+            }
+
+            if (!existingStartup) {
+                throw new Error('Startup not found')
+            }
+
+            console.log('Found startup to delete:', existingStartup)
+
+            // Delete the startup
+            const { error: deleteError } = await supabase
+                .from('startups')
+                .delete()
+                .eq('id', startupId)
+                .eq('owner_id', userId) // Extra security check
+
+            if (deleteError) {
+                console.error('Error deleting startup:', deleteError)
+                throw deleteError
+            }
+
+            console.log('Startup deleted successfully')
+
+            // Update local state
+            setStartups(prev => prev.filter(startup => startup.id !== startupId))
+            setShowDeleteModal(false)
+            setStartupToDelete(null)
+
+            // Show success message
+            alert('Startup deleted successfully!')
+
+        } catch (error) {
+            console.error('Error deleting startup:', error)
+            alert(`Error deleting startup: ${error.message || 'Unknown error'}`)
+        }
+    }
+
+    const handleDeleteClick = (startup) => {
+        setStartupToDelete(startup)
+        setShowDeleteModal(true)
+    }
+
+    return (
+        <div className="space-y-8">
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
+                        <i className="fas fa-briefcase text-white text-xl"></i>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">Portfolio</h3>
+                </div>
+
+                {startups.length === 0 ? (
+                    <div className="text-center py-16">
+                        <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                            <i className="fas fa-rocket text-white text-3xl"></i>
+                        </div>
+                        <h4 className="text-2xl font-bold text-white mb-4">No Startups Yet</h4>
+                        <p className="text-white/60 mb-8 text-lg">Create your first startup to showcase your entrepreneurial journey</p>
+                        <button
+                            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300"
+                            onClick={() => navigate('/add')}
+                        >
+                            <i className="fas fa-plus mr-2"></i>Create Your First Startup
+                        </button>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 gap-6">
+                        {startups.map((startup) => (
+                            <div key={startup.id} className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                        <h4 className="text-xl font-bold text-white mb-2">{startup.name}</h4>
+                                        <p className="text-white/70 mb-4">{startup.description}</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {startup.category && (
+                                                <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-medium">
+                                                    {startup.category}
+                                                </span>
+                                            )}
+                                            {startup.stage && (
+                                                <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm font-medium">
+                                                    {startup.stage}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex space-x-3 ml-6">
+                                        <button
+                                            className="text-blue-400 hover:text-blue-300 p-2 hover:bg-blue-500/20 rounded-xl transition-all duration-300"
+                                            onClick={() => navigate(`/startup/${startup.id}`)}
+                                        >
+                                            <i className="fas fa-eye text-lg"></i>
+                                        </button>
+                                        <button
+                                            className="text-red-400 hover:text-red-300 p-2 hover:bg-red-500/20 rounded-xl transition-all duration-300"
+                                            onClick={() => handleDeleteClick(startup)}
+                                        >
+                                            <i className="fas fa-trash text-lg"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && startupToDelete && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 max-w-md mx-4">
+                        <div className="text-center">
+                            <div className="w-20 h-20 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i className="fas fa-exclamation-triangle text-white text-3xl"></i>
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-4">Delete Startup</h3>
+                            <p className="text-white/70 mb-6">
+                                Are you sure you want to delete <span className="font-semibold text-white">{startupToDelete.name}</span>?
+                                This action cannot be undone.
+                            </p>
+                            <div className="flex space-x-4">
+                                <button
+                                    onClick={() => {
+                                        setShowDeleteModal(false)
+                                        setStartupToDelete(null)
+                                    }}
+                                    className="flex-1 bg-white/10 border border-white/20 text-white px-6 py-3 rounded-2xl font-semibold hover:bg-white/20 transition-all duration-300"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => deleteStartup(startupToDelete.id)}
+                                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg hover:shadow-red-500/25 transition-all duration-300"
+                                >
+                                    Confirm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
+// Achievements Tab Component
+const AchievementsTab = ({ achievements, setAchievements, userId }) => {
+    const deleteAchievement = async (achievementId) => {
+        try {
+            const { error } = await supabase
+                .from('achievements')
+                .delete()
+                .eq('id', achievementId)
+
+            if (error) throw error
+
+            // Update local state
+            setAchievements(prev => prev.filter(ach => ach.id !== achievementId))
+        } catch (error) {
+            console.error('Error deleting achievement:', error)
+            alert('Error deleting achievement')
+        }
+    }
+
+    return (
+        <div className="space-y-8">
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center">
+                        <i className="fas fa-trophy text-white text-xl"></i>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">Achievements</h3>
+                </div>
+
+                {achievements.length === 0 ? (
+                    <div className="text-center py-16">
+                        <div className="w-24 h-24 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                            <i className="fas fa-trophy text-white text-3xl"></i>
+                        </div>
+                        <h4 className="text-2xl font-bold text-white mb-4">No Achievements Yet</h4>
+                        <p className="text-white/60 mb-8 text-lg">Start building your profile to unlock achievements and badges</p>
+                        <button className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:shadow-lg hover:shadow-yellow-500/25 transition-all duration-300">
+                            <i className="fas fa-plus mr-2"></i>Add Your First Achievement
+                        </button>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 gap-6">
+                        {achievements.map((achievement, index) => (
+                            <div key={index} className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center">
+                                        <i className="fas fa-trophy text-white text-2xl"></i>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-xl font-bold text-white mb-2">{achievement.title}</h4>
+                                        <p className="text-white/70 mb-3">{achievement.description}</p>
+                                        <div className="flex items-center gap-4 text-sm">
+                                            <span className="text-yellow-400 font-semibold">
+                                                <i className="fas fa-calendar mr-1"></i>
+                                                {new Date(achievement.date_earned).toLocaleDateString()}
+                                            </span>
+                                            {achievement.issuer && (
+                                                <span className="text-white/60">
+                                                    <i className="fas fa-building mr-1"></i>
+                                                    {achievement.issuer}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <button
+                                            className="text-red-400 hover:text-red-300 p-2 hover:bg-red-500/20 rounded-xl transition-all duration-300"
+                                            onClick={() => deleteAchievement(achievement.id)}
+                                        >
+                                            <i className="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
+export default ProfileEditPageModern
