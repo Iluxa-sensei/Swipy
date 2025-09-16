@@ -536,7 +536,7 @@ const HomePageFixed = () => {
                                     </div>
 
                                     {/* Investment Required */}
-                                    {currentStartup.investmentRequired && (
+                                    {currentStartup.investment_required && (
                                         <div className="bg-black/30 border border-white/20 rounded-xl p-4">
                                             <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
                                                 <i
@@ -554,7 +554,7 @@ const HomePageFixed = () => {
                                                         border: `1px solid ${getGradientColor(currentStartup.gradient)}30`
                                                     }}
                                                 >
-                                                    ${currentStartup.investmentRequired}
+                                                    ${currentStartup.investment_required}
                                                 </div>
                                                 {currentStartup.investment_percentage && (
                                                     <div className="text-sm text-white/80">

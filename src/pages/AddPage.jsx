@@ -581,7 +581,7 @@ const AddPage = () => {
                   team_size: formData.startup.teamSize,
                   location: formData.startup.location,
                   gradient: formData.startup.gradient,
-                  investmentRequired: formData.startup.investmentRequired,
+                  investment_required: formData.startup.investmentRequired,
                   investment_percentage: formData.startup.investmentPercentage ? parseFloat(formData.startup.investmentPercentage) : null,
                   ebitda: formData.startup.ebitda ? parseFloat(formData.startup.ebitda) : null
                 }
