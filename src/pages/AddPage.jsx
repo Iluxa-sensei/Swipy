@@ -12,6 +12,8 @@ const AddPage = () => {
   const [customCategory, setCustomCategory] = useState('')
   const [showCustomCategory, setShowCustomCategory] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [createdStartup, setCreatedStartup] = useState(null)
   const fileInputRef = useRef(null)
 
 
@@ -35,6 +37,8 @@ const AddPage = () => {
       locationCity: '', // Add city
       website: '',
       investmentRequired: '', // Replace positions with investmentRequired
+      investmentPercentage: '', // percentage of company
+      ebitda: '', // EBITDA in USD/month
       image: null,
       logo: '',
       gradient: 'bg-gradient-primary'
@@ -483,20 +487,62 @@ const AddPage = () => {
             </div>
           </div>
 
+          {/* Investment Required Section */}
           <div className="form-group">
-            <label className="block text-text-primary font-medium mb-2">Investment Required</label>
+            <label className="block text-text-primary font-medium mb-4">Investment Required</label>
+            <div className="space-y-4">
+              <div className="relative">
+                <input
+                  type="number"
+                  className="w-full p-4 pr-12 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300 hover:border-accent-primary/70"
+                  placeholder="Enter investment amount"
+                  value={formData.startup.investmentRequired || ''}
+                  onChange={(e) => handleInputChange('startup', 'investmentRequired', e.target.value)}
+                  min="0"
+                  step="1000"
+                />
+                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                  <span className="text-text-secondary font-semibold">$</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="text-text-secondary font-medium">for</span>
+                <div className="relative flex-1">
+                  <input
+                    type="number"
+                    className="w-full p-4 pr-12 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300 hover:border-accent-primary/70"
+                    placeholder="10"
+                    value={formData.startup.investmentPercentage || ''}
+                    onChange={(e) => handleInputChange('startup', 'investmentPercentage', e.target.value)}
+                    min="0"
+                    max="100"
+                    step="0.1"
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                    <span className="text-text-secondary font-semibold">%</span>
+                  </div>
+                </div>
+                <span className="text-text-secondary font-medium">of company</span>
+              </div>
+            </div>
+          </div>
+
+          {/* EBITDA Section */}
+          <div className="form-group">
+            <label className="block text-text-primary font-medium mb-2">EBITDA (USD/month)</label>
             <div className="relative">
               <input
                 type="number"
                 className="w-full p-4 pr-12 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300 hover:border-accent-primary/70"
-                placeholder="Enter investment amount"
-                value={formData.startup.investmentRequired || ''}
-                onChange={(e) => handleInputChange('startup', 'investmentRequired', e.target.value)}
+                placeholder="Enter monthly EBITDA"
+                value={formData.startup.ebitda || ''}
+                onChange={(e) => handleInputChange('startup', 'ebitda', e.target.value)}
                 min="0"
-                step="1000"
+                step="100"
               />
               <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                <span className="text-text-secondary font-semibold">$</span>
+                <span className="text-text-secondary font-semibold">$/mo</span>
               </div>
             </div>
           </div>
@@ -533,7 +579,11 @@ const AddPage = () => {
                   stage: formData.startup.stage,
                   funding_round: formData.startup.fundingAmount,
                   team_size: formData.startup.teamSize,
-                  location: formData.startup.location
+                  location: formData.startup.location,
+                  gradient: formData.startup.gradient,
+                  investmentRequired: formData.startup.investmentRequired,
+                  investment_percentage: formData.startup.investmentPercentage ? parseFloat(formData.startup.investmentPercentage) : null,
+                  ebitda: formData.startup.ebitda ? parseFloat(formData.startup.ebitda) : null
                 }
 
                 // Save startup to Supabase
@@ -543,8 +593,9 @@ const AddPage = () => {
                   throw new Error(error.message)
                 }
 
-                alert('Startup created successfully!')
-                navigate('/home')
+                // Show success modal
+                setCreatedStartup(data)
+                setShowSuccessModal(true)
               } catch (error) {
                 console.error('Error creating startup:', error)
                 alert(`Failed to create startup: ${error.message}`)
@@ -740,6 +791,36 @@ const AddPage = () => {
                             ></i>
                             Investment Required
                           </h4>
+                          <div className="text-center space-y-2">
+                            <div
+                              className="px-4 py-2 rounded-lg text-lg font-bold"
+                              style={{
+                                backgroundColor: `${getGradientColor(formData.startup.gradient)}20`,
+                                color: getGradientColor(formData.startup.gradient),
+                                border: `1px solid ${getGradientColor(formData.startup.gradient)}30`
+                              }}
+                            >
+                              ${formData.startup.investmentRequired}
+                            </div>
+                            {formData.startup.investmentPercentage && (
+                              <div className="text-sm text-white/80">
+                                for {formData.startup.investmentPercentage}% of company
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* EBITDA */}
+                      {formData.startup.ebitda && (
+                        <div className="bg-black/30 border border-white/20 rounded-xl p-4">
+                          <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
+                            <i
+                              className="fas fa-chart-line"
+                              style={{ color: getGradientColor(formData.startup.gradient) }}
+                            ></i>
+                            EBITDA
+                          </h4>
                           <div className="text-center">
                             <span
                               className="px-4 py-2 rounded-lg text-lg font-bold"
@@ -749,7 +830,7 @@ const AddPage = () => {
                                 border: `1px solid ${getGradientColor(formData.startup.gradient)}30`
                               }}
                             >
-                              ${formData.startup.investmentRequired}
+                              ${formData.startup.ebitda}/month
                             </span>
                           </div>
                         </div>
@@ -758,6 +839,62 @@ const AddPage = () => {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowSuccessModal(false)}>
+          <div className="w-full max-w-md bg-bg-secondary rounded-3xl p-8 shadow-2xl animate-scale-up" onClick={(e) => e.stopPropagation()}>
+            {/* Success Icon */}
+            <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+              <i className="fas fa-check text-3xl text-white"></i>
+            </div>
+
+            {/* Success Message */}
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-text-primary mb-3">Startup Created Successfully!</h2>
+              <p className="text-text-secondary leading-relaxed">
+                Your startup <span className="font-semibold text-accent-primary">{createdStartup?.name}</span> has been created and is now live on the platform.
+              </p>
+            </div>
+
+            {/* Startup Preview */}
+            {createdStartup && (
+              <div className="bg-glass-bg border border-glass-border rounded-2xl p-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 ${createdStartup.gradient || 'bg-gradient-primary'} rounded-xl flex items-center justify-center`}>
+                    <span className="text-white font-bold text-lg">
+                      {createdStartup.name?.substring(0, 2)?.toUpperCase() || 'ST'}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-text-primary">{createdStartup.name}</h3>
+                    <p className="text-sm text-text-secondary">{createdStartup.industry}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                className="flex-1 py-3 px-4 bg-glass-bg border border-glass-border text-text-primary rounded-xl font-medium hover:bg-glass-border transition-all duration-200"
+                onClick={() => setShowSuccessModal(false)}
+              >
+                Stay Here
+              </button>
+              <button
+                className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl font-medium hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                onClick={() => {
+                  setShowSuccessModal(false)
+                  navigate('/home')
+                }}
+              >
+                View on Home
+              </button>
             </div>
           </div>
         </div>

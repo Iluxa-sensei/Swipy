@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth, useProfile } from '../hooks'
 import { supabase } from '../services/supabaseClient'
 
-const ProfileEditPageModern = () => {
+const ProfileEditPage = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
     const { profile: existingProfile } = useProfile(user?.id)
@@ -877,4 +877,4 @@ const AchievementsTab = ({ achievements, setAchievements, userId }) => {
     )
 }
 
-export default ProfileEditPageModern
+export default ProfileEditPage

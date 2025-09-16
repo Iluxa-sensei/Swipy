@@ -15,14 +15,11 @@ export const chatService = {
         }
     },
 
-    // Create or get chat for a specific startup
-    async getOrCreateStartupChat(startupId, userId) {
+    // Create or get chat for a specific startup (server figures out participants)
+    async getOrCreateStartupChat(startupId) {
         try {
             const { data, error } = await supabase
-                .rpc('get_or_create_startup_chat', {
-                    p_startup_id: startupId,
-                    p_user_id: userId
-                })
+                .rpc('start_or_get_chat', { p_startup_id: startupId })
 
             if (error) throw error
             return data

@@ -42,7 +42,7 @@ const StartupDetailPage = () => {
         try {
             setIsLoading(true)
             // Create or get existing chat for this startup
-            const chatId = await chatService.getOrCreateStartupChat(startup.id, user.id)
+            const chatId = await chatService.getOrCreateStartupChat(startup.id)
             navigate(`/chat-detail/${chatId}`)
         } catch (error) {
             console.error('Error opening chat:', error)

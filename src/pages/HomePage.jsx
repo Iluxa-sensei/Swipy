@@ -250,8 +250,8 @@ const HomePageFixed = () => {
     // Get current startup
     const currentStartup = displayStartups[currentCardIndex]
 
-  return (
-    <div className="screen active">
+    return (
+        <div className="screen active">
 
             <div className="header">
                 <button className="header-btn" onClick={() => navigate('/filters')}>
@@ -534,6 +534,61 @@ const HomePageFixed = () => {
                                             <div className="text-text-secondary text-xs mt-1">Team Size</div>
                                         </div>
                                     </div>
+
+                                    {/* Investment Required */}
+                                    {currentStartup.investmentRequired && (
+                                        <div className="bg-black/30 border border-white/20 rounded-xl p-4">
+                                            <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
+                                                <i
+                                                    className="fas fa-dollar-sign"
+                                                    style={{ color: getGradientColor(currentStartup.gradient) }}
+                                                ></i>
+                                                Investment Required
+                                            </h4>
+                                            <div className="text-center space-y-2">
+                                                <div
+                                                    className="px-4 py-2 rounded-lg text-lg font-bold"
+                                                    style={{
+                                                        backgroundColor: `${getGradientColor(currentStartup.gradient)}20`,
+                                                        color: getGradientColor(currentStartup.gradient),
+                                                        border: `1px solid ${getGradientColor(currentStartup.gradient)}30`
+                                                    }}
+                                                >
+                                                    ${currentStartup.investmentRequired}
+                                                </div>
+                                                {currentStartup.investment_percentage && (
+                                                    <div className="text-sm text-white/80">
+                                                        for {currentStartup.investment_percentage}% of company
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* EBITDA */}
+                                    {currentStartup.ebitda && (
+                                        <div className="bg-black/30 border border-white/20 rounded-xl p-4">
+                                            <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
+                                                <i
+                                                    className="fas fa-chart-line"
+                                                    style={{ color: getGradientColor(currentStartup.gradient) }}
+                                                ></i>
+                                                EBITDA
+                                            </h4>
+                                            <div className="text-center">
+                                                <span
+                                                    className="px-4 py-2 rounded-lg text-lg font-bold"
+                                                    style={{
+                                                        backgroundColor: `${getGradientColor(currentStartup.gradient)}20`,
+                                                        color: getGradientColor(currentStartup.gradient),
+                                                        border: `1px solid ${getGradientColor(currentStartup.gradient)}30`
+                                                    }}
+                                                >
+                                                    ${currentStartup.ebitda}/month
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Location & Contact */}
                                     {(currentStartup.location || currentStartup.website) && (

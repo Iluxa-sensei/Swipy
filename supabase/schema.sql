@@ -21,6 +21,7 @@ create table if not exists public.profiles (
 create table if not exists public.startups (
   id uuid primary key default uuid_generate_v4(),
   owner_id uuid not null references auth.users(id) on delete cascade,
+  slug text,
   name text not null,
   description text,
   website text,
@@ -36,10 +37,72 @@ create table if not exists public.startups (
   location text,
   gradient text default 'bg-gradient-to-br from-blue-300 to-blue-700',
   investmentRequired text,
+  investment_percentage numeric(5,2), -- percentage of company (e.g., 10.50 for 10.5%)
+  ebitda numeric(12,2), -- EBITDA in USD/month
   image text,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
+
+-- If table already existed previously, ensure the slug column exists
+alter table public.startups add column if not exists slug text;
+alter table public.startups add column if not exists investment_percentage numeric(5,2);
+alter table public.startups add column if not exists ebitda numeric(12,2);
+
+-- Ensure unique slug per owner (avoids chat URL collisions)
+create unique index if not exists startups_owner_slug_unique
+  on public.startups(owner_id, coalesce(nullif(slug,''), name));
+
+-- Utility: slugify text
+create or replace function public.slugify(input text)
+returns text as $$
+declare
+  s text := lower(coalesce(input, ''));
+begin
+  -- replace non-alphanumeric with hyphens and trim
+  s := regexp_replace(s, '[^a-z0-9]+', '-', 'g');
+  s := trim(both '-' from s);
+  if s = '' then
+    s := 'startup';
+  end if;
+  return s;
+end;
+$$ language plpgsql immutable;
+
+-- Before insert/update: ensure slug is populated and unique per owner
+create or replace function public.ensure_startup_slug()
+returns trigger as $$
+declare
+  base_slug text;
+  candidate text;
+  suffix int := 0;
+begin
+  if new.slug is null or new.slug = '' then
+    base_slug := public.slugify(new.name);
+  else
+    base_slug := public.slugify(new.slug);
+  end if;
+
+  candidate := base_slug;
+  while exists (
+    select 1 from public.startups s
+    where s.owner_id = coalesce(new.owner_id, old.owner_id)
+      and coalesce(s.slug, s.name) = candidate
+      and s.id <> coalesce(new.id, old.id)
+  ) loop
+    suffix := suffix + 1;
+    candidate := base_slug || '-' || suffix::text;
+  end loop;
+
+  new.slug := candidate;
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists startups_ensure_slug on public.startups;
+create trigger startups_ensure_slug
+  before insert or update of name, slug on public.startups
+  for each row execute procedure public.ensure_startup_slug();
 
 -- Likes (user likes startup)
 create table if not exists public.likes (
@@ -62,6 +125,8 @@ create table if not exists public.passes (
 -- Chats
 create table if not exists public.chats (
   id uuid primary key default uuid_generate_v4(),
+  context_startup_id uuid references public.startups(id) on delete set null,
+  created_by uuid references auth.users(id) on delete set null,
   created_at timestamp with time zone default now()
 );
 
@@ -117,6 +182,10 @@ create policy "Users can upsert their own profile" on public.profiles
 create policy "Users can update their own profile" on public.profiles
   for update using (auth.uid() = id);
 
+-- Allow reading other profiles when authenticated (for chat and list views)
+create policy "Profiles are viewable by authenticated users" on public.profiles
+  for select using (auth.role() = 'authenticated');
+
 -- Policies: startups
 DROP POLICY IF EXISTS "Startups are readable by authenticated" ON public.startups;
 DROP POLICY IF EXISTS "Owners can insert startups" ON public.startups;
@@ -150,6 +219,26 @@ create policy "Users can view their chats" on public.chats
     exists (
       select 1 from public.chat_participants cp
       where cp.chat_id = id and cp.user_id = auth.uid()
+    )
+  );
+
+-- Allow users to create chats they are part of
+DROP POLICY IF EXISTS "Users can create chats" ON public.chats;
+create policy "Users can create chats" on public.chats
+  for insert with check (
+    created_by = auth.uid()
+  );
+
+-- Allow users to insert themselves into chat participants for chats they created or belong to
+DROP POLICY IF EXISTS "Users can join their chats" ON public.chat_participants;
+create policy "Users can join their chats" on public.chat_participants
+  for insert with check (
+    user_id = auth.uid() and exists (
+      select 1 from public.chats c where c.id = chat_id and (
+        c.created_by = auth.uid() or exists (
+          select 1 from public.chat_participants cp where cp.chat_id = chat_id and cp.user_id = auth.uid()
+        )
+      )
     )
   );
 
@@ -214,6 +303,16 @@ DROP TRIGGER IF EXISTS profiles_set_updated_at ON public.profiles;
 create trigger profiles_set_updated_at
   before update on public.profiles
   for each row execute procedure public.set_updated_at();
+
+-- Clean up any legacy triggers that reference NEW.user_id on startups
+do $$ begin
+  if exists (select 1 from pg_trigger t join pg_proc p on p.oid = t.tgfoid where t.tgrelid = 'public.startups'::regclass and p.proname ilike '%user%') then
+    -- Attempt to drop broadly named triggers safely
+    execute 'drop trigger if exists update_profile_completion_on_startups on public.startups';
+  end if;
+exception when others then
+  -- ignore
+end $$;
 
 -- Function to create profile on user signup
 create or replace function public.handle_new_user()
@@ -288,5 +387,57 @@ DROP TRIGGER IF EXISTS on_mutual_match ON public.likes;
 create trigger on_mutual_match
   after insert on public.likes
   for each row execute procedure public.handle_mutual_match();
+
+
+-- Helper to start or get a chat bound to a startup context
+create or replace function public.start_or_get_chat(p_startup_id uuid)
+returns uuid as $$
+declare
+  v_initiator uuid := auth.uid();
+  v_owner uuid;
+  v_chat_id uuid;
+begin
+  if v_initiator is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  select owner_id into v_owner from public.startups where id = p_startup_id;
+  if v_owner is null then
+    raise exception 'Startup not found';
+  end if;
+
+  -- Find existing chat between initiator and owner for this startup
+  select c.id into v_chat_id
+  from public.chats c
+  where c.context_startup_id = p_startup_id
+    and exists (
+      select 1 from public.chat_participants cp1
+      where cp1.chat_id = c.id and cp1.user_id = v_initiator
+    )
+    and exists (
+      select 1 from public.chat_participants cp2
+      where cp2.chat_id = c.id and cp2.user_id = v_owner
+    )
+  limit 1;
+
+  if v_chat_id is null then
+    insert into public.chats (context_startup_id, created_by)
+    values (p_startup_id, v_initiator)
+    returning id into v_chat_id;
+
+    insert into public.chat_participants (chat_id, user_id)
+    values (v_chat_id, v_initiator)
+    on conflict do nothing;
+
+    insert into public.chat_participants (chat_id, user_id)
+    values (v_chat_id, v_owner)
+    on conflict do nothing;
+  end if;
+
+  return v_chat_id;
+end;
+$$ language plpgsql security definer;
+
+grant execute on function public.start_or_get_chat(uuid) to authenticated;
 
 
