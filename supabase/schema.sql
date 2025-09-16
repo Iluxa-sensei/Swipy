@@ -46,6 +46,7 @@ create table if not exists public.startups (
 
 -- If table already existed previously, ensure the slug column exists
 alter table public.startups add column if not exists slug text;
+alter table public.startups add column if not exists investmentRequired text;
 alter table public.startups add column if not exists investment_percentage numeric(5,2);
 alter table public.startups add column if not exists ebitda numeric(12,2);
 
