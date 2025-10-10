@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth, useProfile } from '../hooks'
+import { useAuth } from '../providers/AuthProvider'
+import { profileService } from '../services/profileService'
 import { supabase } from '../services/supabaseClient'
 
 const ProfileEditPage = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
-    const { profile: existingProfile } = useProfile(user?.id)
     const [activeTab, setActiveTab] = useState('profile')
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
     const [showSuccessModal, setShowSuccessModal] = useState(false)
     const [avatarFile, setAvatarFile] = useState(null)
     const [avatarPreview, setAvatarPreview] = useState(null)
+    const [existingProfile, setExistingProfile] = useState(null)
 
     // Profile data with existing values
     const [profile, setProfile] = useState({
@@ -303,6 +304,11 @@ const ProfileEditPage = () => {
                         continents={continents}
                         countries={countries}
                         cities={cities}
+                        avatarPreview={avatarPreview}
+                        avatarFile={avatarFile}
+                        handleAvatarUpload={handleAvatarUpload}
+                        setAvatarFile={setAvatarFile}
+                        setAvatarPreview={setAvatarPreview}
                     />
                 )}
                 {activeTab === 'portfolio' && (
@@ -356,7 +362,12 @@ const ProfileTab = ({
     setSelectedCity,
     continents,
     countries,
-    cities
+    cities,
+    avatarPreview,
+    avatarFile,
+    handleAvatarUpload,
+    setAvatarFile,
+    setAvatarPreview
 }) => {
     const handleInputChange = (field, value) => {
         setProfile(prev => ({ ...prev, [field]: value }))
