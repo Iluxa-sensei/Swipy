@@ -1,12 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useStartups, useSwipes, useAuth } from '../hooks'
+import { useStartupsLazy, useSwipes, useAuth } from '../hooks'
 import OnboardingTutorial from '../components/OnboardingTutorial'
 import { sampleStartups } from '../data/startups.js'
 
 const HomePageFixed = () => {
     const { user } = useAuth()
-    const { startups, loading: startupsLoading, error: startupsError } = useStartups()
+    const {
+        startups,
+        loading: startupsLoading,
+        loadingMore,
+        error: startupsError,
+        hasMore,
+        loadMore,
+        refetch: refetchStartups,
+        removeStartupFromList
+    } = useStartupsLazy()
     const { likeStartup, passStartup, loading: swipesLoading } = useSwipes(user?.id)
 
     // State management
@@ -24,6 +33,9 @@ const HomePageFixed = () => {
 
     // Use real data from Supabase, fallback to sample data
     const displayStartups = startups && startups.length > 0 ? startups : sampleStartups
+
+    // Get current startup
+    const currentStartup = displayStartups[currentCardIndex]
 
     // Debug logging
     console.log('=== HomePageFixed Debug ===')
@@ -53,6 +65,22 @@ const HomePageFixed = () => {
         setIsFlipped(false)
         resetCardStyles()
     }, [currentCardIndex])
+
+    // Preload logic: load more startups when we're close to the end
+    useEffect(() => {
+        const displayStartups = startups && startups.length > 0 ? startups : sampleStartups
+        // If we have less than 2 startups remaining and there are more to load, preload them
+        if (currentCardIndex >= displayStartups.length - 2 && hasMore && !loadingMore && !startupsLoading) {
+            console.log('Preloading more startups...', {
+                currentCardIndex,
+                displayStartupsLength: displayStartups.length,
+                hasMore,
+                loadingMore,
+                startupsLoading
+            })
+            loadMore()
+        }
+    }, [currentCardIndex, startups, hasMore, loadingMore, loadMore, startupsLoading])
 
     // Function to extract main color from gradient
     const getGradientColor = (gradientClass) => {
@@ -94,7 +122,12 @@ const HomePageFixed = () => {
         setTimeout(async () => {
             try {
                 if (user?.id && currentStartup?.id) {
+                    console.log('Liking startup:', currentStartup.id, currentStartup.name)
                     await likeStartup(currentStartup.id)
+                    console.log('Liked startup successfully, removing from list')
+                    // Remove the startup from current list to prevent duplicates
+                    removeStartupFromList(currentStartup.id)
+                    console.log('Removed startup from list')
                 }
             } catch (error) {
                 console.error('Error liking startup:', error)
@@ -119,7 +152,12 @@ const HomePageFixed = () => {
         setTimeout(async () => {
             try {
                 if (user?.id && currentStartup?.id) {
+                    console.log('Passing startup:', currentStartup.id, currentStartup.name)
                     await passStartup(currentStartup.id)
+                    console.log('Passed startup successfully, removing from list')
+                    // Remove the startup from current list to prevent duplicates
+                    removeStartupFromList(currentStartup.id)
+                    console.log('Removed startup from list')
                 }
             } catch (error) {
                 console.error('Error passing startup:', error)
@@ -215,6 +253,38 @@ const HomePageFixed = () => {
 
     // If reached end of startups list
     if (currentCardIndex >= displayStartups.length) {
+        // Show loading if we're still loading more startups
+        if (loadingMore) {
+            return (
+                <div className="screen active">
+                    <div className="header">
+                        <button className="header-btn" onClick={() => navigate('/filters')}>
+                            <i className="fas fa-filter"></i>
+                        </button>
+                        <h1 className="text-3xl font-bold animate-super-gradient">Swipy</h1>
+                        <button className="header-btn" onClick={() => navigate('/saved')}>
+                            <i className="fas fa-bookmark"></i>
+                        </button>
+                    </div>
+
+                    <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
+                                <i className="fas fa-spinner fa-spin text-3xl text-white"></i>
+                            </div>
+                            <h2 className="text-2xl font-bold text-text-primary mb-4">Loading More Startups</h2>
+                            <p className="text-text-secondary">Finding more opportunities for you...</p>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+
+        // Try to load more if available
+        if (hasMore && !loadingMore) {
+            loadMore()
+        }
+
         return (
             <div className="screen active">
                 <div className="header">
@@ -232,23 +302,39 @@ const HomePageFixed = () => {
                         <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-float animate-glow">
                             <i className="fas fa-heart text-3xl text-white"></i>
                         </div>
-                        <h2 className="text-2xl font-bold text-text-primary mb-4">No More Startups</h2>
-                        <p className="text-text-secondary mb-6">You've seen all available startups. Check back later for new opportunities!</p>
-                        <button
-                            className="btn-primary hover:scale-105 transition-transform duration-200"
-                            onClick={() => setCurrentCardIndex(0)}
-                        >
-                            <i className="fas fa-refresh"></i>
-                            Refresh
-                        </button>
+                        <h2 className="text-2xl font-bold text-text-primary mb-4">
+                            {hasMore ? 'Loading More...' : 'No More Startups'}
+                        </h2>
+                        <p className="text-text-secondary mb-6">
+                            {hasMore
+                                ? 'Loading more startup opportunities for you...'
+                                : 'You\'ve seen all available startups. Check back later for new opportunities!'
+                            }
+                        </p>
+                        {hasMore && (
+                            <button
+                                className="btn-primary hover:scale-105 transition-transform duration-200"
+                                onClick={loadMore}
+                                disabled={loadingMore}
+                            >
+                                <i className={`fas ${loadingMore ? 'fa-spinner fa-spin' : 'fa-refresh'}`}></i>
+                                {loadingMore ? 'Loading...' : 'Load More'}
+                            </button>
+                        )}
+                        {!hasMore && (
+                            <button
+                                className="btn-primary hover:scale-105 transition-transform duration-200"
+                                onClick={() => setCurrentCardIndex(0)}
+                            >
+                                <i className="fas fa-refresh"></i>
+                                Refresh
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
         )
     }
-
-    // Get current startup
-    const currentStartup = displayStartups[currentCardIndex]
 
     return (
         <div className="screen active">

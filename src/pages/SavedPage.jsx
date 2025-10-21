@@ -1,20 +1,71 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSwipes, useAuth } from '../hooks'
 
 const SavedPage = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
-    const { likes, passes, removeSwipe, loading, error } = useSwipes(user?.id)
+    const { likes, passes, removeSwipe, loading, error, refetch } = useSwipes(user?.id)
     const [activeTab, setActiveTab] = useState('liked')
 
     const liked = useMemo(() => {
-        return likes.map(like => like.startups).filter(Boolean)
+        if (!likes || !Array.isArray(likes)) return []
+        return likes.map(like => like?.startups).filter(Boolean)
     }, [likes])
 
     const passed = useMemo(() => {
-        return passes.map(pass => pass.startups).filter(Boolean)
+        if (!passes || !Array.isArray(passes)) return []
+        return passes.map(pass => pass?.startups).filter(Boolean)
     }, [passes])
+
+    // Refetch data when component mounts to ensure latest data
+    useEffect(() => {
+        if (user?.id) {
+            refetch()
+        }
+    }, [user?.id, refetch])
+
+    // Show message if no user
+    if (!user?.id) {
+        return (
+            <div className="screen active">
+                <div className="header">
+                    <button className="header-btn" onClick={() => navigate('/home')}>
+                        <i className="fas fa-arrow-left"></i>
+                    </button>
+                    <h1>Saved</h1>
+                </div>
+                <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                        <div className="w-24 h-24 bg-gradient-to-br from-gray-300 to-gray-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                            <i className="fas fa-user-slash text-3xl text-white"></i>
+                        </div>
+                        <h2 className="text-2xl font-bold text-text-primary mb-4">Please Login</h2>
+                        <p className="text-text-secondary mb-8">You need to be logged in to view saved startups.</p>
+                        <button
+                            className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                            onClick={() => navigate('/login')}
+                        >
+                            Go to Login
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    // Debug logging to check data structure
+    console.log('SavedPage Debug:', {
+        user: user?.id,
+        likesCount: likes?.length || 0,
+        passesCount: passes?.length || 0,
+        likedCount: liked?.length || 0,
+        passedCount: passed?.length || 0,
+        loading,
+        error,
+        likes: likes?.slice(0, 2), // Show first 2 for debugging
+        passes: passes?.slice(0, 2) // Show first 2 for debugging
+    })
 
     const list = activeTab === 'liked' ? liked : passed
 
@@ -34,7 +85,7 @@ const SavedPage = () => {
         return (
             <div className="screen active">
                 <div className="header">
-                    <button className="header-btn" onClick={() => navigate('/profile')}>
+                    <button className="header-btn" onClick={() => navigate('/home')}>
                         <i className="fas fa-arrow-left"></i>
                     </button>
                     <h1>Saved</h1>
@@ -61,7 +112,7 @@ const SavedPage = () => {
         return (
             <div className="screen active">
                 <div className="header">
-                    <button className="header-btn" onClick={() => navigate('/profile')}>
+                    <button className="header-btn" onClick={() => navigate('/home')}>
                         <i className="fas fa-arrow-left"></i>
                     </button>
                     <h1>Saved</h1>

@@ -441,4 +441,284 @@
 
   grant execute on function public.start_or_get_chat(uuid) to authenticated;
 
+  -- ============================================
+  -- PERFORMANCE OPTIMIZATIONS FOR STARTUPS
+  -- ============================================
+  
+  -- Indexes for faster filtering and sorting
+  CREATE INDEX IF NOT EXISTS idx_startups_created_at_desc ON public.startups(created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_startups_industry ON public.startups(industry) WHERE industry IS NOT NULL;
+  CREATE INDEX IF NOT EXISTS idx_startups_stage ON public.startups(stage) WHERE stage IS NOT NULL;
+  CREATE INDEX IF NOT EXISTS idx_startups_location ON public.startups(location) WHERE location IS NOT NULL;
+  CREATE INDEX IF NOT EXISTS idx_startups_team_size ON public.startups(team_size) WHERE team_size IS NOT NULL;
+  CREATE INDEX IF NOT EXISTS idx_startups_funding_round ON public.startups(funding_round) WHERE funding_round IS NOT NULL;
+  
+  -- Composite index for common filter combinations
+  CREATE INDEX IF NOT EXISTS idx_startups_filters_composite ON public.startups(industry, stage, location, created_at DESC) 
+    WHERE industry IS NOT NULL AND stage IS NOT NULL AND location IS NOT NULL;
+  
+  -- Index for user swipes to exclude already seen startups
+  CREATE INDEX IF NOT EXISTS idx_likes_user_startup ON public.likes(user_id, startup_id);
+  CREATE INDEX IF NOT EXISTS idx_passes_user_startup ON public.passes(user_id, startup_id);
+  CREATE INDEX IF NOT EXISTS idx_likes_created_at ON public.likes(created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_passes_created_at ON public.passes(created_at DESC);
+
+  -- ============================================
+  -- OPTIMIZED FUNCTION FOR STARTUP PAGINATION
+  -- ============================================
+  
+  -- Function to get startups with exclusions and filters (secure and fast)
+  CREATE OR REPLACE FUNCTION public.get_startups_paginated(
+    p_limit integer DEFAULT 5,
+    p_offset integer DEFAULT 0,
+    p_industry text[] DEFAULT NULL,
+    p_stage text[] DEFAULT NULL,
+    p_location text[] DEFAULT NULL,
+    p_team_size text DEFAULT NULL,
+    p_funding_round text DEFAULT NULL
+  )
+  RETURNS TABLE (
+    id uuid,
+    owner_id uuid,
+    slug text,
+    name text,
+    description text,
+    website text,
+    logo_url text,
+    logo text,
+    industry text,
+    category text,
+    stage text,
+    funding_round text,
+    funding text,
+    team_size text,
+    "teamSize" text,
+    location text,
+    gradient text,
+    investment_required text,
+    investment_percentage numeric(5,2),
+    ebitda numeric(12,2),
+    image text,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone
+  )
+  LANGUAGE plpgsql
+  SECURITY DEFINER
+  AS $$
+  DECLARE
+    v_user_id uuid := auth.uid();
+    v_query text;
+    v_conditions text[] := ARRAY[]::text[];
+  BEGIN
+    -- Security: Only allow authenticated users
+    IF v_user_id IS NULL THEN
+      RAISE EXCEPTION 'Authentication required';
+    END IF;
+
+    -- Build dynamic query conditions for performance
+    v_query := 'SELECT s.* FROM public.startups s WHERE 1=1';
+    
+    -- Add filter conditions
+    IF p_industry IS NOT NULL AND array_length(p_industry, 1) > 0 THEN
+      v_conditions := v_conditions || format('s.industry = ANY(%L)', p_industry);
+    END IF;
+    
+    IF p_stage IS NOT NULL AND array_length(p_stage, 1) > 0 THEN
+      v_conditions := v_conditions || format('s.stage = ANY(%L)', p_stage);
+    END IF;
+    
+    IF p_location IS NOT NULL AND array_length(p_location, 1) > 0 THEN
+      v_conditions := v_conditions || format('s.location = ANY(%L)', p_location);
+    END IF;
+    
+    IF p_team_size IS NOT NULL THEN
+      v_conditions := v_conditions || format('s.team_size = %L', p_team_size);
+    END IF;
+    
+    IF p_funding_round IS NOT NULL THEN
+      v_conditions := v_conditions || format('s.funding_round = %L', p_funding_round);
+    END IF;
+    
+    -- Add conditions to query if any filters were applied
+    IF array_length(v_conditions, 1) > 0 THEN
+      v_query := v_query || ' AND ' || array_to_string(v_conditions, ' AND ');
+    END IF;
+    
+    -- Exclude startups that user has already liked or passed
+    v_query := v_query || format(' AND NOT EXISTS (
+      SELECT 1 FROM public.likes l WHERE l.user_id = %L AND l.startup_id = s.id
+    ) AND NOT EXISTS (
+      SELECT 1 FROM public.passes p WHERE p.user_id = %L AND p.startup_id = s.id
+    )', v_user_id, v_user_id);
+    
+    -- Add ordering and pagination
+    v_query := v_query || format(' ORDER BY s.created_at DESC LIMIT %s OFFSET %s', p_limit, p_offset);
+    
+    -- Execute the query securely
+    RETURN QUERY EXECUTE v_query;
+  END;
+  $$;
+
+  -- Grant execute permission to authenticated users
+  GRANT EXECUTE ON FUNCTION public.get_startups_paginated TO authenticated;
+
+  -- ============================================
+  -- FUNCTION TO GET STARTUP COUNT (for hasMore)
+  -- ============================================
+  
+  CREATE OR REPLACE FUNCTION public.get_startups_count(
+    p_industry text[] DEFAULT NULL,
+    p_stage text[] DEFAULT NULL,
+    p_location text[] DEFAULT NULL,
+    p_team_size text DEFAULT NULL,
+    p_funding_round text DEFAULT NULL
+  )
+  RETURNS integer
+  LANGUAGE plpgsql
+  SECURITY DEFINER
+  AS $$
+  DECLARE
+    v_user_id uuid := auth.uid();
+    v_query text;
+    v_conditions text[] := ARRAY[]::text[];
+    v_count integer;
+  BEGIN
+    -- Security: Only allow authenticated users
+    IF v_user_id IS NULL THEN
+      RETURN 0;
+    END IF;
+
+    -- Build dynamic query conditions
+    v_query := 'SELECT COUNT(*)::integer FROM public.startups s WHERE 1=1';
+    
+    -- Add filter conditions (same logic as get_startups_paginated)
+    IF p_industry IS NOT NULL AND array_length(p_industry, 1) > 0 THEN
+      v_conditions := v_conditions || format('s.industry = ANY(%L)', p_industry);
+    END IF;
+    
+    IF p_stage IS NOT NULL AND array_length(p_stage, 1) > 0 THEN
+      v_conditions := v_conditions || format('s.stage = ANY(%L)', p_stage);
+    END IF;
+    
+    IF p_location IS NOT NULL AND array_length(p_location, 1) > 0 THEN
+      v_conditions := v_conditions || format('s.location = ANY(%L)', p_location);
+    END IF;
+    
+    IF p_team_size IS NOT NULL THEN
+      v_conditions := v_conditions || format('s.team_size = %L', p_team_size);
+    END IF;
+    
+    IF p_funding_round IS NOT NULL THEN
+      v_conditions := v_conditions || format('s.funding_round = %L', p_funding_round);
+    END IF;
+    
+    -- Add conditions to query if any filters were applied
+    IF array_length(v_conditions, 1) > 0 THEN
+      v_query := v_query || ' AND ' || array_to_string(v_conditions, ' AND ');
+    END IF;
+    
+    -- Exclude startups that user has already liked or passed
+    v_query := v_query || format(' AND NOT EXISTS (
+      SELECT 1 FROM public.likes l WHERE l.user_id = %L AND l.startup_id = s.id
+    ) AND NOT EXISTS (
+      SELECT 1 FROM public.passes p WHERE p.user_id = %L AND p.startup_id = s.id
+    )', v_user_id, v_user_id);
+    
+    -- Execute the query securely
+    EXECUTE v_query INTO v_count;
+    
+    RETURN COALESCE(v_count, 0);
+  END;
+  $$;
+
+  GRANT EXECUTE ON FUNCTION public.get_startups_count TO authenticated;
+
+  -- ============================================
+  -- LIGHTWEIGHT FUNCTION FOR STARTUP LISTING
+  -- ============================================
+  
+  -- Function to get only essential fields for faster loading
+  CREATE OR REPLACE FUNCTION public.get_startups_lightweight(
+    p_limit integer DEFAULT 5,
+    p_offset integer DEFAULT 0,
+    p_industry text[] DEFAULT NULL,
+    p_stage text[] DEFAULT NULL,
+    p_location text[] DEFAULT NULL,
+    p_team_size text DEFAULT NULL,
+    p_funding_round text DEFAULT NULL
+  )
+  RETURNS TABLE (
+    id uuid,
+    name text,
+    description text,
+    industry text,
+    stage text,
+    funding_round text,
+    team_size text,
+    location text,
+    gradient text,
+    logo text,
+    created_at timestamp with time zone
+  )
+  LANGUAGE plpgsql
+  SECURITY DEFINER
+  AS $$
+  DECLARE
+    v_user_id uuid := auth.uid();
+    v_query text;
+    v_conditions text[] := ARRAY[]::text[];
+  BEGIN
+    -- Security: Only allow authenticated users
+    IF v_user_id IS NULL THEN
+      RAISE EXCEPTION 'Authentication required';
+    END IF;
+
+    -- Build optimized query with only essential fields
+    v_query := 'SELECT s.id, s.name, s.description, s.industry, s.stage, s.funding_round, 
+                       s.team_size, s.location, s.gradient, s.logo, s.created_at 
+                FROM public.startups s WHERE 1=1';
+    
+    -- Add filter conditions (same as main function but for lightweight version)
+    IF p_industry IS NOT NULL AND array_length(p_industry, 1) > 0 THEN
+      v_conditions := v_conditions || format('s.industry = ANY(%L)', p_industry);
+    END IF;
+    
+    IF p_stage IS NOT NULL AND array_length(p_stage, 1) > 0 THEN
+      v_conditions := v_conditions || format('s.stage = ANY(%L)', p_stage);
+    END IF;
+    
+    IF p_location IS NOT NULL AND array_length(p_location, 1) > 0 THEN
+      v_conditions := v_conditions || format('s.location = ANY(%L)', p_location);
+    END IF;
+    
+    IF p_team_size IS NOT NULL THEN
+      v_conditions := v_conditions || format('s.team_size = %L', p_team_size);
+    END IF;
+    
+    IF p_funding_round IS NOT NULL THEN
+      v_conditions := v_conditions || format('s.funding_round = %L', p_funding_round);
+    END IF;
+    
+    -- Add conditions to query if any filters were applied
+    IF array_length(v_conditions, 1) > 0 THEN
+      v_query := v_query || ' AND ' || array_to_string(v_conditions, ' AND ');
+    END IF;
+    
+    -- Exclude startups that user has already liked or passed
+    v_query := v_query || format(' AND NOT EXISTS (
+      SELECT 1 FROM public.likes l WHERE l.user_id = %L AND l.startup_id = s.id
+    ) AND NOT EXISTS (
+      SELECT 1 FROM public.passes p WHERE p.user_id = %L AND p.startup_id = s.id
+    )', v_user_id, v_user_id);
+    
+    -- Add ordering and pagination
+    v_query := v_query || format(' ORDER BY s.created_at DESC LIMIT %s OFFSET %s', p_limit, p_offset);
+    
+    -- Execute the query securely
+    RETURN QUERY EXECUTE v_query;
+  END;
+  $$;
+
+  GRANT EXECUTE ON FUNCTION public.get_startups_lightweight TO authenticated;
+
 

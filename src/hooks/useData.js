@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { startupService, swipeService, chatService, profileService } from '../services/index.js'
 import { useFilters } from '../context/FiltersContext'
 import { sampleStartups } from '../data/startups.js'
 
-// Hook for working with startups
+// Hook for working with startups (legacy - loads all at once)
 export const useStartups = () => {
     const [startups, setStartups] = useState([])
     const [loading, setLoading] = useState(true)
@@ -120,6 +120,147 @@ export const useStartups = () => {
     }
 }
 
+// Hook for lazy loading startups with pagination
+export const useStartupsLazy = () => {
+    const [startups, setStartups] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [loadingMore, setLoadingMore] = useState(false)
+    const [error, setError] = useState(null)
+    const [hasMore, setHasMore] = useState(true)
+    const { filters } = useFilters()
+    const startupsRef = useRef([])
+
+    const PAGE_SIZE = 5 // Load 5 startups at a time for optimal performance - ensures we always have 2+ ready
+
+    // Keep ref in sync with state
+    useEffect(() => {
+        startupsRef.current = startups
+    }, [startups])
+
+    const fetchStartups = useCallback(async (reset = false, currentLength = 0) => {
+        try {
+            if (reset) {
+                console.log('useStartupsLazy: Resetting and fetching initial startups...')
+                setLoading(true)
+                setStartups([])
+                setError(null)
+            } else {
+                console.log('useStartupsLazy: Fetching more startups...')
+                setLoadingMore(true)
+            }
+
+            const offset = reset ? 0 : currentLength
+            console.log('useStartupsLazy: Fetching with offset:', offset, 'limit:', PAGE_SIZE)
+
+            const result = await startupService.getStartupsPaginated(offset, PAGE_SIZE, filters)
+
+            console.log('useStartupsLazy: Received data:', result)
+
+            if (reset) {
+                setStartups(result.data || [])
+            } else {
+                setStartups(prev => {
+                    // Avoid duplicates by checking if startup already exists
+                    const existingIds = new Set(prev.map(s => s.id))
+                    const newStartups = (result.data || []).filter(s => !existingIds.has(s.id))
+                    return [...prev, ...newStartups]
+                })
+            }
+
+            setHasMore((result.data?.length || 0) === PAGE_SIZE)
+        } catch (err) {
+            console.error('useStartupsLazy: Error fetching startups:', err)
+            setError(err.message)
+
+            // Fallback to sample data only on initial load
+            if (reset) {
+                console.log('useStartupsLazy: Falling back to sample data due to error')
+                setStartups(sampleStartups.slice(0, PAGE_SIZE))
+                setHasMore(sampleStartups.length > PAGE_SIZE)
+            }
+        } finally {
+            setLoading(false)
+            setLoadingMore(false)
+        }
+    }, [filters])
+
+    // Load more startups when needed
+    const loadMore = useCallback(() => {
+        if (!loadingMore && !loading && hasMore) {
+            const currentLength = startupsRef.current.length
+            fetchStartups(false, currentLength)
+        }
+    }, [fetchStartups, loadingMore, loading, hasMore])
+
+    // Reset and load from beginning
+    const refetch = useCallback(() => {
+        fetchStartups(true)
+    }, [fetchStartups])
+
+    // Remove a specific startup from the current list (for when it's liked/passed)
+    const removeStartupFromList = useCallback((startupId) => {
+        setStartups(prev => prev.filter(startup => startup.id !== startupId))
+    }, [])
+
+    useEffect(() => {
+        fetchStartups(true)
+    }, []) // Only run on mount
+
+    // Reset when filters change
+    useEffect(() => {
+        fetchStartups(true)
+    }, [filters]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    const createStartup = useCallback(async (startupData) => {
+        try {
+            const newStartup = await startupService.createStartup(startupData)
+            setStartups(prev => [newStartup, ...prev])
+            return newStartup
+        } catch (err) {
+            setError(err.message)
+            throw err
+        }
+    }, [])
+
+    const updateStartup = useCallback(async (id, updates) => {
+        try {
+            const updatedStartup = await startupService.updateStartup(id, updates)
+            setStartups(prev => prev.map(startup =>
+                startup.id === id ? updatedStartup : startup
+            ))
+            return updatedStartup
+        } catch (err) {
+            setError(err.message)
+            throw err
+        }
+    }, [])
+
+    const deleteStartup = useCallback(async (id) => {
+        try {
+            await startupService.deleteStartup(id)
+            setStartups(prev => prev.filter(startup => startup.id !== id))
+            return true
+        } catch (err) {
+            setError(err.message)
+            throw err
+        }
+    }, [])
+
+    return {
+        startups,
+        loading,
+        loadingMore,
+        error,
+        hasMore,
+        loadMore,
+        refetch,
+        removeStartupFromList,
+        createStartup,
+        updateStartup,
+        deleteStartup
+    }
+}
+
 // Hook for working with swipes
 export const useSwipes = (userId) => {
     const [likes, setLikes] = useState([])
@@ -149,7 +290,11 @@ export const useSwipes = (userId) => {
     const likeStartup = useCallback(async (startupId) => {
         try {
             const like = await swipeService.likeStartup(userId, startupId)
-            setLikes(prev => [...prev, like])
+            // Fetch the updated likes to get the full startup data
+            const [updatedLikes] = await Promise.all([
+                swipeService.getUserLikes(userId)
+            ])
+            setLikes(updatedLikes)
             setPasses(prev => prev.filter(pass => pass.startup_id !== startupId))
             return like
         } catch (err) {
@@ -161,7 +306,11 @@ export const useSwipes = (userId) => {
     const passStartup = useCallback(async (startupId) => {
         try {
             const pass = await swipeService.passStartup(userId, startupId)
-            setPasses(prev => [...prev, pass])
+            // Fetch the updated passes to get the full startup data
+            const [updatedPasses] = await Promise.all([
+                swipeService.getUserPasses(userId)
+            ])
+            setPasses(updatedPasses)
             setLikes(prev => prev.filter(like => like.startup_id !== startupId))
             return pass
         } catch (err) {

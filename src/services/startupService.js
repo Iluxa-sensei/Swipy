@@ -2,7 +2,7 @@ import { supabase } from './supabaseClient.js'
 import { sampleStartups } from '../data/startups.js'
 
 export const startupService = {
-    // Get all startups
+    // Get all startups (keeping for backward compatibility)
     async getAllStartups() {
         try {
             console.log('startupService.getAllStartups: Starting to fetch startups...')
@@ -25,6 +25,105 @@ export const startupService = {
             console.error('startupService.getAllStartups: Error:', error)
             console.log('startupService.getAllStartups: Falling back to sample data')
             return sampleStartups
+        }
+    },
+
+    // Validate and sanitize input parameters for security
+    _validateAndSanitizeFilters(filters) {
+        if (!filters || typeof filters !== 'object') {
+            return {}
+        }
+
+        const sanitized = {}
+
+        // Validate industries array
+        if (Array.isArray(filters.industries) && filters.industries.length > 0) {
+            sanitized.industries = filters.industries.filter(item =>
+                typeof item === 'string' && item.trim().length > 0 && item.length <= 100
+            )
+        }
+
+        // Validate stages array  
+        if (Array.isArray(filters.stages) && filters.stages.length > 0) {
+            sanitized.stages = filters.stages.filter(item =>
+                typeof item === 'string' && item.trim().length > 0 && item.length <= 100
+            )
+        }
+
+        // Validate locations array
+        if (Array.isArray(filters.locations) && filters.locations.length > 0) {
+            sanitized.locations = filters.locations.filter(item =>
+                typeof item === 'string' && item.trim().length > 0 && item.length <= 100
+            )
+        }
+
+        // Validate team size
+        if (typeof filters.teamSize === 'string' && filters.teamSize.trim().length > 0 && filters.teamSize.length <= 50) {
+            sanitized.teamSize = filters.teamSize.trim()
+        }
+
+        // Validate funding
+        if (typeof filters.funding === 'string' && filters.funding.trim().length > 0 && filters.funding.length <= 50) {
+            sanitized.funding = filters.funding.trim()
+        }
+
+        return sanitized
+    },
+
+    // Get startups with pagination for optimized loading using SQL function
+    async getStartupsPaginated(offset = 0, limit = 5, filters = {}) {
+        try {
+            // Validate and sanitize input parameters for security
+            const validatedOffset = Math.max(0, parseInt(offset, 10) || 0)
+            const validatedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 5), 20) // Max 20 per request
+            const sanitizedFilters = this._validateAndSanitizeFilters(filters)
+
+            console.log('startupService.getStartupsPaginated: Starting to fetch startups with pagination...', {
+                offset: validatedOffset,
+                limit: validatedLimit,
+                filters: sanitizedFilters
+            })
+
+            // Use optimized SQL function for better performance and security
+            const { data, error } = await supabase.rpc('get_startups_paginated', {
+                p_limit: validatedLimit,
+                p_offset: validatedOffset,
+                p_industry: sanitizedFilters.industries && sanitizedFilters.industries.length > 0 ? sanitizedFilters.industries : null,
+                p_stage: sanitizedFilters.stages && sanitizedFilters.stages.length > 0 ? sanitizedFilters.stages : null,
+                p_location: sanitizedFilters.locations && sanitizedFilters.locations.length > 0 ? sanitizedFilters.locations : null,
+                p_team_size: sanitizedFilters.teamSize || null,
+                p_funding_round: sanitizedFilters.funding || null
+            })
+
+            if (error) {
+                console.error('startupService.getStartupsPaginated: Supabase error:', error)
+                throw error
+            }
+
+            console.log('startupService.getStartupsPaginated: Received data:', data)
+
+            // Get total count for hasMore calculation (only if needed)
+            const hasMore = (data?.length || 0) === validatedLimit
+
+            return {
+                data: data || [],
+                hasMore,
+                total: null // We don't need total count for pagination, just hasMore flag
+            }
+        } catch (error) {
+            console.error('startupService.getStartupsPaginated: Error:', error)
+            console.log('startupService.getStartupsPaginated: Falling back to sample data')
+            // Fallback to sample data with pagination simulation
+            const validatedOffset = Math.max(0, parseInt(offset, 10) || 0)
+            const validatedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 5), 20)
+            const startIndex = validatedOffset % sampleStartups.length
+            const endIndex = Math.min(startIndex + validatedLimit, sampleStartups.length)
+            const paginatedData = sampleStartups.slice(startIndex, endIndex)
+            return {
+                data: paginatedData,
+                hasMore: endIndex < sampleStartups.length,
+                total: sampleStartups.length
+            }
         }
     },
 

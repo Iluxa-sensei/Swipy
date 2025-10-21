@@ -60,23 +60,50 @@ export const swipeService = {
     // Get user likes
     async getUserLikes(userId) {
         try {
+            console.log('swipeService.getUserLikes: Fetching likes for user:', userId)
+
             const { data, error } = await supabase
                 .from('likes')
                 .select(`
           *,
           startups (
             id,
+            owner_id,
+            slug,
             name,
             description,
-            website
+            website,
+            logo_url,
+            logo,
+            industry,
+            category,
+            stage,
+            funding_round,
+            funding,
+            team_size,
+            teamSize,
+            location,
+            gradient,
+            investment_required,
+            investment_percentage,
+            ebitda,
+            image,
+            created_at,
+            updated_at
           )
         `)
                 .eq('user_id', userId)
+                .order('created_at', { ascending: false })
 
-            if (error) throw error
+            if (error) {
+                console.error('swipeService.getUserLikes: Supabase error:', error)
+                throw error
+            }
+
+            console.log('swipeService.getUserLikes: Received data:', data)
             return data || []
         } catch (error) {
-            console.error('Error fetching user likes:', error)
+            console.error('swipeService.getUserLikes: Error fetching user likes:', error)
             return []
         }
     },
@@ -84,23 +111,50 @@ export const swipeService = {
     // Get user passes
     async getUserPasses(userId) {
         try {
+            console.log('swipeService.getUserPasses: Fetching passes for user:', userId)
+
             const { data, error } = await supabase
                 .from('passes')
                 .select(`
           *,
           startups (
             id,
+            owner_id,
+            slug,
             name,
             description,
-            website
+            website,
+            logo_url,
+            logo,
+            industry,
+            category,
+            stage,
+            funding_round,
+            funding,
+            team_size,
+            teamSize,
+            location,
+            gradient,
+            investment_required,
+            investment_percentage,
+            ebitda,
+            image,
+            created_at,
+            updated_at
           )
         `)
                 .eq('user_id', userId)
+                .order('created_at', { ascending: false })
 
-            if (error) throw error
+            if (error) {
+                console.error('swipeService.getUserPasses: Supabase error:', error)
+                throw error
+            }
+
+            console.log('swipeService.getUserPasses: Received data:', data)
             return data || []
         } catch (error) {
-            console.error('Error fetching user passes:', error)
+            console.error('swipeService.getUserPasses: Error fetching user passes:', error)
             return []
         }
     },
