@@ -97,7 +97,15 @@ export const startupService = {
 
             if (error) {
                 console.error('startupService.getStartupsPaginated: Supabase error:', error)
-                throw error
+
+                // Handle specific error types
+                if (error.message?.includes('Rate limit exceeded')) {
+                    throw new Error('Too many requests. Please wait a moment before trying again.')
+                } else if (error.message?.includes('Authentication required')) {
+                    throw new Error('Please log in to view startups.')
+                } else {
+                    throw error
+                }
             }
 
             console.log('startupService.getStartupsPaginated: Received data:', data)
@@ -112,8 +120,83 @@ export const startupService = {
             }
         } catch (error) {
             console.error('startupService.getStartupsPaginated: Error:', error)
+
+            // Don't fall back to sample data for authentication or rate limit errors
+            if (error.message?.includes('Too many requests') ||
+                error.message?.includes('Please log in')) {
+                throw error
+            }
+
             console.log('startupService.getStartupsPaginated: Falling back to sample data')
             // Fallback to sample data with pagination simulation
+            const validatedOffset = Math.max(0, parseInt(offset, 10) || 0)
+            const validatedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 5), 20)
+            const startIndex = validatedOffset % sampleStartups.length
+            const endIndex = Math.min(startIndex + validatedLimit, sampleStartups.length)
+            const paginatedData = sampleStartups.slice(startIndex, endIndex)
+            return {
+                data: paginatedData,
+                hasMore: endIndex < sampleStartups.length,
+                total: sampleStartups.length
+            }
+        }
+    },
+
+    // Get lightweight startups for faster initial loading
+    async getStartupsLightweight(offset = 0, limit = 5, filters = {}) {
+        try {
+            // Validate and sanitize input parameters for security
+            const validatedOffset = Math.max(0, parseInt(offset, 10) || 0)
+            const validatedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 5), 20)
+            const sanitizedFilters = this._validateAndSanitizeFilters(filters)
+
+            console.log('startupService.getStartupsLightweight: Starting to fetch lightweight startups...', {
+                offset: validatedOffset,
+                limit: validatedLimit,
+                filters: sanitizedFilters
+            })
+
+            // Use lightweight SQL function for better performance
+            const { data, error } = await supabase.rpc('get_startups_lightweight_fast', {
+                p_limit: validatedLimit,
+                p_offset: validatedOffset,
+                p_industry: sanitizedFilters.industries && sanitizedFilters.industries.length > 0 ? sanitizedFilters.industries : null,
+                p_stage: sanitizedFilters.stages && sanitizedFilters.stages.length > 0 ? sanitizedFilters.stages : null,
+                p_location: sanitizedFilters.locations && sanitizedFilters.locations.length > 0 ? sanitizedFilters.locations : null,
+                p_team_size: sanitizedFilters.teamSize || null,
+                p_funding_round: sanitizedFilters.funding || null
+            })
+
+            if (error) {
+                console.error('startupService.getStartupsLightweight: Supabase error:', error)
+
+                if (error.message?.includes('Rate limit exceeded')) {
+                    throw new Error('Too many requests. Please wait a moment before trying again.')
+                } else if (error.message?.includes('Authentication required')) {
+                    throw new Error('Please log in to view startups.')
+                } else {
+                    throw error
+                }
+            }
+
+            console.log('startupService.getStartupsLightweight: Received data:', data)
+
+            const hasMore = (data?.length || 0) === validatedLimit
+
+            return {
+                data: data || [],
+                hasMore,
+                total: null
+            }
+        } catch (error) {
+            console.error('startupService.getStartupsLightweight: Error:', error)
+
+            if (error.message?.includes('Too many requests') ||
+                error.message?.includes('Please log in')) {
+                throw error
+            }
+
+            // Fallback to sample data
             const validatedOffset = Math.max(0, parseInt(offset, 10) || 0)
             const validatedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 5), 20)
             const startIndex = validatedOffset % sampleStartups.length

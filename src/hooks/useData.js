@@ -152,7 +152,8 @@ export const useStartupsLazy = () => {
             const offset = reset ? 0 : currentLength
             console.log('useStartupsLazy: Fetching with offset:', offset, 'limit:', PAGE_SIZE)
 
-            const result = await startupService.getStartupsPaginated(offset, PAGE_SIZE, filters)
+            // Use lightweight function for better performance
+            const result = await startupService.getStartupsLightweight(offset, PAGE_SIZE, filters)
 
             console.log('useStartupsLazy: Received data:', result)
 
@@ -170,10 +171,18 @@ export const useStartupsLazy = () => {
             setHasMore((result.data?.length || 0) === PAGE_SIZE)
         } catch (err) {
             console.error('useStartupsLazy: Error fetching startups:', err)
-            setError(err.message)
 
-            // Fallback to sample data only on initial load
-            if (reset) {
+            // Handle specific error types with user-friendly messages
+            if (err.message?.includes('Too many requests')) {
+                setError('Too many requests. Please wait a moment before trying again.')
+            } else if (err.message?.includes('Please log in')) {
+                setError('Please log in to view startups.')
+            } else {
+                setError(err.message || 'Failed to fetch startups')
+            }
+
+            // Fallback to sample data only on initial load and for non-auth errors
+            if (reset && !err.message?.includes('Please log in')) {
                 console.log('useStartupsLazy: Falling back to sample data due to error')
                 setStartups(sampleStartups.slice(0, PAGE_SIZE))
                 setHasMore(sampleStartups.length > PAGE_SIZE)
