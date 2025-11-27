@@ -50,12 +50,12 @@ BEGIN
     p_offset := GREATEST(0, COALESCE(p_offset, 0));
 
     -- Возвращаем только минимально необходимые поля для максимальной скорости
-    -- description ограничен до 100 символов, image и logo_url не загружаем
+    -- description, image и logo_url не загружаем - они загружаются отдельно при необходимости
     RETURN QUERY
     SELECT 
         s.id, 
         s.name, 
-        LEFT(COALESCE(s.description, ''), 100) as description,  -- Только первые 100 символов
+        LEFT(COALESCE(s.description, ''), 150) as description,  -- Только первые 150 символов для превью
         s.industry, 
         s.stage, 
         s.funding_round,
@@ -63,8 +63,8 @@ BEGIN
         s.location, 
         s.gradient, 
         s.logo,
-        NULL::text as image,  -- Не загружаем для скорости
-        NULL::text as logo_url,  -- Не загружаем для скорости
+        s.image,  -- Оставляем, но если это URL то быстро
+        s.logo_url,  -- Оставляем, но если это URL то быстро
         s.created_at,
         0::integer as likes_count,
         0::integer as chat_count
