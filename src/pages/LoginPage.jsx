@@ -2,11 +2,15 @@ import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { authService } from '../services/authService.js'
 import { useAuth } from '../providers/AuthProvider.jsx'
+import { useDeviceType } from '../hooks'
+import AuthInput from '../components/AuthInput.jsx'
+import AuthButton from '../components/AuthButton.jsx'
 
 const LoginPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { session } = useAuth()
+  const { isDesktop } = useDeviceType()
   const [isLogin, setIsLogin] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
@@ -159,15 +163,226 @@ const LoginPage = () => {
     navigate('/onboarding')
   }
 
-  return (
-    <div className="screen active">
-      <div className="flex-1 overflow-y-auto p-6">
+  // Desktop-optimized content
+  const desktopContent = (
+    <>
+      <div className="w-full max-w-md mx-auto">
         {/* Logo and Welcome */}
-        <div className="text-center mb-12">
-          <h1 className="text-7xl font-black mb-6 animate-super-gradient bg-gradient-to-r from-white via-blue-200 via-blue-400 to-blue-600 bg-clip-text text-transparent">
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-black mb-5 animate-super-gradient bg-gradient-to-r from-white via-blue-200 via-blue-400 to-blue-600 bg-clip-text text-transparent">
             Swipy
           </h1>
           <p className="text-text-secondary text-lg">
+            {isLogin
+              ? 'Welcome back! Sign in to continue your startup journey.'
+              : 'Join the community of innovators and entrepreneurs.'
+            }
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {!isLogin && (
+            <AuthInput
+              label="Full Name"
+              type="text"
+              placeholder="Enter your full name"
+              value={formData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+              required={!isLogin}
+              maxLength={100}
+              pattern="[^<>]*"
+              title="Name cannot contain < or > characters"
+            />
+          )}
+
+          <AuthInput
+            label="Email Address"
+            type="email"
+            placeholder="Enter your email"
+            value={formData.email}
+            onChange={(e) => handleInputChange('email', e.target.value)}
+            required
+            maxLength={254}
+          />
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-text-primary font-medium text-base">
+                Password
+              </label>
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-blue-400 text-sm hover:underline focus:outline-none transition-colors"
+                >
+                  Forgot Password?
+                </button>
+              )}
+            </div>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={(e) => handleInputChange('password', e.target.value)}
+              className="w-full h-14 px-4 py-3 bg-glass-bg border border-glass-border rounded-lg text-text-primary text-base placeholder-text-secondary focus:outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200 hover:border-white/20"
+              required
+              minLength={8}
+              maxLength={128}
+            />
+          </div>
+
+          {!isLogin && (
+            <AuthInput
+              label="Confirm Password"
+              type="password"
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+              required={!isLogin}
+              minLength={8}
+              maxLength={128}
+            />
+          )}
+
+          {!isLogin && (
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="agreeToTerms"
+                checked={formData.agreeToTerms}
+                onChange={(e) => handleInputChange('agreeToTerms', e.target.checked)}
+                className="mt-1 w-5 h-5 text-blue-400 bg-glass-bg border border-glass-border rounded focus:ring-blue-400 focus:ring-2 transition-all"
+                required={!isLogin}
+              />
+              <label htmlFor="agreeToTerms" className="text-sm text-text-secondary">
+                I agree to the{' '}
+                <button
+                  type="button"
+                  onClick={handleTermsClick}
+                  className="text-blue-400 hover:underline focus:outline-none transition-colors"
+                >
+                  Terms of Service
+                </button>
+                {' '}and{' '}
+                <button
+                  type="button"
+                  onClick={handlePrivacyClick}
+                  className="text-blue-400 hover:underline focus:outline-none transition-colors"
+                >
+                  Privacy Policy
+                </button>
+              </label>
+            </div>
+          )}
+
+          <AuthButton
+            type="submit"
+            disabled={isSubmitting}
+            icon={`fas ${isLogin ? 'fa-sign-in-alt' : 'fa-user-plus'}`}
+          >
+            {isSubmitting ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+          </AuthButton>
+        </form>
+
+        {/* Divider */}
+        <div className="my-5">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/5"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-3 bg-[#0f0f0f] text-text-secondary">Or continue with</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Social Login */}
+        <div className="space-y-3">
+          <AuthButton
+            type="button"
+            variant="secondary"
+            disabled={isSubmitting}
+            onClick={() => signInWithProvider('google')}
+            icon="fab fa-google"
+          >
+            Continue with Google
+          </AuthButton>
+          <AuthButton
+            type="button"
+            variant="secondary"
+            disabled
+            icon="fab fa-linkedin"
+          >
+            Continue with LinkedIn (coming soon)
+          </AuthButton>
+        </div>
+
+        {/* Toggle Mode */}
+        <div className="text-center mt-5">
+          <p className="text-text-secondary text-sm">
+            {isLogin ? "Don't have an account? " : "Already have an account? "}
+            <button
+              type="button"
+              onClick={toggleMode}
+              className="text-blue-400 hover:underline font-medium focus:outline-none transition-colors"
+            >
+              {isLogin ? 'Sign up' : 'Sign in'}
+            </button>
+          </p>
+        </div>
+
+
+
+        {/* Bottom spacing for laptops */}
+        <div className="h-20"></div>
+      </div>
+
+      {/* Email Confirmation Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-bg-secondary rounded-3xl max-w-sm w-full shadow-2xl border border-glass-border overflow-hidden animate-slide-up">
+            <div className="p-8 text-center">
+              {/* Success Icon */}
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-3xl">
+                <i className="fas fa-envelope"></i>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl font-bold text-text-primary mb-3">
+                Check Your Email
+              </h3>
+
+              {/* Description */}
+              <p className="text-text-secondary leading-relaxed mb-6">
+                We've sent you a confirmation email. Please check your inbox and click the verification link to complete your account setup.
+              </p>
+
+              {/* OK Button */}
+              <button
+                onClick={handleEmailModalOK}
+                className="w-full py-3 px-6 bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white rounded-2xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+
+  // Mobile content (original design)
+  const mobileContent = (
+    <>
+      <div className="flex-1 overflow-y-auto p-6 md:p-10 lg:p-12">
+        {/* Logo and Welcome */}
+        <div className="text-center mb-10 md:mb-12">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 animate-super-gradient bg-gradient-to-r from-white via-blue-200 via-blue-400 to-blue-600 bg-clip-text text-transparent">
+            Swipy
+          </h1>
+          <p className="text-text-secondary text-base md:text-lg">
             {isLogin
               ? 'Welcome back! Sign in to continue your startup journey.'
               : 'Join the community of innovators and entrepreneurs.'
@@ -333,43 +548,63 @@ const LoginPage = () => {
           </p>
         </div>
 
-
-
         {/* Bottom spacing for laptops */}
         <div className="h-20"></div>
       </div>
+    </>
+  )
 
-      {/* Email Confirmation Modal */}
-      {showEmailModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-bg-secondary rounded-3xl max-w-sm w-full shadow-2xl border border-glass-border overflow-hidden animate-slide-up">
-            <div className="p-8 text-center">
-              {/* Success Icon */}
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-3xl">
-                <i className="fas fa-envelope"></i>
-              </div>
-
-              {/* Title */}
-              <h3 className="text-xl font-bold text-text-primary mb-3">
-                Check Your Email
-              </h3>
-
-              {/* Description */}
-              <p className="text-text-secondary leading-relaxed mb-6">
-                We've sent you a confirmation email. Please check your inbox and click the verification link to complete your account setup.
-              </p>
-
-              {/* OK Button */}
-              <button
-                onClick={handleEmailModalOK}
-                className="w-full py-3 px-6 bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white rounded-2xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                OK
-              </button>
+  // Email Confirmation Modal (shared)
+  const emailModal = (
+    showEmailModal && (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-bg-secondary rounded-3xl max-w-sm w-full shadow-2xl border border-glass-border overflow-hidden animate-slide-up">
+          <div className="p-8 text-center">
+            {/* Success Icon */}
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-3xl">
+              <i className="fas fa-envelope"></i>
             </div>
+
+            {/* Title */}
+            <h3 className="text-xl font-bold text-text-primary mb-3">
+              Check Your Email
+            </h3>
+
+            {/* Description */}
+            <p className="text-text-secondary leading-relaxed mb-6">
+              We've sent you a confirmation email. Please check your inbox and click the verification link to complete your account setup.
+            </p>
+
+            {/* OK Button */}
+            <button
+              onClick={handleEmailModalOK}
+              className="w-full py-3 px-6 bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white rounded-2xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              OK
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    )
+  )
+
+  // Телефон — оставляем исходный полноэкранный мобильный экран
+  if (!isDesktop) {
+    return (
+      <div className="screen active">
+        {mobileContent}
+        {emailModal}
+      </div>
+    )
+  }
+
+  // ПК / ноутбук — улучшенная desktop-версия с центральной карточкой
+  return (
+    <div className="desktop-auth-wrapper">
+      <div className="desktop-auth-card">
+        {desktopContent}
+        {emailModal}
+      </div>
     </div>
   )
 }

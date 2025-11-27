@@ -1498,6 +1498,83 @@
     gap: 32px;
   }
 
+  /* Auth pages desktop wrapper - Premium Design */
+  .desktop-auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    background: #0f0f0f;
+    width: 100%;
+  }
+
+  .desktop-auth-card {
+    width: 100%;
+    max-width: none;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 40px;
+    margin: 0;
+    animation: auth-card-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes auth-card-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.96);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Enhanced input hover and focus effects */
+  .desktop-auth-card input {
+    transition: all 0.2s ease;
+  }
+
+  .desktop-auth-card input:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .desktop-auth-card input:focus {
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 
+      0 0 0 2px rgba(59, 130, 246, 0.2),
+      0 4px 12px rgba(59, 130, 246, 0.1);
+  }
+
+  /* Button hover enhancements */
+  .desktop-auth-card button {
+    transition: all 0.2s ease;
+  }
+
+  .desktop-auth-card button:hover:not(:disabled) {
+    transform: scale(1.02);
+  }
+
+  .desktop-auth-card button:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  /* Responsive adjustments */
+  @media (min-width: 1440px) {
+    .desktop-auth-card {
+      padding: 48px;
+    }
+  }
+
+  @media (min-width: 1920px) {
+    .desktop-auth-card {
+      padding: 56px;
+    }
+  }
+
   .desktop-header {
     display: flex;
     align-items: center;
