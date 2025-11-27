@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStartupsLazy, useSwipes, useAuth } from '../hooks'
 import OnboardingTutorial from '../components/OnboardingTutorial'
-import { sampleStartups } from '../data/startups.js'
 
 const HomePageFixed = () => {
     const { user } = useAuth()
@@ -31,8 +30,8 @@ const HomePageFixed = () => {
     const lastTapRef = useRef(0)
     const navigate = useNavigate()
 
-    // Use real data from Supabase, fallback to sample data
-    const displayStartups = startups && startups.length > 0 ? startups : sampleStartups
+    // Use real data from Supabase only
+    const displayStartups = startups || []
 
     // Get current startup
     const currentStartup = displayStartups[currentCardIndex]
@@ -68,7 +67,7 @@ const HomePageFixed = () => {
 
     // Preload logic: load more startups when we're close to the end
     useEffect(() => {
-        const displayStartups = startups && startups.length > 0 ? startups : sampleStartups
+        const displayStartups = startups || []
         // If we have less than 2 startups remaining and there are more to load, preload them
         if (currentCardIndex >= displayStartups.length - 2 && hasMore && !loadingMore && !startupsLoading) {
             console.log('Preloading more startups...', {

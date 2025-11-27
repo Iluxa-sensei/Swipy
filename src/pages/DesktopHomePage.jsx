@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth, useStartupsLazy, useSwipes } from '../hooks'
-import { chatService } from '../services'
+import { chatService, startupService } from '../services'
 
 const DesktopHomePage = () => {
     const navigate = useNavigate()
@@ -17,9 +17,14 @@ const DesktopHomePage = () => {
     } = useStartupsLazy()
     const { likeStartup } = useSwipes(user?.id)
 
-    const spotlightStartups = useMemo(() => startups.slice(0, 3), [startups])
     const heroItems = useMemo(() => startups.slice(0, 5), [startups])
     const [heroIndex, setHeroIndex] = useState(0)
+    const [metrics, setMetrics] = useState({
+        startupsCount: 0,
+        usersCount: 0,
+        chatsCount: 0
+    })
+    const [metricsLoading, setMetricsLoading] = useState(true)
 
     useEffect(() => {
         setHeroIndex(0)
@@ -32,6 +37,22 @@ const DesktopHomePage = () => {
         }, 6000)
         return () => clearInterval(id)
     }, [heroItems])
+
+    // Load dashboard metrics
+    useEffect(() => {
+        const loadMetrics = async () => {
+            try {
+                setMetricsLoading(true)
+                const data = await startupService.getDashboardMetrics()
+                setMetrics(data)
+            } catch (error) {
+                console.error('Failed to load dashboard metrics:', error)
+            } finally {
+                setMetricsLoading(false)
+            }
+        }
+        loadMetrics()
+    }, [])
 
     const ensureAuth = () => {
         if (!user?.id) {
@@ -241,19 +262,22 @@ const DesktopHomePage = () => {
                 </div>
                 <div className="hero-metrics modern">
                     <div className="metric-card">
-                        <p className="metric-label">Live deals</p>
-                        <p className="metric-value">{startups.length || '0'}</p>
-                        <span className="metric-trend positive">+12% MoM</span>
+                        <p className="metric-label">Startups registered</p>
+                        <p className="metric-value">
+                            {metricsLoading ? '...' : metrics.startupsCount}
+                        </p>
                     </div>
                     <div className="metric-card">
-                        <p className="metric-label">Avg. EBITDA</p>
-                        <p className="metric-value">$42k</p>
-                        <span className="metric-trend neutral">stable</span>
+                        <p className="metric-label">Users registered</p>
+                        <p className="metric-value">
+                            {metricsLoading ? '...' : metrics.usersCount}
+                        </p>
                     </div>
                     <div className="metric-card">
-                        <p className="metric-label">New chats</p>
-                        <p className="metric-value">48</p>
-                        <span className="metric-trend positive">+8 today</span>
+                        <p className="metric-label">Total chats</p>
+                        <p className="metric-value">
+                            {metricsLoading ? '...' : metrics.chatsCount}
+                        </p>
                     </div>
                 </div>
             </section>
@@ -261,8 +285,8 @@ const DesktopHomePage = () => {
             <section className="desktop-news-section">
                 <div className="section-header">
                     <div>
-                        <p className="section-eyebrow">Venture news</p>
-                        <h3>Latest stories from ambitious startups</h3>
+                        <p className="section-eyebrow">Startups</p>
+                        <h3>Get acquainted with startups</h3>
                     </div>
                     <div className="section-actions">
                         {hasMore && (
@@ -278,40 +302,6 @@ const DesktopHomePage = () => {
                     </div>
                 </div>
                 {renderNewsState()}
-            </section>
-
-            <section className="desktop-spotlight">
-                <div className="section-header compact">
-                    <div>
-                        <p className="section-eyebrow">Operator spotlight</p>
-                        <h3>Chats worth joining today</h3>
-                    </div>
-                </div>
-                <div className="spotlight-grid">
-                    {spotlightStartups.map(startup => (
-                        <div key={startup.id} className="spotlight-card">
-                            <div className="spotlight-meta">
-                                <span className="news-badge">{startup.industry || 'General'}</span>
-                                <span>{startup.location || 'Remote'}</span>
-                            </div>
-                            <h4>{startup.name}</h4>
-                            <p>{startup.description}</p>
-                            <div className="spotlight-actions">
-                                <button type="button" className="btn-secondary" onClick={() => handleChat(startup.id)}>
-                                    Quick chat
-                                </button>
-                                <button type="button" className="btn-primary" onClick={() => handleDetails(startup.id)}>
-                                    View dossier
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                    {spotlightStartups.length === 0 && (
-                        <div className="spotlight-empty">
-                            <p>Start a conversation to populate your spotlight list.</p>
-                        </div>
-                    )}
-                </div>
             </section>
         </div>
     )

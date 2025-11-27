@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStartupsLazy, useSwipesOptimized, useAuth } from '../hooks'
 import OnboardingTutorial from '../components/OnboardingTutorial'
-import { sampleStartups } from '../data/startups.js'
 
 const HomePageOptimized = () => {
     const { user } = useAuth()
@@ -39,8 +38,8 @@ const HomePageOptimized = () => {
     const lastTapRef = useRef(0)
     const navigate = useNavigate()
 
-    // Use real data from Supabase, fallback to sample data
-    const displayStartups = startups && startups.length > 0 ? startups : sampleStartups
+    // Use real data from Supabase only
+    const displayStartups = startups || []
 
     // Get current startup
     const currentStartup = displayStartups[currentCardIndex]

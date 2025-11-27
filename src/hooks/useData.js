@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { startupService, swipeService, chatService, profileService } from '../services/index.js'
 import { useFilters } from '../context/FiltersContext'
-import { sampleStartups } from '../data/startups.js'
 
 // Hook for working with startups (legacy - loads all at once)
 export const useStartups = () => {
@@ -61,9 +60,9 @@ export const useStartups = () => {
         } catch (err) {
             console.error('useStartups: Error fetching startups:', err)
             setError(err.message)
-            // Fallback to sample data if there's an error
-            console.log('useStartups: Falling back to sample data due to error')
-            setStartups(sampleStartups)
+            // НЕ используем sampleStartups - возвращаем пустой массив
+            console.warn('useStartups: Failed to fetch from database, returning empty array')
+            setStartups([])
         } finally {
             console.log('useStartups: Setting loading to false')
             setLoading(false)
@@ -181,11 +180,11 @@ export const useStartupsLazy = () => {
                 setError(err.message || 'Failed to fetch startups')
             }
 
-            // Fallback to sample data only on initial load and for non-auth errors
+            // НЕ используем sampleStartups - возвращаем пустой массив
             if (reset && !err.message?.includes('Please log in')) {
-                console.log('useStartupsLazy: Falling back to sample data due to error')
-                setStartups(sampleStartups.slice(0, PAGE_SIZE))
-                setHasMore(sampleStartups.length > PAGE_SIZE)
+                console.warn('useStartupsLazy: Failed to fetch from database, returning empty array')
+                setStartups([])
+                setHasMore(false)
             }
         } finally {
             setLoading(false)

@@ -1,5 +1,4 @@
 import { supabase } from './supabaseClient.js'
-import { sampleStartups } from '../data/startups.js'
 
 export const startupService = {
     // Get all startups (keeping for backward compatibility)
@@ -23,8 +22,8 @@ export const startupService = {
             return data || []
         } catch (error) {
             console.error('startupService.getAllStartups: Error:', error)
-            console.log('startupService.getAllStartups: Falling back to sample data')
-            return sampleStartups
+            console.warn('startupService.getAllStartups: Failed to fetch from database, returning empty array')
+            return []
         }
     },
 
@@ -127,17 +126,12 @@ export const startupService = {
                 throw error
             }
 
-            console.log('startupService.getStartupsPaginated: Falling back to sample data')
-            // Fallback to sample data with pagination simulation
-            const validatedOffset = Math.max(0, parseInt(offset, 10) || 0)
-            const validatedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 5), 20)
-            const startIndex = validatedOffset % sampleStartups.length
-            const endIndex = Math.min(startIndex + validatedLimit, sampleStartups.length)
-            const paginatedData = sampleStartups.slice(startIndex, endIndex)
+            console.warn('startupService.getStartupsPaginated: Failed to fetch from database, returning empty array')
+            // НЕ используем sampleStartups - возвращаем пустой массив
             return {
-                data: paginatedData,
-                hasMore: endIndex < sampleStartups.length,
-                total: sampleStartups.length
+                data: [],
+                hasMore: false,
+                total: null
             }
         }
     },
@@ -157,6 +151,7 @@ export const startupService = {
             })
 
             // Use lightweight SQL function for better performance
+            const rpcStartTime = performance.now()
             const { data, error } = await supabase.rpc('get_startups_lightweight_fast', {
                 p_limit: validatedLimit,
                 p_offset: validatedOffset,
@@ -166,9 +161,17 @@ export const startupService = {
                 p_team_size: sanitizedFilters.teamSize || null,
                 p_funding_round: sanitizedFilters.funding || null
             })
+            const rpcEndTime = performance.now()
+            console.log(`startupService.getStartupsLightweight: RPC call took ${(rpcEndTime - rpcStartTime).toFixed(2)}ms`)
 
             if (error) {
                 console.error('startupService.getStartupsLightweight: Supabase error:', error)
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    details: error.details,
+                    hint: error.hint
+                })
 
                 if (error.message?.includes('Rate limit exceeded')) {
                     throw new Error('Too many requests. Please wait a moment before trying again.')
@@ -180,6 +183,17 @@ export const startupService = {
             }
 
             console.log('startupService.getStartupsLightweight: Received data:', data)
+            console.log('startupService.getStartupsLightweight: Data count:', data?.length || 0)
+
+            if (data && data.length > 0) {
+                console.log('startupService.getStartupsLightweight: First startup:', {
+                    id: data[0].id,
+                    name: data[0].name,
+                    hasImage: !!data[0].image,
+                    hasLogoUrl: !!data[0].logo_url,
+                    hasLogo: !!data[0].logo
+                })
+            }
 
             const hasMore = (data?.length || 0) === validatedLimit
 
@@ -196,16 +210,12 @@ export const startupService = {
                 throw error
             }
 
-            // Fallback to sample data
-            const validatedOffset = Math.max(0, parseInt(offset, 10) || 0)
-            const validatedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 5), 20)
-            const startIndex = validatedOffset % sampleStartups.length
-            const endIndex = Math.min(startIndex + validatedLimit, sampleStartups.length)
-            const paginatedData = sampleStartups.slice(startIndex, endIndex)
+            // НЕ используем sampleStartups - возвращаем пустой массив
+            console.warn('startupService.getStartupsLightweight: Failed to fetch from database, returning empty array')
             return {
-                data: paginatedData,
-                hasMore: endIndex < sampleStartups.length,
-                total: sampleStartups.length
+                data: [],
+                hasMore: false,
+                total: null
             }
         }
     },
@@ -299,5 +309,70 @@ export const startupService = {
             console.error('Error fetching startup:', error)
             return null
         }
+    },
+
+    // Загрузка изображений отдельно для оптимизации
+    async _loadStartupImages(startupIds = []) {
+        try {
+            if (!Array.isArray(startupIds) || startupIds.length === 0) {
+                return []
+            }
+
+            const { data, error } = await supabase.rpc('get_startup_images', {
+                p_startup_ids: startupIds
+            })
+
+            if (error) {
+                console.warn('startupService._loadStartupImages: RPC not available, using direct query')
+                // Fallback на прямой запрос если RPC не работает
+                const { data: directData, error: directError } = await supabase
+                    .from('startups')
+                    .select('id, image, logo_url')
+                    .in('id', startupIds)
+
+                if (directError) throw directError
+                return directData || []
+            }
+
+            return data || []
+        } catch (error) {
+            console.error('startupService._loadStartupImages: error', error)
+            return []
+        }
+    },
+
+    // Get dashboard metrics
+    async getDashboardMetrics() {
+        try {
+            // Получаем все метрики параллельно для скорости
+            const [startupsCount, usersCount, chatsCount] = await Promise.all([
+                // Количество стартапов
+                supabase
+                    .from('startups')
+                    .select('*', { count: 'exact', head: true }),
+                // Количество пользователей
+                supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true }),
+                // Количество чатов
+                supabase
+                    .from('chats')
+                    .select('*', { count: 'exact', head: true })
+            ])
+
+            return {
+                startupsCount: startupsCount.count || 0,
+                usersCount: usersCount.count || 0,
+                chatsCount: chatsCount.count || 0
+            }
+        } catch (error) {
+            console.error('Error fetching dashboard metrics:', error)
+            return {
+                startupsCount: 0,
+                usersCount: 0,
+                chatsCount: 0
+            }
+        }
     }
 }
+
