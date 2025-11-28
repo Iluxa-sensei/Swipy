@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { authService } from '../services/authService.js'
+import { profileService } from '../services/profileService.js'
 import { useAuth } from '../providers/AuthProvider.jsx'
 import { useDeviceType } from '../hooks'
 import AuthInput from '../components/AuthInput.jsx'
@@ -88,13 +89,34 @@ const LoginPage = () => {
       }
 
       if (isLogin) {
-        const { error } = await authService.signIn(formData.email, formData.password)
-        if (error) {
-          alert(error.message)
+        try {
+          const data = await authService.signIn(formData.email, formData.password)
+          
+          // Check if user has completed onboarding
+          if (data?.user?.id) {
+            try {
+              const profile = await profileService.getProfile(data.user.id)
+              
+              // If onboarding not completed, redirect to onboarding
+              if (!profile || !profile.onboarding_completed) {
+                navigate('/onboarding', { replace: true })
+                return
+              }
+            } catch (profileError) {
+              console.error('Error checking profile:', profileError)
+              // If profile check fails, assume onboarding needed
+              navigate('/onboarding', { replace: true })
+              return
+            }
+          }
+          
+          // User has completed onboarding, redirect to intended destination or home
+          const redirectTo = location.state?.from?.pathname || '/home'
+          navigate(redirectTo)
+        } catch (signInError) {
+          alert(signInError.message || 'Sign in failed. Please check your credentials and try again.')
           return
         }
-        const redirectTo = location.state?.from?.pathname || '/home'
-        navigate(redirectTo)
       } else {
         const result = await authService.signUp(formData.email, formData.password, { full_name: formData.name })
         if (!result.success) {

@@ -45,6 +45,13 @@ const OnboardingPage = () => {
         console.log('Existing profile loaded:', existingProfile)
 
         if (existingProfile) {
+          // If user has already completed onboarding, redirect to home
+          if (existingProfile.onboarding_completed) {
+            console.log('User has already completed onboarding, redirecting to home')
+            navigate('/home', { replace: true })
+            return
+          }
+
           setUserData(prev => ({
             ...prev,
             full_name: existingProfile.full_name || '',

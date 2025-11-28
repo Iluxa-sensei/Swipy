@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../services/supabaseClient.js'
+import { profileService } from '../services/profileService.js'
 
 const OAuthCallback = () => {
     const navigate = useNavigate()
@@ -22,8 +23,25 @@ const OAuthCallback = () => {
                 }
 
                 if (data.session) {
-                    // Successfully authenticated, redirect to home
-                    navigate('/home', { replace: true })
+                    const userId = data.session.user.id
+                    
+                    // Check if user has completed onboarding
+                    try {
+                        const profile = await profileService.getProfile(userId)
+                        
+                        // If no profile or onboarding not completed, redirect to onboarding
+                        if (!profile || !profile.onboarding_completed) {
+                            console.log('User has not completed onboarding, redirecting to onboarding page')
+                            navigate('/onboarding', { replace: true })
+                        } else {
+                            // User has completed onboarding, redirect to home
+                            navigate('/home', { replace: true })
+                        }
+                    } catch (profileError) {
+                        console.error('Error checking profile:', profileError)
+                        // If profile check fails, assume new user and redirect to onboarding
+                        navigate('/onboarding', { replace: true })
+                    }
                 } else {
                     // No session found, redirect to login
                     navigate('/login', { replace: true })
