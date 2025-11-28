@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient.js'
+import { notificationService } from './notificationService.js'
 
 export const swipeService = {
     // Like startup
@@ -11,17 +12,93 @@ export const swipeService = {
                 .eq('user_id', userId)
                 .eq('startup_id', startupId)
 
-            // Add like
+            // Check if like already exists
+            const { data: existingLike } = await supabase
+                .from('likes')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('startup_id', startupId)
+                .single()
+
+            if (existingLike) {
+                // Like already exists, return it
+                console.log('Like already exists, returning existing like')
+                return existingLike
+            }
+
+            // Get startup info to get owner_id
+            const { data: startup, error: startupError } = await supabase
+                .from('startups')
+                .select('id, owner_id, name')
+                .eq('id', startupId)
+                .single()
+
+            if (startupError) {
+                console.error('Error fetching startup:', startupError)
+            }
+
+            // Add like using upsert to handle race conditions
             const { data, error } = await supabase
                 .from('likes')
-                .insert([{
+                .upsert([{
                     user_id: userId,
                     startup_id: startupId
-                }])
+                }], {
+                    onConflict: 'user_id,startup_id'
+                })
                 .select()
                 .single()
 
-            if (error) throw error
+            // If error is duplicate key, it means like already exists (race condition)
+            // In this case, fetch and return the existing like
+            if (error) {
+                if (error.code === '23505' || error.message?.includes('duplicate key') || error.message?.includes('unique constraint')) {
+                    console.log('Duplicate key error (race condition), fetching existing like')
+                    const { data: existingLikeAfterError } = await supabase
+                        .from('likes')
+                        .select('id')
+                        .eq('user_id', userId)
+                        .eq('startup_id', startupId)
+                        .single()
+
+                    if (existingLikeAfterError) {
+                        return existingLikeAfterError
+                    }
+                }
+                throw error
+            }
+
+            // Create notification for startup owner if owner exists and is not the same as liker
+            if (startup?.owner_id && startup.owner_id !== userId) {
+                try {
+                    // Get liker's profile info for notification
+                    const { data: likerProfile } = await supabase
+                        .from('profiles')
+                        .select('full_name, username')
+                        .eq('id', userId)
+                        .single()
+
+                    const likerName = likerProfile?.full_name || likerProfile?.username || 'Someone'
+
+                    await notificationService.createNotification({
+                        user_id: startup.owner_id,
+                        type: 'like',
+                        title: 'New Like',
+                        message: `${likerName} liked your startup "${startup.name}"`,
+                        data: {
+                            startup_id: startupId,
+                            startup_name: startup.name,
+                            liker_id: userId,
+                            liker_name: likerName
+                        },
+                        read: false
+                    })
+                } catch (notifError) {
+                    console.error('Error creating notification:', notifError)
+                    // Don't throw - notification failure shouldn't break the like
+                }
+            }
+
             return data
         } catch (error) {
             console.error('Error liking startup:', error)

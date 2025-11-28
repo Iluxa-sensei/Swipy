@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth, useStartupsLazy, useSwipes } from '../hooks'
-import { chatService, startupService } from '../services'
+import { chatService, startupService, swipeService } from '../services'
 
 const DesktopHomePage = () => {
     const navigate = useNavigate()
@@ -15,7 +15,10 @@ const DesktopHomePage = () => {
         loadingMore,
         refetch
     } = useStartupsLazy()
-    const { likeStartup } = useSwipes(user?.id)
+    const { likeStartup, likes, removeSwipe, refetch: refetchSwipes } = useSwipes(user?.id)
+    const [likedStartups, setLikedStartups] = useState(new Set())
+    // Local state for optimistic likes_count updates
+    const [likesCountUpdates, setLikesCountUpdates] = useState({})
 
     const heroItems = useMemo(() => startups.slice(0, 5), [startups])
     const [heroIndex, setHeroIndex] = useState(0)
@@ -62,12 +65,152 @@ const DesktopHomePage = () => {
         return true
     }
 
+    // Update liked startups set when likes change
+    useEffect(() => {
+        if (likes && Array.isArray(likes)) {
+            const likedIds = new Set(likes.map(like => like.startup_id || like.startup?.id))
+            setLikedStartups(likedIds)
+        }
+    }, [likes])
+
+    // Clear local likes_count updates when startups data is refreshed
+    useEffect(() => {
+        // Keep only updates for startups that are still in the list
+        setLikesCountUpdates(prev => {
+            const startupIds = new Set(startups.map(s => s.id))
+            const filtered = {}
+            Object.keys(prev).forEach(id => {
+                if (startupIds.has(id)) {
+                    filtered[id] = prev[id]
+                }
+            })
+            return filtered
+        })
+    }, [startups])
+
+    // Check initial like status for all startups
+    useEffect(() => {
+        if (!user?.id || !startups.length) return
+
+        const checkLikes = async () => {
+            try {
+                const startupIds = startups.map(s => s.id).filter(Boolean)
+                if (startupIds.length === 0) return
+
+                const statusPromises = startupIds.map(id =>
+                    swipeService.getSwipeStatus(user.id, id)
+                )
+                const statuses = await Promise.all(statusPromises)
+
+                const likedIds = new Set()
+                statuses.forEach((status, index) => {
+                    if (status === 'liked') {
+                        likedIds.add(startupIds[index])
+                    }
+                })
+                setLikedStartups(likedIds)
+            } catch (err) {
+                console.error('Failed to check like status', err)
+            }
+        }
+
+        checkLikes()
+    }, [user?.id, startups])
+
     const handleLike = async (startupId) => {
         if (!ensureAuth()) return
+
+        const isLiked = likedStartups.has(startupId)
+        const startup = startups.find(s => s.id === startupId)
+        const currentLikesCount = startup?.likes_count || 0
+
+        // Optimistic update: update UI immediately
+        setLikedStartups(prev => {
+            const newSet = new Set(prev)
+            if (isLiked) {
+                newSet.delete(startupId)
+            } else {
+                newSet.add(startupId)
+            }
+            return newSet
+        })
+
+        // Optimistically update likes_count
+        setLikesCountUpdates(prev => ({
+            ...prev,
+            [startupId]: isLiked
+                ? Math.max(0, currentLikesCount - 1)
+                : currentLikesCount + 1
+        }))
+
         try {
-            await likeStartup(startupId)
+            if (isLiked) {
+                // Unlike - remove from database
+                await removeSwipe(startupId)
+            } else {
+                // Like
+                await likeStartup(startupId)
+            }
+
+            // Refetch swipes in background (non-blocking, don't await)
+            if (refetchSwipes) {
+                refetchSwipes().catch(err => console.warn('Failed to refetch swipes:', err))
+            }
         } catch (err) {
-            console.error('Failed to like startup', err)
+            console.error('Failed to toggle like:', err)
+            console.error('Error details:', {
+                message: err.message,
+                code: err.code,
+                details: err.details,
+                hint: err.hint
+            })
+
+            // Revert optimistic update on error
+            setLikedStartups(prev => {
+                const newSet = new Set(prev)
+                if (isLiked) {
+                    newSet.add(startupId)
+                } else {
+                    newSet.delete(startupId)
+                }
+                return newSet
+            })
+
+            // Revert likes_count
+            setLikesCountUpdates(prev => {
+                const newUpdates = { ...prev }
+                delete newUpdates[startupId]
+                return newUpdates
+            })
+
+            // Check if error is duplicate key (like already exists)
+            const isDuplicateError = err.code === '23505' ||
+                err.message?.includes('duplicate key') ||
+                err.message?.includes('unique constraint')
+
+            if (isDuplicateError && !isLiked) {
+                // Like already exists in database, sync state
+                console.log('Like already exists, syncing state')
+                setLikedStartups(prev => new Set(prev).add(startupId))
+                // Refetch to ensure state is correct
+                if (refetchSwipes) {
+                    await refetchSwipes()
+                }
+                return // Don't show error, just sync state
+            }
+
+            // For other errors, show alert and revert
+            alert(`Failed to ${isLiked ? 'unlike' : 'like'} startup: ${err.message || 'Unknown error'}`)
+            // Revert on error
+            if (!isLiked) {
+                setLikedStartups(prev => {
+                    const newSet = new Set(prev)
+                    newSet.delete(startupId)
+                    return newSet
+                })
+            } else {
+                setLikedStartups(prev => new Set(prev).add(startupId))
+            }
         }
     }
 
@@ -156,11 +299,11 @@ const DesktopHomePage = () => {
                                 </div>
                                 <button
                                     type="button"
-                                    className="news-like-btn"
+                                    className={`news-like-btn ${likedStartups.has(startup.id) ? 'liked' : ''}`}
                                     onClick={() => handleLike(startup.id)}
-                                    aria-label="Like startup"
+                                    aria-label={likedStartups.has(startup.id) ? 'Unlike startup' : 'Like startup'}
                                 >
-                                    <i className="fa-regular fa-heart"></i>
+                                    <i className={likedStartups.has(startup.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}></i>
                                 </button>
                             </div>
                             <p className="news-card-description">{startup.description}</p>
@@ -173,8 +316,8 @@ const DesktopHomePage = () => {
                         <div className="news-card-footer">
                             <div className="news-card-stats">
                                 <div>
-                                    <i className="fa-regular fa-heart"></i>
-                                    <span>{startup.likes_count ?? '—'}</span>
+                                    <i className={likedStartups.has(startup.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}></i>
+                                    <span>{likesCountUpdates[startup.id] !== undefined ? likesCountUpdates[startup.id] : (startup.likes_count ?? '—')}</span>
                                 </div>
                                 <div>
                                     <i className="fa-regular fa-comment"></i>

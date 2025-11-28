@@ -520,27 +520,6 @@ const HomePageFixed = () => {
                                     <p className="card-description">{currentStartup.description}</p>
                                 </div>
 
-                                {/* Swipe Hints */}
-                                <div className="absolute top-4 left-4 opacity-40 hover:opacity-80 transition-opacity duration-300">
-                                    <div className="bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                                        <i className="fas fa-arrow-left text-xs text-red-400"></i>
-                                        Pass
-                                    </div>
-                                </div>
-
-                                <div className="absolute top-4 right-4 opacity-40 hover:opacity-80 transition-opacity duration-300">
-                                    <div className="bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                                        <i className="fas fa-arrow-right text-xs text-green-400"></i>
-                                        Like
-                                    </div>
-                                </div>
-
-                                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 opacity-60 hover:opacity-100 transition-opacity duration-300">
-                                    <div className="bg-black/50 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
-                                        <i className="fas fa-sync-alt text-xs"></i>
-                                        Double tap for details
-                                    </div>
-                                </div>
                             </div>
 
                             {/* Back Side */}
@@ -729,23 +708,6 @@ const HomePageFixed = () => {
                 </div>
             </div>
 
-            {/* Action buttons */}
-            <div className="action-buttons">
-                <button
-                    className="action-btn pass-btn"
-                    onClick={handlePass}
-                    disabled={isAnimating}
-                >
-                    <i className="fas fa-times"></i>
-                </button>
-                <button
-                    className="action-btn like-btn"
-                    onClick={handleLike}
-                    disabled={isAnimating}
-                >
-                    <i className="fas fa-heart"></i>
-                </button>
-            </div>
 
             {/* Tutorial Modal */}
             {showTutorial && (

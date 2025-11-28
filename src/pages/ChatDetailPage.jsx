@@ -44,17 +44,38 @@ const ChatDetailPage = () => {
         setError(null);
 
         // Get chat info and participants
-        const chatInfo = await chatService.getChatInfo(chatId);
-        const chatMessages = await chatService.getChatMessages(chatId);
+        console.log('Loading chat info for chatId:', chatId)
+        let chatInfo = await chatService.getChatInfo(chatId);
 
         if (!chatInfo) {
-          navigate('/chat');
-          return;
+          console.warn('Chat info is null for chatId:', chatId, '- retrying...')
+          // Try to wait a bit and retry once (chat might still be creating)
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          chatInfo = await chatService.getChatInfo(chatId)
+
+          if (!chatInfo) {
+            console.error('Chat still not found after retry for chatId:', chatId)
+            // Don't navigate immediately - show error
+            setError(`Chat not found. Chat ID: ${chatId}`)
+            return
+          }
+          console.log('Chat found on retry:', chatInfo)
         }
+
+        console.log('Chat info loaded:', chatInfo)
+
+        if (!chatInfo.participants || chatInfo.participants.length === 0) {
+          console.error('Chat has no participants:', chatInfo)
+          setError('Chat has no participants')
+          return
+        }
+
+        const chatMessages = await chatService.getChatMessages(chatId);
+        console.log('Chat messages loaded:', chatMessages.length)
 
         // Get participant profiles
         const participantProfiles = await Promise.all(
-          chatInfo.participants.map(async (participantId) => {
+          (chatInfo.participants || []).map(async (participantId) => {
             if (participantId === user.id) {
               return { id: user.id, full_name: user.user_metadata?.full_name || 'You' };
             }
@@ -69,7 +90,10 @@ const ChatDetailPage = () => {
 
       } catch (err) {
         console.error('Error loading chat:', err);
+        console.error('ChatId:', chatId, 'UserId:', user?.id);
         setError(err.message);
+        // Don't navigate away immediately - show error first
+        // navigate('/chat');
       } finally {
         setLoading(false);
       }

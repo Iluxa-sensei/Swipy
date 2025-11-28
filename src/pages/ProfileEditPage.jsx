@@ -1,35 +1,41 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider'
+import { useProfile } from '../hooks'
 import { profileService } from '../services/profileService'
 import { supabase } from '../services/supabaseClient'
 
 const ProfileEditPage = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
+    const { profile: existingProfile, loading: profileLoading, refetch: refetchProfile } = useProfile(user?.id)
     const [activeTab, setActiveTab] = useState('profile')
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
     const [showSuccessModal, setShowSuccessModal] = useState(false)
     const [avatarFile, setAvatarFile] = useState(null)
     const [avatarPreview, setAvatarPreview] = useState(null)
-    const [existingProfile, setExistingProfile] = useState(null)
 
     // Profile data with existing values
     const [profile, setProfile] = useState({
         full_name: '',
+        username: '',
         bio: '',
         location: '',
         website: '',
         linkedin_url: '',
         github_url: '',
+        instagram_url: '',
         company: '',
         job_title: '',
         experience_years: 0,
         skills: [],
         availability: 'Available',
         hourly_rate: '',
-        timezone: ''
+        timezone: '',
+        role: '',
+        interests: [],
+        industry: ''
     })
 
     // Portfolio data (renamed from startups)
@@ -42,7 +48,12 @@ const ProfileEditPage = () => {
     const [selectedCity, setSelectedCity] = useState('')
 
     const continents = [
-        'North America', 'South America', 'Europe', 'Asia', 'Africa', 'Oceania'
+        'Remote', 'North America', 'South America', 'Europe', 'Asia', 'Africa', 'Oceania'
+    ]
+
+    const interestCategories = [
+        "AI/ML", "FinTech", "HealthTech", "EdTech", "Sustainability",
+        "E-commerce", "Gaming", "Enterprise", "Mobile", "Web3"
     ]
 
     const countries = {
@@ -76,39 +87,49 @@ const ProfileEditPage = () => {
     }
 
     useEffect(() => {
-        if (user && existingProfile) {
+        if (existingProfile && !profileLoading) {
             loadProfileData()
         }
-    }, [user, existingProfile])
+    }, [existingProfile, profileLoading])
 
     const loadProfileData = async () => {
         setLoading(true)
         try {
-            // Use existing profile data first
             if (existingProfile) {
                 setProfile({
                     full_name: existingProfile.full_name || '',
+                    username: existingProfile.username || '',
                     bio: existingProfile.bio || '',
                     location: existingProfile.location || '',
                     website: existingProfile.website || '',
                     linkedin_url: existingProfile.linkedin_url || '',
                     github_url: existingProfile.github_url || '',
+                    instagram_url: existingProfile.instagram_url || '',
                     company: existingProfile.company || '',
                     job_title: existingProfile.job_title || '',
                     experience_years: existingProfile.experience_years || 0,
                     skills: existingProfile.skills || [],
                     availability: existingProfile.availability || 'Available',
                     hourly_rate: existingProfile.hourly_rate || '',
-                    timezone: existingProfile.timezone || ''
+                    timezone: existingProfile.timezone || '',
+                    role: existingProfile.role || '',
+                    interests: Array.isArray(existingProfile.interests) ? existingProfile.interests : [],
+                    industry: existingProfile.industry || ''
                 })
 
                 // Parse location for dropdowns
                 if (existingProfile.location) {
-                    const locationParts = existingProfile.location.split(', ')
-                    if (locationParts.length >= 3) {
-                        setSelectedCity(locationParts[0])
-                        setSelectedCountry(locationParts[1])
-                        setSelectedContinent(locationParts[2])
+                    if (existingProfile.location === 'Remote') {
+                        setSelectedContinent('Remote')
+                        setSelectedCountry('')
+                        setSelectedCity('')
+                    } else {
+                        const locationParts = existingProfile.location.split(', ')
+                        if (locationParts.length >= 3) {
+                            setSelectedCity(locationParts[0])
+                            setSelectedCountry(locationParts[1])
+                            setSelectedContinent(locationParts[2])
+                        }
                     }
                 }
             }
@@ -165,26 +186,88 @@ const ProfileEditPage = () => {
     }
 
     const uploadAvatar = async () => {
-        if (!avatarFile) return null
+        if (!avatarFile || !user?.id) {
+            console.error('No avatar file or user ID')
+            return null
+        }
 
         try {
             const fileExt = avatarFile.name.split('.').pop()
             const fileName = `${user.id}-${Date.now()}.${fileExt}`
             const filePath = `avatars/${fileName}`
 
-            const { error: uploadError } = await supabase.storage
+            console.log('Uploading avatar:', { fileName, filePath, fileSize: avatarFile.size, userId: user.id })
+
+            // Delete old avatar if exists
+            if (existingProfile?.avatar_url) {
+                try {
+                    // Extract path from full URL
+                    const url = new URL(existingProfile.avatar_url)
+                    const pathParts = url.pathname.split('/')
+                    const bucketIndex = pathParts.findIndex(part => part === 'storage')
+                    if (bucketIndex !== -1 && pathParts[bucketIndex + 1] === 'v1') {
+                        // Supabase storage URL format: /storage/v1/object/public/bucket/path
+                        const oldPath = pathParts.slice(bucketIndex + 4).join('/')
+                        console.log('Deleting old avatar:', oldPath)
+                        const { error: deleteError } = await supabase.storage.from('avatars').remove([oldPath])
+                        if (deleteError) {
+                            console.warn('Could not delete old avatar:', deleteError)
+                        } else {
+                            console.log('Old avatar deleted successfully')
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Could not delete old avatar:', e)
+                }
+            }
+
+            // Upload new avatar
+            console.log('Starting upload to:', filePath)
+            const { data: uploadData, error: uploadError } = await supabase.storage
                 .from('avatars')
-                .upload(filePath, avatarFile)
+                .upload(filePath, avatarFile, {
+                    cacheControl: '3600',
+                    upsert: false
+                })
 
-            if (uploadError) throw uploadError
+            if (uploadError) {
+                console.error('Upload error details:', {
+                    message: uploadError.message,
+                    statusCode: uploadError.statusCode,
+                    error: uploadError
+                })
 
-            const { data } = supabase.storage
+                // Check if bucket exists or if it's a permissions issue
+                if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('not found')) {
+                    alert('Storage bucket "avatars" not found. Please create it in Supabase Storage settings.')
+                } else if (uploadError.message?.includes('permission') || uploadError.message?.includes('policy')) {
+                    alert('Permission denied. Please check Storage policies in Supabase.')
+                } else {
+                    alert(`Error uploading avatar: ${uploadError.message || 'Unknown error'}`)
+                }
+                throw uploadError
+            }
+
+            console.log('Upload successful:', uploadData)
+
+            // Get public URL
+            const { data: { publicUrl } } = supabase.storage
                 .from('avatars')
                 .getPublicUrl(filePath)
 
-            return data.publicUrl
+            console.log('Public URL generated:', publicUrl)
+
+            // Verify URL is valid
+            if (!publicUrl || !publicUrl.startsWith('http')) {
+                throw new Error('Invalid public URL generated')
+            }
+
+            return publicUrl
         } catch (error) {
             console.error('Error uploading avatar:', error)
+            if (!error.message?.includes('permission') && !error.message?.includes('Bucket')) {
+                alert(`Error uploading avatar: ${error.message || 'Unknown error'}. Please check browser console for details.`)
+            }
             return null
         }
     }
@@ -193,27 +276,48 @@ const ProfileEditPage = () => {
         setSaving(true)
         try {
             // Upload avatar if selected
-            let avatarUrl = null
+            let avatarUrl = existingProfile?.avatar_url || null
             if (avatarFile) {
-                avatarUrl = await uploadAvatar()
+                const uploadedUrl = await uploadAvatar()
+                if (uploadedUrl) {
+                    avatarUrl = uploadedUrl
+                }
             }
 
             // Build location string from dropdowns
-            const locationString = selectedCity && selectedCountry && selectedContinent
-                ? `${selectedCity}, ${selectedCountry}, ${selectedContinent}`
-                : profile.location
+            const locationString = selectedContinent === 'Remote'
+                ? 'Remote'
+                : selectedCity && selectedCountry && selectedContinent
+                    ? `${selectedCity}, ${selectedCountry}, ${selectedContinent}`
+                    : profile.location
 
-            const { error } = await supabase
+            const profileData = {
+                id: user.id,
+                ...profile,
+                location: locationString,
+                avatar_url: avatarUrl,
+                updated_at: new Date().toISOString()
+            }
+
+            console.log('Saving profile data:', profileData)
+
+            const { data: savedData, error } = await supabase
                 .from('profiles')
-                .upsert({
-                    id: user.id,
-                    ...profile,
-                    location: locationString,
-                    avatar_url: avatarUrl || profile.avatar_url,
-                    updated_at: new Date().toISOString()
-                })
+                .upsert(profileData)
+                .select()
+                .single()
 
-            if (error) throw error
+            if (error) {
+                console.error('Error saving profile:', error)
+                throw error
+            }
+
+            console.log('Profile saved successfully:', savedData)
+
+            // Update cache by refetching profile
+            if (refetchProfile) {
+                await refetchProfile()
+            }
 
             // Show success modal
             setShowSuccessModal(true)
@@ -237,7 +341,7 @@ const ProfileEditPage = () => {
         { id: 'achievements', label: 'Achievements', icon: 'fas fa-trophy' }
     ]
 
-    if (loading) {
+    if (profileLoading || loading) {
         return (
             <div className="screen active bg-black/90 backdrop-blur-xl">
                 <div className="flex items-center justify-center h-full">
@@ -304,6 +408,7 @@ const ProfileEditPage = () => {
                         continents={continents}
                         countries={countries}
                         cities={cities}
+                        interestCategories={interestCategories}
                         avatarPreview={avatarPreview}
                         avatarFile={avatarFile}
                         handleAvatarUpload={handleAvatarUpload}
@@ -363,6 +468,7 @@ const ProfileTab = ({
     continents,
     countries,
     cities,
+    interestCategories,
     avatarPreview,
     avatarFile,
     handleAvatarUpload,
@@ -396,6 +502,16 @@ const ProfileTab = ({
                                 src={avatarPreview}
                                 alt="Avatar preview"
                                 className="w-full h-full object-cover"
+                            />
+                        ) : existingProfile?.avatar_url ? (
+                            <img
+                                src={existingProfile.avatar_url}
+                                alt="Current avatar"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    console.error('Error loading avatar image:', e)
+                                    e.target.style.display = 'none'
+                                }}
                             />
                         ) : (
                             <span className="text-white text-2xl font-bold">
@@ -453,6 +569,66 @@ const ProfileTab = ({
                     </div>
 
                     <div>
+                        <label className="block text-sm font-semibold text-white/80 mb-3">Username</label>
+                        <input
+                            type="text"
+                            value={profile.username}
+                            onChange={(e) => handleInputChange('username', e.target.value)}
+                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                            placeholder="@username"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-white/80 mb-3">Role</label>
+                        <select
+                            value={profile.role}
+                            onChange={(e) => handleInputChange('role', e.target.value)}
+                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                        >
+                            <option value="" className="bg-gray-800">Select Role</option>
+                            <option value="founder" className="bg-gray-800">Founder</option>
+                            <option value="investor" className="bg-gray-800">Investor</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-white/80 mb-3">Industry</label>
+                        <input
+                            type="text"
+                            value={profile.industry}
+                            onChange={(e) => handleInputChange('industry', e.target.value)}
+                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                            placeholder="e.g., AI/ML, FinTech, HealthTech"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-white/80 mb-3">Interests</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            {interestCategories.map((interest) => (
+                                <button
+                                    key={interest}
+                                    type="button"
+                                    onClick={() => {
+                                        const currentInterests = Array.isArray(profile.interests) ? profile.interests : []
+                                        const newInterests = currentInterests.includes(interest)
+                                            ? currentInterests.filter(i => i !== interest)
+                                            : [...currentInterests, interest]
+                                        setProfile(prev => ({ ...prev, interests: newInterests }))
+                                    }}
+                                    className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${Array.isArray(profile.interests) && profile.interests.includes(interest)
+                                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 border-blue-700 text-white shadow-lg'
+                                        : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                                        }`}
+                                >
+                                    {interest}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div>
                         <label className="block text-sm font-semibold text-white/80 mb-3">Bio</label>
                         <textarea
                             value={profile.bio}
@@ -468,8 +644,12 @@ const ProfileTab = ({
                             <label className="block text-sm font-semibold text-white/80 mb-3">Experience (years)</label>
                             <input
                                 type="number"
+                                min="0"
                                 value={profile.experience_years}
-                                onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
+                                onChange={(e) => {
+                                    const value = parseInt(e.target.value) || 0
+                                    handleInputChange('experience_years', Math.max(0, value))
+                                }}
                                 className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                                 placeholder="0"
                             />
@@ -502,44 +682,55 @@ const ProfileTab = ({
 
                 <div className="space-y-6">
                     <div>
-                        <label className="block text-sm font-semibold text-white/80 mb-3">Continent</label>
+                        <label className="block text-sm font-semibold text-white/80 mb-3">Location</label>
                         <select
                             value={selectedContinent}
                             onChange={(e) => {
-                                setSelectedContinent(e.target.value)
-                                setSelectedCountry('')
-                                setSelectedCity('')
+                                const value = e.target.value
+                                setSelectedContinent(value)
+                                if (value === 'Remote') {
+                                    setSelectedCountry('')
+                                    setSelectedCity('')
+                                } else {
+                                    setSelectedCountry('')
+                                    setSelectedCity('')
+                                }
                             }}
                             className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                         >
-                            <option value="" className="bg-gray-800">Select Continent</option>
-                            {continents.map(continent => (
+                            <option value="" className="bg-gray-800">Select Location</option>
+                            <option value="Remote" className="bg-gray-800">Remote</option>
+                            {continents.filter(c => c !== 'Remote').map(continent => (
                                 <option key={continent} value={continent} className="bg-gray-800">{continent}</option>
                             ))}
                         </select>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-white/80 mb-3">Country</label>
-                        <input
-                            type="text"
-                            value={selectedCountry}
-                            onChange={(e) => setSelectedCountry(e.target.value)}
-                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                            placeholder="Enter your country"
-                        />
-                    </div>
+                    {selectedContinent && selectedContinent !== 'Remote' && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-semibold text-white/80 mb-3">Country</label>
+                                <input
+                                    type="text"
+                                    value={selectedCountry}
+                                    onChange={(e) => setSelectedCountry(e.target.value)}
+                                    className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                    placeholder="Enter your country"
+                                />
+                            </div>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-white/80 mb-3">City</label>
-                        <input
-                            type="text"
-                            value={selectedCity}
-                            onChange={(e) => setSelectedCity(e.target.value)}
-                            className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                            placeholder="Enter your city"
-                        />
-                    </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-white/80 mb-3">City</label>
+                                <input
+                                    type="text"
+                                    value={selectedCity}
+                                    onChange={(e) => setSelectedCity(e.target.value)}
+                                    className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                    placeholder="Enter your city"
+                                />
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -632,6 +823,17 @@ const ProfileTab = ({
                                 onChange={(e) => handleInputChange('github_url', e.target.value)}
                                 className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                                 placeholder="https://github.com/username"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-white/80 mb-3">Instagram</label>
+                            <input
+                                type="url"
+                                value={profile.instagram_url}
+                                onChange={(e) => handleInputChange('instagram_url', e.target.value)}
+                                className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                placeholder="https://instagram.com/username"
                             />
                         </div>
                     </div>

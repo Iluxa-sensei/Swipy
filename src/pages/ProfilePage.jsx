@@ -43,8 +43,8 @@ const ProfilePage = () => {
 
   const userProfile = hasProfile ? {
     name: profile.full_name,
-    username: profile.full_name?.toLowerCase().replace(/\s+/g, '_') || 'user',
-    title: profile.title || 'Founder',
+    username: profile.username || profile.full_name?.toLowerCase().replace(/\s+/g, '_') || 'user',
+    title: profile.title || profile.role || 'Founder',
     avatar: profile.full_name?.charAt(0)?.toUpperCase() + (profile.full_name?.split(' ')[1]?.charAt(0)?.toUpperCase() || ''),
     location: profile.location,
     experience: profile.experience || '0 years',
@@ -234,51 +234,6 @@ const ProfilePage = () => {
             {userProfile.location && <span><i className="fas fa-map-marker-alt mr-1"></i>{userProfile.location}</span>}
             {userProfile.experience_years > 0 && <span><i className="fas fa-clock mr-1"></i>{userProfile.experience_years} years</span>}
           </div>
-
-          {/* Quick Stats */}
-          {(userProfile.hourlyRate || userProfile.availability) && (
-            <div className="flex items-center justify-center gap-4 mb-4">
-              {userProfile.hourlyRate && (
-                <>
-                  <div className="text-center">
-                    <div className="text-text-primary font-bold text-lg">{userProfile.hourlyRate}</div>
-                    <div className="text-text-secondary text-xs">Hourly Rate</div>
-                  </div>
-                  <div className="w-px h-8 bg-glass-border"></div>
-                </>
-              )}
-              <div className="text-center">
-                <div className="text-green-400 font-bold text-lg">{userProfile.availability}</div>
-                <div className="text-text-secondary text-xs">Status</div>
-              </div>
-            </div>
-          )}
-
-          {/* Social Links */}
-          {(profile?.github_url || profile?.linkedin_url || profile?.website) && (
-            <>
-              <div className="text-center mb-4">
-                <span className="text-text-secondary text-sm">Social Links</span>
-              </div>
-              <div className="flex items-center justify-center gap-3">
-                {profile?.github_url && (
-                  <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-gray-600 hover:text-white transition-all duration-200 hover:scale-110" href={profile.github_url} target="_blank" rel="noreferrer">
-                    <i className="fab fa-github text-lg"></i>
-                  </a>
-                )}
-                {profile?.linkedin_url && (
-                  <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-blue-600 hover:text-white transition-all duration-200 hover:scale-110" href={profile.linkedin_url} target="_blank" rel="noreferrer">
-                    <i className="fab fa-linkedin text-lg"></i>
-                  </a>
-                )}
-                {profile?.website && (
-                  <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-accent-primary hover:text-white transition-all duration-200 hover:scale-110" href={profile.website} target="_blank" rel="noreferrer">
-                    <i className="fas fa-globe text-lg"></i>
-                  </a>
-                )}
-              </div>
-            </>
-          )}
         </div>
 
         {/* Tabs Navigation */}
@@ -333,6 +288,91 @@ const ProfilePage = () => {
                 </h3>
                 <div className="bg-bg-secondary/80 border border-glass-border rounded-2xl p-6">
                   <p className="text-text-primary leading-relaxed text-lg">{profile.bio}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Social Links */}
+            {(profile?.github_url || profile?.linkedin_url || profile?.website || profile?.instagram_url) && (
+              <div className="p-6 border-t border-glass-border">
+                <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+                  <i className="fas fa-link text-blue-400"></i>
+                  Links
+                </h3>
+                <div className="bg-bg-secondary/80 border border-glass-border rounded-2xl p-6">
+                  <div className="flex items-center justify-center gap-3">
+                    {profile?.github_url && (
+                      <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-gray-600 hover:text-white transition-all duration-200 hover:scale-110" href={profile.github_url} target="_blank" rel="noreferrer">
+                        <i className="fab fa-github text-lg"></i>
+                      </a>
+                    )}
+                    {profile?.linkedin_url && (
+                      <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-blue-600 hover:text-white transition-all duration-200 hover:scale-110" href={profile.linkedin_url} target="_blank" rel="noreferrer">
+                        <i className="fab fa-linkedin text-lg"></i>
+                      </a>
+                    )}
+                    {profile?.instagram_url && (
+                      <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-pink-600 hover:text-white transition-all duration-200 hover:scale-110" href={profile.instagram_url} target="_blank" rel="noreferrer">
+                        <i className="fab fa-instagram text-lg"></i>
+                      </a>
+                    )}
+                    {profile?.website && (
+                      <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-accent-primary hover:text-white transition-all duration-200 hover:scale-110" href={profile.website} target="_blank" rel="noreferrer">
+                        <i className="fas fa-globe text-lg"></i>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Statistics */}
+            {(userProfile.hourlyRate || userProfile.availability) && (
+              <div className="p-6 border-t border-glass-border">
+                <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+                  <i className="fas fa-chart-bar text-blue-400"></i>
+                  Statistics
+                </h3>
+                <div className="bg-bg-secondary/80 border border-glass-border rounded-2xl p-6">
+                  <div className="flex items-center justify-center gap-4">
+                    {userProfile.hourlyRate && (
+                      <>
+                        <div className="text-center">
+                          <div className="text-text-primary font-bold text-lg">{userProfile.hourlyRate}</div>
+                          <div className="text-text-secondary text-xs">Hourly Rate</div>
+                        </div>
+                        {userProfile.availability && <div className="w-px h-8 bg-glass-border"></div>}
+                      </>
+                    )}
+                    {userProfile.availability && (
+                      <div className="text-center">
+                        <div className="text-green-400 font-bold text-lg">{userProfile.availability}</div>
+                        <div className="text-text-secondary text-xs">Status</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Interests */}
+            {profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0 && (
+              <div className="p-6 border-t border-glass-border">
+                <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+                  <i className="fas fa-heart text-blue-400"></i>
+                  Interests
+                </h3>
+                <div className="bg-bg-secondary/80 border border-glass-border rounded-2xl p-6">
+                  <div className="flex flex-wrap gap-3">
+                    {profile.interests.map((interest, index) => (
+                      <span
+                        key={index}
+                        className="px-4 py-2 bg-accent-primary/20 text-accent-primary rounded-full text-sm font-medium border border-accent-primary/30"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
