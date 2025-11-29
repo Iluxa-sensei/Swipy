@@ -221,8 +221,26 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                                 {isSearching && (
                                     <i className="fa-solid fa-spinner fa-spin" style={{ marginLeft: '8px', color: 'rgba(255, 255, 255, 0.5)' }}></i>
                                 )}
+                                {console.log('Render check:', {
+                                    showSearchResults,
+                                    startupsCount: searchResults.startups.length,
+                                    profilesCount: searchResults.profiles.length,
+                                    shouldShow: showSearchResults && (searchResults.startups.length > 0 || searchResults.profiles.length > 0)
+                                })}
                                 {showSearchResults && (searchResults.startups.length > 0 || searchResults.profiles.length > 0) && (
-                                    <div className="desktop-search-results">
+                                    <div className="desktop-search-results" style={{
+                                        position: 'absolute',
+                                        top: 'calc(100% + 8px)',
+                                        left: 0,
+                                        right: 0,
+                                        background: 'rgba(0, 0, 0, 0.95)',
+                                        borderRadius: '16px',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        padding: '8px',
+                                        zIndex: 99999,
+                                        display: 'block'
+                                    }}>
+                                        {console.log('DROPDOWN RENDERING!', searchResults)}
                                         {searchResults.startups.length > 0 && (
                                             <div className="search-results-section">
                                                 <div className="search-results-header">

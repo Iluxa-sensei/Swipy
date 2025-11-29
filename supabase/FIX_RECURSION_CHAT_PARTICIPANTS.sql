@@ -65,3 +65,4 @@ create policy "Users can view chat participants of their chats" on public.chat_p
     public.user_is_chat_participant(chat_participants.chat_id, auth.uid())
   );
 
+

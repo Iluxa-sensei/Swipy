@@ -1648,6 +1648,9 @@
     width: 100%;
     max-width: 100%;
     margin-bottom: 10px;
+    overflow: visible;
+    position: relative;
+    z-index: 1;
   }
 
   .desktop-header-title h1 {
@@ -1671,6 +1674,8 @@
     display: flex;
     align-items: center;
     gap: 16px;
+    position: relative;
+    z-index: 10;
   }
 
   .desktop-header-actions.wide {
@@ -1686,6 +1691,8 @@
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.04);
+    position: relative;
+    overflow: visible !important;
   }
 
   .desktop-search.wide {
@@ -1705,19 +1712,25 @@
   }
 
   .desktop-search-results {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    right: 0;
+    position: absolute !important;
+    top: calc(100% + 8px) !important;
+    left: 0 !important;
+    right: 0 !important;
     max-height: 400px;
     overflow-y: auto;
-    background: rgba(0, 0, 0, 0.95);
+    overflow-x: visible !important;
+    background: rgba(0, 0, 0, 0.95) !important;
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
+    borderRadius: 16px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    z-index: 1000;
+    z-index: 9999 !important;
     padding: 8px;
+    min-height: 50px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
 
   .search-results-section {

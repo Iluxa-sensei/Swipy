@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStartupsLazy, useSwipes, useAuth } from '../hooks'
 import OnboardingTutorial from '../components/OnboardingTutorial'
+import { searchService } from '../services/searchService'
 
 const HomePageFixed = () => {
     const { user } = useAuth()
@@ -26,6 +27,10 @@ const HomePageFixed = () => {
     const [currentPos, setCurrentPos] = useState({ x: 0, y: 0 })
     const [showTutorial, setShowTutorial] = useState(false)
 
+    // TEST: Search results display
+    const [testSearchQuery, setTestSearchQuery] = useState('')
+    const [testSearchResults, setTestSearchResults] = useState({ startups: [], profiles: [] })
+
     const cardRef = useRef(null)
     const lastTapRef = useRef(0)
     const navigate = useNavigate()
@@ -45,6 +50,37 @@ const HomePageFixed = () => {
     console.log('displayStartups:', displayStartups)
     console.log('displayStartups.length:', displayStartups?.length)
     console.log('============================')
+
+    // TEST: Search functionality
+    useEffect(() => {
+        const performTestSearch = async () => {
+            if (!testSearchQuery.trim() || testSearchQuery.trim().length < 2) {
+                setTestSearchResults({ startups: [], profiles: [] })
+                return
+            }
+
+            const query = testSearchQuery.trim()
+            const isUserSearch = query.startsWith('@')
+            const searchTerm = isUserSearch ? query.substring(1).trim() : query
+
+            try {
+                if (isUserSearch && searchTerm.length >= 2) {
+                    const profiles = await searchService.searchProfiles(searchTerm, 5)
+                    console.log('TEST SEARCH PROFILES:', profiles)
+                    setTestSearchResults({ startups: [], profiles })
+                } else if (!isUserSearch && query.length >= 2) {
+                    const startups = await searchService.searchStartups(searchTerm, 5)
+                    console.log('TEST SEARCH STARTUPS:', startups)
+                    setTestSearchResults({ startups, profiles: [] })
+                }
+            } catch (error) {
+                console.error('Test search error:', error)
+            }
+        }
+
+        const timer = setTimeout(performTestSearch, 300)
+        return () => clearTimeout(timer)
+    }, [testSearchQuery])
 
     useEffect(() => {
         const tutorialCompleted = localStorage.getItem('tutorial-completed')
@@ -337,6 +373,74 @@ const HomePageFixed = () => {
 
     return (
         <div className="screen active">
+
+            {/* TEST SEARCH BOX */}
+            <div style={{
+                position: 'fixed',
+                top: '80px',
+                right: '20px',
+                background: 'rgba(0,0,0,0.9)',
+                padding: '20px',
+                borderRadius: '12px',
+                border: '2px solid #00ff00',
+                zIndex: 99999,
+                maxWidth: '300px',
+                color: 'white'
+            }}>
+                <h3 style={{ color: '#00ff00', marginBottom: '10px' }}>TEST SEARCH</h3>
+                <input
+                    type="text"
+                    placeholder="Type to search..."
+                    value={testSearchQuery}
+                    onChange={(e) => setTestSearchQuery(e.target.value)}
+                    style={{
+                        width: '100%',
+                        padding: '8px',
+                        marginBottom: '10px',
+                        borderRadius: '6px',
+                        border: '1px solid #00ff00',
+                        background: 'rgba(0,0,0,0.5)',
+                        color: 'white'
+                    }}
+                />
+                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    {testSearchResults.profiles.length > 0 && (
+                        <div>
+                            <h4 style={{ color: '#00ff00' }}>PROFILES:</h4>
+                            {testSearchResults.profiles.map(profile => (
+                                <div key={profile.id} style={{
+                                    padding: '8px',
+                                    marginBottom: '5px',
+                                    background: 'rgba(0,255,0,0.1)',
+                                    borderRadius: '4px'
+                                }}>
+                                    <div>{profile.full_name || profile.username}</div>
+                                    <div style={{ fontSize: '12px', opacity: 0.7 }}>@{profile.username}</div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {testSearchResults.startups.length > 0 && (
+                        <div>
+                            <h4 style={{ color: '#00ff00' }}>STARTUPS:</h4>
+                            {testSearchResults.startups.map(startup => (
+                                <div key={startup.id} style={{
+                                    padding: '8px',
+                                    marginBottom: '5px',
+                                    background: 'rgba(0,255,0,0.1)',
+                                    borderRadius: '4px'
+                                }}>
+                                    <div>{startup.name}</div>
+                                    <div style={{ fontSize: '12px', opacity: 0.7 }}>{startup.industry}</div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {testSearchQuery.length >= 2 && testSearchResults.profiles.length === 0 && testSearchResults.startups.length === 0 && (
+                        <div style={{ color: '#ff0000' }}>No results found</div>
+                    )}
+                </div>
+            </div>
 
             <div className="header">
                 <button className="header-btn" onClick={() => navigate('/filters')}>

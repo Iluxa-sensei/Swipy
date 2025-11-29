@@ -68,17 +68,31 @@ const DesktopChatPage = () => {
             }
 
             try {
+                let profiles = []
+                let startups = []
+
                 if (isUserSearch) {
-                    const profiles = await searchService.searchProfiles(searchTerm, 5)
-                    setSearchResults({ startups: [], profiles })
+                    console.log('Chat search: Searching for users with term:', searchTerm)
+                    profiles = await searchService.searchProfiles(searchTerm, 5)
+                    console.log('Chat search: User results:', profiles)
                 } else {
-                    const startups = await searchService.searchStartups(searchTerm, 5)
-                    setSearchResults({ startups, profiles: [] })
+                    console.log('Chat search: Searching for startups with term:', searchTerm)
+                    startups = await searchService.searchStartups(searchTerm, 5)
+                    console.log('Chat search: Startup results:', startups)
                 }
-                setShowSearchResults(true)
+
+                setSearchResults({ startups, profiles })
+
+                // Show results if we have any, otherwise hide dropdown
+                if (startups.length > 0 || profiles.length > 0) {
+                    setShowSearchResults(true)
+                } else {
+                    setShowSearchResults(false)
+                }
             } catch (error) {
                 console.error('Search error:', error)
                 setSearchResults({ startups: [], profiles: [] })
+                setShowSearchResults(false)
             } finally {
                 setIsSearching(false)
             }
@@ -396,8 +410,20 @@ const DesktopChatPage = () => {
                         type="text"
                         placeholder="Search conversations, startups or @users..."
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onFocus={() => searchQuery && setShowSearchResults(true)}
+                        onChange={(e) => {
+                            const value = e.target.value
+                            setSearchQuery(value)
+                            if (value.trim().length >= 2) {
+                                // Will show results when they arrive
+                            } else {
+                                setShowSearchResults(false)
+                            }
+                        }}
+                        onFocus={() => {
+                            if (searchQuery.trim().length >= 2) {
+                                setShowSearchResults(true)
+                            }
+                        }}
                         className="w-full pl-12 pr-4 py-4 bg-bg-secondary/80 border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-300"
                     />
                     {isSearching && (
@@ -405,9 +431,24 @@ const DesktopChatPage = () => {
                             <i className="fa-solid fa-spinner fa-spin text-text-secondary"></i>
                         </div>
                     )}
-                    {showSearchResults && (searchResults.startups.length > 0 || searchResults.profiles.length > 0) && (
+                    {(showSearchResults || isSearching) && searchQuery.trim().length >= 2 && (
                         <div className="desktop-search-results" style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '8px', zIndex: 1000 }}>
-                            {searchResults.startups.length > 0 && (
+                            {isSearching && (
+                                <div className="search-results-section">
+                                    <div className="text-text-secondary text-sm px-4 py-3 text-center flex items-center justify-center gap-2">
+                                        <i className="fa-solid fa-spinner fa-spin"></i>
+                                        <span>Searching...</span>
+                                    </div>
+                                </div>
+                            )}
+                            {!isSearching && searchResults.startups.length === 0 && searchResults.profiles.length === 0 && (
+                                <div className="search-results-section">
+                                    <div className="text-text-secondary text-sm px-4 py-3 text-center">
+                                        No results found for "{searchQuery}"
+                                    </div>
+                                </div>
+                            )}
+                            {!isSearching && searchResults.startups.length > 0 && (
                                 <div className="search-results-section">
                                     <div className="search-results-header">
                                         <i className="fa-solid fa-rocket"></i>
