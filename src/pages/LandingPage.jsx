@@ -5,6 +5,7 @@ const LandingPage = () => {
     const navigate = useNavigate()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const logoRef = useRef(null)
+    const heroRef = useRef(null)
 
     // Enable scrolling for landing page
     useEffect(() => {
@@ -12,10 +13,29 @@ const LandingPage = () => {
         document.body.style.position = 'relative'
         document.documentElement.style.scrollBehavior = 'smooth'
 
+        // Add scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1'
+                    entry.target.style.transform = 'translateY(0)'
+                }
+            })
+        }, observerOptions)
+
+        const elements = document.querySelectorAll('.fade-in-up')
+        elements.forEach(el => observer.observe(el))
+
         return () => {
             document.body.style.overflow = ''
             document.body.style.position = ''
             document.documentElement.style.scrollBehavior = ''
+            observer.disconnect()
         }
     }, [])
 
@@ -41,20 +61,101 @@ const LandingPage = () => {
     return (
         <>
             <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+                
+                * {
+                    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                }
+
+                .landing-logo {
+                    image-rendering: -webkit-optimize-contrast;
+                    image-rendering: crisp-edges;
+                }
+
+                .fade-in-up {
+                    opacity: 0;
+                    transform: translateY(30px);
+                    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+                }
+
+                .device-mockup {
+                    position: relative;
+                    filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.3));
+                    transition: transform 0.3s ease;
+                }
+
+                .device-mockup:hover {
+                    transform: translateY(-10px);
+                }
+
+                .laptop-mockup {
+                    width: 100%;
+                    max-width: 900px;
+                    margin: 0 auto;
+                }
+
+                .phone-mockup {
+                    width: 100%;
+                    max-width: 300px;
+                    margin: 0 auto;
+                }
+
+                .gradient-text {
+                    background: linear-gradient(135deg, #6ba0ff 0%, #4880ff 50%, #2d60ff 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                }
+
+                .glass-effect {
+                    background: rgba(255, 255, 255, 0.05);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
+
+                @keyframes float {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-20px); }
+                }
+
+                .float-animation {
+                    animation: float 6s ease-in-out infinite;
+                }
+
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.7; }
+                }
+
+                .pulse-animation {
+                    animation: pulse 3s ease-in-out infinite;
+                }
+
                 @media (max-width: 768px) {
                     .desktop-hero.modern {
                         margin-top: 64px !important;
                     }
-                }
-                .landing-logo {
-                    image-rendering: -webkit-optimize-contrast;
-                    image-rendering: crisp-edges;
-                    -ms-interpolation-mode: nearest-neighbor;
+                    
+                    .device-mockup-container {
+                        flex-direction: column !important;
+                        gap: 40px !important;
+                    }
+                    
+                    .laptop-mockup {
+                        max-width: 100% !important;
+                        flex: 1 1 100% !important;
+                    }
+                    
+                    .phone-mockup {
+                        max-width: 250px !important;
+                        flex: 0 1 250px !important;
+                    }
                 }
             `}</style>
-            <div className="min-h-screen" style={{ background: '#000000', color: '#FFFFFF', overflowY: 'auto' }}>
+            <div className="min-h-screen" style={{ background: '#0a0a0a', color: '#FFFFFF', overflowY: 'auto' }}>
                 {/* Minimal Navbar */}
-                <nav className="fixed top-0 left-0 right-0 z-50" style={{ background: 'rgba(0, 0, 0, 0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                <nav className="fixed top-0 left-0 right-0 z-50 glass-effect">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center justify-between h-16 md:h-20">
                             {/* Logo */}
@@ -82,20 +183,20 @@ const LandingPage = () => {
                             {/* Desktop Navigation */}
                             <div className="hidden md:flex items-center gap-8">
                                 <a
-                                    href="#how-it-works"
-                                    onClick={(e) => handleAnchorClick(e, '#how-it-works')}
-                                    style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem', fontWeight: '400' }}
-                                    className="hover:text-white transition-colors"
-                                >
-                                    How It Works
-                                </a>
-                                <a
                                     href="#features"
                                     onClick={(e) => handleAnchorClick(e, '#features')}
-                                    style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem', fontWeight: '400' }}
+                                    style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.95rem', fontWeight: '500' }}
                                     className="hover:text-white transition-colors"
                                 >
                                     Features
+                                </a>
+                                <a
+                                    href="#how-it-works"
+                                    onClick={(e) => handleAnchorClick(e, '#how-it-works')}
+                                    style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.95rem', fontWeight: '500' }}
+                                    className="hover:text-white transition-colors"
+                                >
+                                    How It Works
                                 </a>
                             </div>
 
@@ -103,7 +204,7 @@ const LandingPage = () => {
                             <button
                                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                                 className="md:hidden w-10 h-10 flex items-center justify-center"
-                                style={{ color: 'rgba(255, 255, 255, 0.6)' }}
+                                style={{ color: 'rgba(255, 255, 255, 0.7)' }}
                             >
                                 <i className={`fas ${mobileMenuOpen ? 'fa-times' : 'fa-bars'} text-xl`}></i>
                             </button>
@@ -112,7 +213,7 @@ const LandingPage = () => {
                             <div className="hidden md:flex items-center gap-4">
                                 <button
                                     onClick={() => navigate('/login')}
-                                    style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem', fontWeight: '400' }}
+                                    style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.95rem', fontWeight: '500' }}
                                     className="hover:text-white transition-colors"
                                 >
                                     Log In
@@ -120,18 +221,25 @@ const LandingPage = () => {
                                 <button
                                     onClick={() => navigate('/login')}
                                     style={{
-                                        background: '#ffffff',
-                                        color: '#000000',
+                                        background: 'linear-gradient(135deg, #4880ff 0%, #2d60ff 100%)',
+                                        color: '#ffffff',
                                         padding: '10px 24px',
-                                        borderRadius: '6px',
-                                        fontSize: '0.9rem',
-                                        fontWeight: '500',
+                                        borderRadius: '8px',
+                                        fontSize: '0.95rem',
+                                        fontWeight: '600',
                                         border: 'none',
                                         cursor: 'pointer',
-                                        transition: 'all 0.2s ease'
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: '0 4px 15px rgba(72, 128, 255, 0.4)'
                                     }}
-                                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(-2px)'
+                                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(72, 128, 255, 0.5)'
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(0)'
+                                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(72, 128, 255, 0.4)'
+                                    }}
                                 >
                                     Sign Up
                                 </button>
@@ -140,38 +248,38 @@ const LandingPage = () => {
 
                         {/* Mobile Menu */}
                         {mobileMenuOpen && (
-                            <div className="md:hidden" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)', background: 'rgba(0, 0, 0, 0.95)', backdropFilter: 'blur(12px)' }}>
+                            <div className="md:hidden glass-effect" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
                                 <div className="px-4 py-4 space-y-4">
-                                    <a
-                                        href="#how-it-works"
-                                        onClick={(e) => {
-                                            handleAnchorClick(e, '#how-it-works')
-                                            setMobileMenuOpen(false)
-                                        }}
-                                        style={{ color: 'rgba(255, 255, 255, 0.6)' }}
-                                        className="block hover:text-white transition-colors py-2"
-                                    >
-                                        How It Works
-                                    </a>
                                     <a
                                         href="#features"
                                         onClick={(e) => {
                                             handleAnchorClick(e, '#features')
                                             setMobileMenuOpen(false)
                                         }}
-                                        style={{ color: 'rgba(255, 255, 255, 0.6)' }}
+                                        style={{ color: 'rgba(255, 255, 255, 0.7)' }}
                                         className="block hover:text-white transition-colors py-2"
                                     >
                                         Features
                                     </a>
-                                    <div className="pt-4" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                                    <a
+                                        href="#how-it-works"
+                                        onClick={(e) => {
+                                            handleAnchorClick(e, '#how-it-works')
+                                            setMobileMenuOpen(false)
+                                        }}
+                                        style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                                        className="block hover:text-white transition-colors py-2"
+                                    >
+                                        How It Works
+                                    </a>
+                                    <div className="pt-4" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
                                         <div className="flex flex-col gap-3">
                                             <button
                                                 onClick={() => {
                                                     navigate('/login')
                                                     setMobileMenuOpen(false)
                                                 }}
-                                                style={{ color: 'rgba(255, 255, 255, 0.6)' }}
+                                                style={{ color: 'rgba(255, 255, 255, 0.7)' }}
                                                 className="w-full px-4 py-2 hover:text-white transition-colors text-left"
                                             >
                                                 Log In
@@ -182,12 +290,12 @@ const LandingPage = () => {
                                                     setMobileMenuOpen(false)
                                                 }}
                                                 style={{
-                                                    background: '#ffffff',
-                                                    color: '#000000',
+                                                    background: 'linear-gradient(135deg, #4880ff 0%, #2d60ff 100%)',
+                                                    color: '#ffffff',
                                                     padding: '12px 24px',
-                                                    borderRadius: '6px',
-                                                    fontSize: '0.9rem',
-                                                    fontWeight: '500',
+                                                    borderRadius: '8px',
+                                                    fontSize: '0.95rem',
+                                                    fontWeight: '600',
                                                     border: 'none',
                                                     cursor: 'pointer',
                                                     width: '100%'
@@ -203,86 +311,168 @@ const LandingPage = () => {
                     </div>
                 </nav>
 
-                {/* Hero Section - Minimalist */}
-                <section style={{
-                    minHeight: '100vh',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    padding: '120px 24px 80px',
-                    maxWidth: '1200px',
-                    margin: '0 auto',
-                    textAlign: 'center'
-                }}>
-                    <h1 style={{
-                        fontSize: 'clamp(3rem, 8vw, 6rem)',
-                        fontWeight: '300',
-                        letterSpacing: '-0.02em',
-                        lineHeight: '1.1',
-                        marginBottom: '32px',
-                        color: '#ffffff'
+                {/* Hero Section with Device Mockups */}
+                <section 
+                    ref={heroRef}
+                    style={{
+                        minHeight: '100vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        padding: '120px 24px 80px',
+                        maxWidth: '1400px',
+                        margin: '0 auto',
+                        textAlign: 'center',
+                        position: 'relative'
+                    }}
+                >
+                    <div className="fade-in-up" style={{ marginBottom: '60px', maxWidth: '900px' }}>
+                        <h1 style={{
+                            fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+                            fontWeight: '700',
+                            letterSpacing: '-0.03em',
+                            lineHeight: '1.1',
+                            marginBottom: '24px',
+                            color: '#ffffff'
+                        }}>
+                            Tinder for{' '}
+                            <span style={{ color: '#4880ff' }}>Startups</span>
+                        </h1>
+                        <p style={{
+                            fontSize: 'clamp(1.125rem, 2vw, 1.5rem)',
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            maxWidth: '700px',
+                            margin: '0 auto 48px',
+                            lineHeight: '1.6',
+                            fontWeight: '400'
+                        }}>
+                            Discover, connect, and invest in the next generation of innovative startups. Swipe your way to the perfect match.
+                        </p>
+                        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <button
+                                onClick={() => navigate('/login')}
+                                style={{
+                                    background: 'linear-gradient(135deg, #1a2a3c 0%, #0e121c 100%)',
+                                    color: '#ffffff',
+                                    padding: '16px 40px',
+                                    borderRadius: '12px',
+                                    fontSize: '1rem',
+                                    fontWeight: '600',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 4px 20px rgba(72, 128, 255, 0.4)'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-2px)'
+                                    e.currentTarget.style.boxShadow = '0 6px 25px rgba(72, 128, 255, 0.5)'
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)'
+                                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(72, 128, 255, 0.4)'
+                                }}
+                            >
+                                Get Started Free
+                            </button>
+                            <button
+                                onClick={() => handleAnchorClick({ preventDefault: () => { } }, '#how-it-works')}
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    color: '#ffffff',
+                                    padding: '16px 40px',
+                                    borderRadius: '12px',
+                                    fontSize: '1rem',
+                                    fontWeight: '600',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
+                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
+                                }}
+                            >
+                                Learn More
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Device Mockups - Side by Side */}
+                    <div className="fade-in-up device-mockup-container" style={{ 
+                        width: '100%', 
+                        marginTop: '80px',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        gap: '60px',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexWrap: 'wrap'
                     }}>
-                        Tinder for Startups
-                    </h1>
-                    <p style={{
-                        fontSize: 'clamp(1.125rem, 2.5vw, 1.5rem)',
-                        color: 'rgba(255, 255, 255, 0.6)',
-                        maxWidth: '700px',
-                        marginBottom: '48px',
-                        lineHeight: '1.6',
-                        fontWeight: '300'
-                    }}>
-                        Discover, connect, and invest in the next generation of innovative startups. Swipe your way to the perfect match.
-                    </p>
-                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        <button
-                            onClick={() => navigate('/login')}
-                            style={{
-                                background: '#ffffff',
-                                color: '#000000',
-                                padding: '16px 32px',
-                                borderRadius: '6px',
-                                fontSize: '1rem',
-                                fontWeight: '500',
-                                border: 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                            onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                        >
-                            Get Started
-                        </button>
-                        <button
-                            onClick={() => handleAnchorClick({ preventDefault: () => { } }, '#how-it-works')}
-                            style={{
-                                background: 'transparent',
-                                color: '#ffffff',
-                                padding: '16px 32px',
-                                borderRadius: '6px',
-                                fontSize: '1rem',
-                                fontWeight: '500',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
-                                e.currentTarget.style.background = 'transparent'
-                            }}
-                        >
-                            Learn More
-                        </button>
+                        {/* Laptop Mockup */}
+                        <div className="device-mockup laptop-mockup float-animation" style={{ 
+                            animationDelay: '0s',
+                            maxWidth: '600px',
+                            flex: '1 1 500px',
+                            minWidth: '300px'
+                        }}>
+                            <img 
+                                src="/laptop-mockup.png" 
+                                alt="Desktop Screenshot" 
+                                style={{
+                                    width: '100%',
+                                    height: 'auto',
+                                    display: 'block',
+                                    filter: 'drop-shadow(0 20px 60px rgba(0, 0, 0, 0.3))'
+                                }}
+                                onError={(e) => {
+                                    // Fallback if image doesn't exist
+                                    e.target.style.display = 'none'
+                                    e.target.nextSibling.style.display = 'block'
+                                }}
+                            />
+                            <div style={{ display: 'none', textAlign: 'center', color: 'rgba(255, 255, 255, 0.5)', padding: '40px' }}>
+                                <i className="fas fa-laptop" style={{ fontSize: '3rem', marginBottom: '16px', opacity: 0.3 }}></i>
+                                <div>Place laptop-mockup.png in public folder</div>
+                            </div>
+                        </div>
+
+                        {/* Phone Mockup */}
+                        <div className="device-mockup phone-mockup float-animation" style={{ 
+                            animationDelay: '1s',
+                            maxWidth: '280px',
+                            flex: '0 1 280px',
+                            minWidth: '200px'
+                        }}>
+                            <img 
+                                src="/phone-mockup.png" 
+                                alt="Mobile Screenshot" 
+                                style={{
+                                    width: '100%',
+                                    height: 'auto',
+                                    display: 'block',
+                                    filter: 'drop-shadow(0 20px 60px rgba(0, 0, 0, 0.3))'
+                                }}
+                                onError={(e) => {
+                                    // Fallback if image doesn't exist
+                                    e.target.style.display = 'none'
+                                    e.target.nextSibling.style.display = 'block'
+                                }}
+                            />
+                            <div style={{ display: 'none', textAlign: 'center', color: 'rgba(255, 255, 255, 0.5)', padding: '20px' }}>
+                                <i className="fas fa-mobile-alt" style={{ fontSize: '2rem', marginBottom: '12px', opacity: 0.3 }}></i>
+                                <div>Place phone-mockup.png in public folder</div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
-                {/* How It Works Section */}
-                <section id="how-it-works" style={{
+                {/* Features Section */}
+                <section id="features" className="fade-in-up" style={{
                     padding: '120px 24px',
                     maxWidth: '1200px',
                     margin: '0 auto'
@@ -290,7 +480,127 @@ const LandingPage = () => {
                     <div style={{ textAlign: 'center', marginBottom: '80px' }}>
                         <h2 style={{
                             fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-                            fontWeight: '300',
+                            fontWeight: '700',
+                            letterSpacing: '-0.02em',
+                            marginBottom: '16px',
+                            color: '#ffffff'
+                        }}>
+                            Powerful Features
+                        </h2>
+                        <p style={{
+                            fontSize: 'clamp(1rem, 2vw, 1.25rem)',
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            maxWidth: '600px',
+                            margin: '0 auto',
+                            lineHeight: '1.6',
+                            fontWeight: '400'
+                        }}>
+                            Everything you need to discover and invest in innovative startups
+                        </p>
+                    </div>
+
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))',
+                        gap: 'clamp(32px, 5vw, 48px)'
+                    }}>
+                        {[
+                            {
+                                icon: 'fa-rocket',
+                                title: 'Curated Startups',
+                                description: 'Access a carefully selected database of innovative startups across various industries and stages.',
+                            },
+                            {
+                                icon: 'fa-brain',
+                                title: 'Smart Matching',
+                                description: 'Our algorithm learns your preferences and suggests startups that align with your investment goals.',
+                            },
+                            {
+                                icon: 'fa-comments',
+                                title: 'Direct Communication',
+                                description: 'Connect directly with founders through our built-in messaging system. No middlemen, no delays.',
+                            },
+                            {
+                                icon: 'fa-bell',
+                                title: 'Real-time Updates',
+                                description: 'Stay informed about new startups, funding rounds, and opportunities as they happen.',
+                            },
+                            {
+                                icon: 'fa-shield-alt',
+                                title: 'Secure Platform',
+                                description: 'Your data and investments are protected with enterprise-grade security and privacy measures.',
+                            },
+                            {
+                                icon: 'fa-globe',
+                                title: 'Global Reach',
+                                description: 'Discover startups from around the world. Expand your investment portfolio beyond borders.',
+                            },
+                        ].map((feature, index) => (
+                            <div key={index} style={{
+                                padding: '40px',
+                                background: 'rgba(255, 255, 255, 0.03)',
+                                borderRadius: '16px',
+                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                transition: 'all 0.3s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
+                                e.currentTarget.style.transform = 'translateY(-4px)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)'
+                                e.currentTarget.style.transform = 'translateY(0)'
+                            }}
+                            >
+                                <div style={{
+                                    width: '56px',
+                                    height: '56px',
+                                    background: 'linear-gradient(135deg, #1a2a3c 0%, #0e121c 100%)',
+                                    borderRadius: '12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    marginBottom: '24px',
+                                    fontSize: '24px',
+                                    color: '#ffffff'
+                                }}>
+                                    <i className={`fas ${feature.icon}`}></i>
+                                </div>
+                                <h3 style={{
+                                    fontSize: 'clamp(1.25rem, 2.5vw, 1.5rem)',
+                                    fontWeight: '600',
+                                    marginBottom: '12px',
+                                    color: '#ffffff',
+                                    letterSpacing: '-0.01em'
+                                }}>
+                                    {feature.title}
+                                </h3>
+                                <p style={{
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    fontSize: 'clamp(0.95rem, 1.8vw, 1rem)',
+                                    lineHeight: '1.7',
+                                    fontWeight: '400'
+                                }}>
+                                    {feature.description}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* How It Works Section */}
+                <section id="how-it-works" className="fade-in-up" style={{
+                    padding: '120px 24px',
+                    maxWidth: '1200px',
+                    margin: '0 auto',
+                    background: 'rgba(255, 255, 255, 0.02)'
+                }}>
+                    <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+                        <h2 style={{
+                            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+                            fontWeight: '700',
                             letterSpacing: '-0.02em',
                             marginBottom: '16px',
                             color: '#ffffff'
@@ -299,10 +609,11 @@ const LandingPage = () => {
                         </h2>
                         <p style={{
                             fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-                            color: 'rgba(255, 255, 255, 0.6)',
+                            color: 'rgba(255, 255, 255, 0.7)',
                             maxWidth: '600px',
                             margin: '0 auto',
-                            lineHeight: '1.6'
+                            lineHeight: '1.6',
+                            fontWeight: '400'
                         }}>
                             Simple, fast, and effective way to connect with startups
                         </p>
@@ -310,7 +621,7 @@ const LandingPage = () => {
 
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
                         gap: 'clamp(40px, 6vw, 60px)',
                         marginTop: '80px'
                     }}>
@@ -334,8 +645,8 @@ const LandingPage = () => {
                             <div key={index}>
                                 <div style={{
                                     fontSize: 'clamp(3rem, 6vw, 5rem)',
-                                    fontWeight: '300',
-                                    color: 'rgba(255, 255, 255, 0.1)',
+                                    fontWeight: '700',
+                                    color: 'rgba(72, 128, 255, 0.3)',
                                     lineHeight: '1',
                                     marginBottom: '24px',
                                     letterSpacing: '-0.05em'
@@ -344,7 +655,7 @@ const LandingPage = () => {
                                 </div>
                                 <h3 style={{
                                     fontSize: 'clamp(1.5rem, 3vw, 2rem)',
-                                    fontWeight: '400',
+                                    fontWeight: '600',
                                     marginBottom: '16px',
                                     color: '#ffffff',
                                     letterSpacing: '-0.01em'
@@ -352,10 +663,10 @@ const LandingPage = () => {
                                     {step.title}
                                 </h3>
                                 <p style={{
-                                    color: 'rgba(255, 255, 255, 0.6)',
+                                    color: 'rgba(255, 255, 255, 0.7)',
                                     fontSize: 'clamp(0.95rem, 1.8vw, 1.125rem)',
                                     lineHeight: '1.7',
-                                    fontWeight: '300'
+                                    fontWeight: '400'
                                 }}>
                                     {step.description}
                                 </p>
@@ -364,93 +675,8 @@ const LandingPage = () => {
                     </div>
                 </section>
 
-                {/* Features Section */}
-                <section id="features" style={{
-                    padding: '120px 24px',
-                    maxWidth: '1200px',
-                    margin: '0 auto',
-                    background: '#000000'
-                }}>
-                    <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-                        <h2 style={{
-                            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-                            fontWeight: '300',
-                            letterSpacing: '-0.02em',
-                            marginBottom: '16px',
-                            color: '#ffffff'
-                        }}>
-                            Why Swipy
-                        </h2>
-                        <p style={{
-                            fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-                            color: 'rgba(255, 255, 255, 0.6)',
-                            maxWidth: '600px',
-                            margin: '0 auto',
-                            lineHeight: '1.6'
-                        }}>
-                            Everything you need to discover and invest in innovative startups
-                        </p>
-                    </div>
-
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
-                        gap: 'clamp(32px, 5vw, 48px)'
-                    }}>
-                        {[
-                            {
-                                title: 'Curated Startups',
-                                description: 'Access a carefully selected database of innovative startups across various industries and stages.',
-                            },
-                            {
-                                title: 'Smart Matching',
-                                description: 'Our algorithm learns your preferences and suggests startups that align with your investment goals.',
-                            },
-                            {
-                                title: 'Direct Communication',
-                                description: 'Connect directly with founders through our built-in messaging system. No middlemen, no delays.',
-                            },
-                            {
-                                title: 'Real-time Updates',
-                                description: 'Stay informed about new startups, funding rounds, and opportunities as they happen.',
-                            },
-                            {
-                                title: 'Secure Platform',
-                                description: 'Your data and investments are protected with enterprise-grade security and privacy measures.',
-                            },
-                            {
-                                title: 'Global Reach',
-                                description: 'Discover startups from around the world. Expand your investment portfolio beyond borders.',
-                            },
-                        ].map((feature, index) => (
-                            <div key={index} style={{
-                                padding: '32px 0',
-                                borderTop: '1px solid rgba(255, 255, 255, 0.05)'
-                            }}>
-                                <h3 style={{
-                                    fontSize: 'clamp(1.25rem, 2.5vw, 1.5rem)',
-                                    fontWeight: '400',
-                                    marginBottom: '12px',
-                                    color: '#ffffff',
-                                    letterSpacing: '-0.01em'
-                                }}>
-                                    {feature.title}
-                                </h3>
-                                <p style={{
-                                    color: 'rgba(255, 255, 255, 0.6)',
-                                    fontSize: 'clamp(0.95rem, 1.8vw, 1rem)',
-                                    lineHeight: '1.7',
-                                    fontWeight: '300'
-                                }}>
-                                    {feature.description}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
                 {/* CTA Section */}
-                <section style={{
+                <section className="fade-in-up" style={{
                     padding: '120px 24px',
                     maxWidth: '1200px',
                     margin: '0 auto',
@@ -458,7 +684,7 @@ const LandingPage = () => {
                 }}>
                     <h2 style={{
                         fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-                        fontWeight: '300',
+                        fontWeight: '700',
                         letterSpacing: '-0.02em',
                         marginBottom: '24px',
                         color: '#ffffff'
@@ -467,36 +693,43 @@ const LandingPage = () => {
                     </h2>
                     <p style={{
                         fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-                        color: 'rgba(255, 255, 255, 0.6)',
+                        color: 'rgba(255, 255, 255, 0.7)',
                         maxWidth: '600px',
                         margin: '0 auto 48px',
                         lineHeight: '1.6',
-                        fontWeight: '300'
+                        fontWeight: '400'
                     }}>
                         Join thousands of investors and entrepreneurs discovering the next big thing
                     </p>
                     <button
                         onClick={() => navigate('/login')}
                         style={{
-                            background: '#ffffff',
-                            color: '#000000',
+                            background: 'linear-gradient(135deg, #1a2a3c 0%, #0e121c 100%)',
+                            color: '#ffffff',
                             padding: '16px 40px',
-                            borderRadius: '6px',
+                            borderRadius: '12px',
                             fontSize: '1rem',
-                            fontWeight: '500',
+                            fontWeight: '600',
                             border: 'none',
                             cursor: 'pointer',
-                            transition: 'all 0.2s ease'
+                            transition: 'all 0.3s ease',
+                            boxShadow: '0 4px 20px rgba(14, 18, 28, 0.4)'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px)'
+                            e.currentTarget.style.boxShadow = '0 6px 25px rgba(14, 18, 28, 0.5)'
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)'
+                            e.currentTarget.style.boxShadow = '0 4px 20px rgba(14, 18, 28, 0.4)'
+                        }}
                     >
                         Get Started Free
                     </button>
                 </section>
 
                 {/* Footer */}
-                <footer style={{
+                <footer className="fade-in-up" style={{
                     padding: '80px 24px 40px',
                     borderTop: '1px solid rgba(255, 255, 255, 0.05)',
                     maxWidth: '1200px',
@@ -522,17 +755,17 @@ const LandingPage = () => {
                                 />
                             </div>
                             <p style={{
-                                color: 'rgba(255, 255, 255, 0.5)',
+                                color: 'rgba(255, 255, 255, 0.6)',
                                 fontSize: '0.875rem',
                                 lineHeight: '1.6',
-                                fontWeight: '300'
+                                fontWeight: '400'
                             }}>
                                 Tinder for Startups. Discover, connect, and invest in innovative startups.
                             </p>
                         </div>
                         <div>
                             <h4 style={{
-                                fontWeight: '400',
+                                fontWeight: '600',
                                 marginBottom: '16px',
                                 color: '#ffffff',
                                 fontSize: '0.95rem',
@@ -542,13 +775,13 @@ const LandingPage = () => {
                                 Product
                             </h4>
                             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <li><a href="#features" onClick={(e) => handleAnchorClick(e, '#features')} style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '300' }} className="hover:text-white transition-colors">Features</a></li>
-                                <li><a href="#how-it-works" onClick={(e) => handleAnchorClick(e, '#how-it-works')} style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '300' }} className="hover:text-white transition-colors">How It Works</a></li>
+                                <li><a href="#features" onClick={(e) => handleAnchorClick(e, '#features')} style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }} className="hover:text-white transition-colors">Features</a></li>
+                                <li><a href="#how-it-works" onClick={(e) => handleAnchorClick(e, '#how-it-works')} style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }} className="hover:text-white transition-colors">How It Works</a></li>
                             </ul>
                         </div>
                         <div>
                             <h4 style={{
-                                fontWeight: '400',
+                                fontWeight: '600',
                                 marginBottom: '16px',
                                 color: '#ffffff',
                                 fontSize: '0.95rem',
@@ -558,13 +791,13 @@ const LandingPage = () => {
                                 Company
                             </h4>
                             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <li><a href="#" style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '300' }} className="hover:text-white transition-colors">About</a></li>
-                                <li><a href="#" style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '300' }} className="hover:text-white transition-colors">Blog</a></li>
+                                <li><a href="#" style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }} className="hover:text-white transition-colors">About</a></li>
+                                <li><a href="#" style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }} className="hover:text-white transition-colors">Blog</a></li>
                             </ul>
                         </div>
                         <div>
                             <h4 style={{
-                                fontWeight: '400',
+                                fontWeight: '600',
                                 marginBottom: '16px',
                                 color: '#ffffff',
                                 fontSize: '0.95rem',
@@ -574,8 +807,8 @@ const LandingPage = () => {
                                 Legal
                             </h4>
                             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <li><a href="#" style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '300' }} className="hover:text-white transition-colors">Privacy</a></li>
-                                <li><a href="#" style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '300' }} className="hover:text-white transition-colors">Terms</a></li>
+                                <li><a href="#" style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }} className="hover:text-white transition-colors">Privacy</a></li>
+                                <li><a href="#" style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }} className="hover:text-white transition-colors">Terms</a></li>
                             </ul>
                         </div>
                     </div>
@@ -583,9 +816,9 @@ const LandingPage = () => {
                         paddingTop: '32px',
                         borderTop: '1px solid rgba(255, 255, 255, 0.05)',
                         textAlign: 'center',
-                        color: 'rgba(255, 255, 255, 0.5)',
+                        color: 'rgba(255, 255, 255, 0.6)',
                         fontSize: '0.875rem',
-                        fontWeight: '300'
+                        fontWeight: '400'
                     }}>
                         <p>&copy; {new Date().getFullYear()} Swipy. All rights reserved.</p>
                     </div>
