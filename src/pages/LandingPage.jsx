@@ -9,9 +9,27 @@ const LandingPage = () => {
 
     // Enable scrolling for landing page
     useEffect(() => {
+        // Add class to body to enable scrolling via CSS
+        document.body.classList.add('landing-page-active')
+        
+        // Enable scrolling on body
         document.body.style.overflow = 'auto'
         document.body.style.position = 'relative'
+        document.body.style.height = 'auto'
+        document.body.style.minHeight = '100vh'
+        
+        // Enable scrolling on root
+        const rootElement = document.getElementById('root')
+        if (rootElement) {
+            rootElement.style.overflow = 'auto'
+            rootElement.style.position = 'relative'
+            rootElement.style.height = 'auto'
+            rootElement.style.minHeight = '100vh'
+        }
+        
         document.documentElement.style.scrollBehavior = 'smooth'
+        document.documentElement.style.overflow = 'auto'
+        document.documentElement.style.height = 'auto'
 
         // Add scroll animations
         const observerOptions = {
@@ -32,9 +50,20 @@ const LandingPage = () => {
         elements.forEach(el => observer.observe(el))
 
         return () => {
+            // Remove class and restore styles
+            document.body.classList.remove('landing-page-active')
             document.body.style.overflow = ''
             document.body.style.position = ''
+            document.body.style.height = ''
+            document.documentElement.style.overflow = ''
+            document.documentElement.style.position = ''
+            document.documentElement.style.height = ''
             document.documentElement.style.scrollBehavior = ''
+            if (rootElement) {
+                rootElement.style.overflow = ''
+                rootElement.style.position = ''
+                rootElement.style.height = ''
+            }
             observer.disconnect()
         }
     }, [])
@@ -62,6 +91,16 @@ const LandingPage = () => {
         <>
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+                
+                /* Override global styles for landing page to enable scrolling */
+                body.landing-page-active,
+                body.landing-page-active #root {
+                    overflow: auto !important;
+                    position: relative !important;
+                    height: auto !important;
+                    min-height: 100vh !important;
+                    width: 100% !important;
+                }
                 
                 * {
                     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -101,7 +140,7 @@ const LandingPage = () => {
                 }
 
                 .gradient-text {
-                    background: linear-gradient(135deg, #6ba0ff 0%, #4880ff 50%, #2d60ff 100%);
+                    background: #4880ff;
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     background-clip: text;
@@ -153,7 +192,7 @@ const LandingPage = () => {
                     }
                 }
             `}</style>
-            <div className="min-h-screen" style={{ background: '#0a0a0a', color: '#FFFFFF', overflowY: 'auto' }}>
+            <div className="min-h-screen" style={{ background: '#0a0a0a', color: '#FFFFFF', overflowY: 'auto', position: 'relative', width: '100%', height: 'auto' }}>
                 {/* Minimal Navbar */}
                 <nav className="fixed top-0 left-0 right-0 z-50 glass-effect">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -221,7 +260,7 @@ const LandingPage = () => {
                                 <button
                                     onClick={() => navigate('/login')}
                                     style={{
-                                        background: 'linear-gradient(135deg, #4880ff 0%, #2d60ff 100%)',
+                                        background: '#4880ff',
                                         color: '#ffffff',
                                         padding: '10px 24px',
                                         borderRadius: '8px',
@@ -290,7 +329,7 @@ const LandingPage = () => {
                                                     setMobileMenuOpen(false)
                                                 }}
                                                 style={{
-                                                    background: 'linear-gradient(135deg, #4880ff 0%, #2d60ff 100%)',
+                                                    background: '#4880ff',
                                                     color: '#ffffff',
                                                     padding: '12px 24px',
                                                     borderRadius: '8px',
@@ -353,7 +392,7 @@ const LandingPage = () => {
                             <button
                                 onClick={() => navigate('/login')}
                                 style={{
-                                    background: 'linear-gradient(135deg, #1a2a3c 0%, #0e121c 100%)',
+                                    background: '#4880ff',
                                     color: '#ffffff',
                                     padding: '16px 40px',
                                     borderRadius: '12px',
@@ -411,7 +450,8 @@ const LandingPage = () => {
                         gap: '60px',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        flexWrap: 'wrap'
+                        flexWrap: 'wrap',
+                        overflow: 'visible'
                     }}>
                         {/* Laptop Mockup */}
                         <div className="device-mockup laptop-mockup float-animation" style={{ 
@@ -446,7 +486,9 @@ const LandingPage = () => {
                             animationDelay: '1s',
                             maxWidth: '280px',
                             flex: '0 1 280px',
-                            minWidth: '200px'
+                            minWidth: '200px',
+                            paddingTop: '20px',
+                            overflow: 'visible'
                         }}>
                             <img 
                                 src="/phone-mockup.png" 
@@ -557,7 +599,7 @@ const LandingPage = () => {
                                 <div style={{
                                     width: '56px',
                                     height: '56px',
-                                    background: 'linear-gradient(135deg, #1a2a3c 0%, #0e121c 100%)',
+                                    background: '#4880ff',
                                     borderRadius: '12px',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -646,7 +688,7 @@ const LandingPage = () => {
                                 <div style={{
                                     fontSize: 'clamp(3rem, 6vw, 5rem)',
                                     fontWeight: '700',
-                                    color: 'rgba(72, 128, 255, 0.3)',
+                                    color: '#4880ff',
                                     lineHeight: '1',
                                     marginBottom: '24px',
                                     letterSpacing: '-0.05em'
@@ -704,7 +746,7 @@ const LandingPage = () => {
                     <button
                         onClick={() => navigate('/login')}
                         style={{
-                            background: 'linear-gradient(135deg, #1a2a3c 0%, #0e121c 100%)',
+                            background: '#4880ff',
                             color: '#ffffff',
                             padding: '16px 40px',
                             borderRadius: '12px',
@@ -713,15 +755,15 @@ const LandingPage = () => {
                             border: 'none',
                             cursor: 'pointer',
                             transition: 'all 0.3s ease',
-                            boxShadow: '0 4px 20px rgba(14, 18, 28, 0.4)'
+                            boxShadow: '0 4px 20px rgba(72, 128, 255, 0.4)'
                         }}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.transform = 'translateY(-2px)'
-                            e.currentTarget.style.boxShadow = '0 6px 25px rgba(14, 18, 28, 0.5)'
+                            e.currentTarget.style.boxShadow = '0 6px 25px rgba(72, 128, 255, 0.5)'
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.transform = 'translateY(0)'
-                            e.currentTarget.style.boxShadow = '0 4px 20px rgba(14, 18, 28, 0.4)'
+                            e.currentTarget.style.boxShadow = '0 4px 20px rgba(72, 128, 255, 0.4)'
                         }}
                     >
                         Get Started Free
