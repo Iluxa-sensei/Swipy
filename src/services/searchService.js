@@ -61,19 +61,74 @@ export const searchService = {
                 else if (username.startsWith(normalized) || fullName.startsWith(normalized)) {
                     score = 500
                 }
-                // Contains query gets lower score
-                else if (username.includes(normalized) || fullName.includes(normalized)) {
-                    score = 100
-                }
-                // Word boundary match (starts with query as a word)
+                // Word boundary match (starts with query as a word) - more relevant than contains
                 else {
                     const usernameWords = username.split(/\s+/)
                     const fullNameWords = fullName.split(/\s+/)
-                    if (usernameWords.some(word => word.startsWith(normalized)) || 
-                        fullNameWords.some(word => word.startsWith(normalized))) {
+                    const usernameWordMatch = usernameWords.some(word => word.startsWith(normalized))
+                    const fullNameWordMatch = fullNameWords.some(word => word.startsWith(normalized))
+                    
+                    if (usernameWordMatch || fullNameWordMatch) {
                         score = 300
-                    } else {
-                        score = 50
+                    }
+                    // Contains query only if it's a meaningful match (not just a substring in the middle of a word)
+                    // Check if the query appears at word boundaries or as a complete word
+                    else {
+                        // Check for word boundary matches where the word is close to the query length
+                        // This catches cases like "ai" matching "aino" but not "Tair"
+                        const usernameWordBoundary = usernameWords.some(word => {
+                            if (!word.includes(normalized)) return false
+                            const matchIndex = word.indexOf(normalized)
+                            const charsAfter = word.length - matchIndex - normalized.length
+                            
+                            // For short queries (2 chars), be very strict
+                            if (normalized.length <= 2) {
+                                // Must be at start, or at end with 0 chars after, or word is query + 1-2 chars
+                                return matchIndex === 0 || 
+                                       (charsAfter === 0) ||
+                                       (matchIndex === 0 && word.length <= normalized.length + 2)
+                            }
+                            
+                            // For longer queries, allow matches near start or end
+                            return matchIndex === 0 || 
+                                   charsAfter <= 1 ||
+                                   (matchIndex === 0 && word.length <= normalized.length + 2)
+                        })
+                        const fullNameWordBoundary = fullNameWords.some(word => {
+                            if (!word.includes(normalized)) return false
+                            const matchIndex = word.indexOf(normalized)
+                            const charsAfter = word.length - matchIndex - normalized.length
+                            
+                            // For short queries (2 chars), be very strict
+                            if (normalized.length <= 2) {
+                                // Must be at start, or at end with 0 chars after, or word is query + 1-2 chars
+                                return matchIndex === 0 || 
+                                       (charsAfter === 0) ||
+                                       (matchIndex === 0 && word.length <= normalized.length + 2)
+                            }
+                            
+                            // For longer queries, allow matches near start or end
+                            return matchIndex === 0 || 
+                                   charsAfter <= 1 ||
+                                   (matchIndex === 0 && word.length <= normalized.length + 2)
+                        })
+                        
+                        if (usernameWordBoundary || fullNameWordBoundary) {
+                            score = 150
+                        }
+                        // Only include if query is at least 3 characters and appears as a significant part
+                        else if (normalized.length >= 3 && (username.includes(normalized) || fullName.includes(normalized))) {
+                            // Check if it's not just a random substring match
+                            const usernameMatch = username.includes(normalized)
+                            const fullNameMatch = fullName.includes(normalized)
+                            
+                            // Only score if the match is meaningful (query is substantial part of the field)
+                            if (usernameMatch && (username.length - username.indexOf(normalized) - normalized.length) <= 3) {
+                                score = 100
+                            } else if (fullNameMatch && (fullName.length - fullName.indexOf(normalized) - normalized.length) <= 3) {
+                                score = 100
+                            }
+                        }
                     }
                 }
 
@@ -90,9 +145,10 @@ export const searchService = {
                 return dateB - dateA
             })
 
-            // Filter out low relevance results (score < 50) and limit
+            // Filter out low relevance results (score < 100) and limit
+            // Only show results with meaningful matches
             const filtered = ranked
-                .filter(item => item.score >= 50)
+                .filter(item => item.score >= 100)
                 .slice(0, limit)
                 .map(item => item.profile)
 
@@ -145,21 +201,36 @@ export const searchService = {
                 else if (name.startsWith(normalized)) {
                     score = 500
                 }
-                // Name contains query gets medium score
-                else if (name.includes(normalized)) {
-                    score = 200
-                }
-                // Word boundary match in name
+                // Word boundary match in name (word starts with query)
                 else {
                     const nameWords = name.split(/\s+/)
-                    if (nameWords.some(word => word.startsWith(normalized))) {
+                    const nameWordMatch = nameWords.some(word => word.startsWith(normalized))
+                    
+                    if (nameWordMatch) {
                         score = 300
                     }
-                    // Description or industry contains query gets lower score
-                    else if (description.includes(normalized) || industry.includes(normalized)) {
+                    // Name contains query - only if it's meaningful
+                    else if (name.includes(normalized)) {
+                        // Check if match is near the start or end of a word
+                        const nameWordsWithMatch = nameWords.filter(word => word.includes(normalized))
+                        const meaningfulMatch = nameWordsWithMatch.some(word => {
+                            const matchIndex = word.indexOf(normalized)
+                            // Match is meaningful if it's at the start, end, or the word is close to query length
+                            return matchIndex === 0 || 
+                                   (word.length - matchIndex - normalized.length) <= 2 ||
+                                   word.length <= normalized.length + 3
+                        })
+                        
+                        if (meaningfulMatch) {
+                            score = 200
+                        } else if (normalized.length >= 4) {
+                            // Only include longer queries as substring matches
+                            score = 120
+                        }
+                    }
+                    // Description or industry contains query - only for longer queries
+                    else if (normalized.length >= 4 && (description.includes(normalized) || industry.includes(normalized))) {
                         score = 100
-                    } else {
-                        score = 50
                     }
                 }
 
@@ -176,9 +247,10 @@ export const searchService = {
                 return dateB - dateA
             })
 
-            // Filter out low relevance results (score < 50) and limit
+            // Filter out low relevance results (score < 100) and limit
+            // Only show results with meaningful matches
             const filtered = ranked
-                .filter(item => item.score >= 50)
+                .filter(item => item.score >= 100)
                 .slice(0, limit)
                 .map(item => item.startup)
 

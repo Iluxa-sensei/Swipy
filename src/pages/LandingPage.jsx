@@ -151,7 +151,7 @@ const LandingPage = () => {
                     height: auto !important;
                     min-height: 100vh !important;
                     width: 100% !important;
-                }
+                    }
                 
                 * {
                     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -176,6 +176,34 @@ const LandingPage = () => {
 
                 .device-mockup:hover {
                     transform: translateY(-10px);
+                }
+
+                .laptop-mockup-features,
+                .phone-mockup-features {
+                    transition: transform 0.3s ease, filter 0.3s ease;
+                }
+
+                .laptop-mockup-features:hover {
+                    transform: translateY(-5px);
+                    filter: drop-shadow(0 30px 80px rgba(72, 128, 255, 0.25));
+                }
+
+                .phone-mockup-features {
+                    overflow: visible !important;
+                }
+
+                .phone-mockup-image {
+                    transition: filter 0.3s ease;
+                }
+
+                .phone-mockup-features:hover {
+                    transform: translateY(-5px);
+                }
+
+                .phone-mockup-features:hover .phone-mockup-image {
+                    filter: drop-shadow(-25px 5px 35px rgba(239, 68, 68, 0.5)) 
+                            drop-shadow(25px 5px 35px rgba(34, 197, 94, 0.5)) 
+                            drop-shadow(0 35px 50px rgba(72, 128, 255, 0.5)) !important;
                 }
 
                 .laptop-mockup {
@@ -222,7 +250,47 @@ const LandingPage = () => {
                     animation: pulse 3s ease-in-out infinite;
                 }
 
+                /* Tablet styles */
+                @media (max-width: 1024px) and (min-width: 769px) {
+                    .features-mockup-container {
+                        grid-template-columns: 1fr !important;
+                        gap: 50px !important;
+                    }
+
+                    .laptop-mockup-features {
+                        max-width: 700px !important;
+                    }
+
+                    .phone-mockup-features {
+                        max-width: 350px !important;
+                        padding-bottom: 40px !important;
+                    }
+                }
+
                 @media (max-width: 768px) {
+                    /* Navbar mobile optimization */
+                    nav {
+                        padding: 8px 16px !important;
+                        gap: 12px !important;
+                        top: 10px !important;
+                    }
+
+                    nav .landing-logo {
+                        height: 40px !important;
+                        width: 40px !important;
+                    }
+
+                    nav > div {
+                        gap: 8px !important;
+                    }
+
+                    nav > div > button {
+                        padding: 10px 24px !important;
+                        font-size: 0.95rem !important;
+                        min-width: 80px !important;
+                        white-space: nowrap !important;
+                    }
+
                     .desktop-hero.modern {
                         margin-top: 64px !important;
                     }
@@ -241,6 +309,163 @@ const LandingPage = () => {
                         max-width: 350px !important;
                         flex: 0 1 350px !important;
                     }
+
+                    /* Features section mobile layout - сохраняем двухколоночную структуру */
+                    .features-mockup-container {
+                        grid-template-columns: 1fr 1fr !important;
+                        gap: 16px !important;
+                        align-items: start !important;
+                    }
+
+                    /* Мокапы слева - уменьшенные размеры для мобильных */
+                    .features-mockup-container > div:first-child {
+                        order: 1;
+                        gap: 20px !important;
+                    }
+
+                    .laptop-mockup-features {
+                        max-width: 100% !important;
+                        width: 100% !important;
+                    }
+
+                    .laptop-mockup-features img {
+                        width: 100% !important;
+                        height: auto !important;
+                    }
+
+                    .phone-mockup-features {
+                        max-width: 220px !important;
+                        width: 100% !important;
+                        margin: 0 auto !important;
+                        padding-bottom: 50px !important;
+                        margin-top: 10px !important;
+                    }
+
+                    .phone-mockup-features img {
+                        width: 100% !important;
+                        height: auto !important;
+                        max-width: 220px !important;
+                    }
+
+                    /* Карточки функций справа - уменьшенные размеры */
+                    .features-mockup-container > div:last-child {
+                        order: 2;
+                        gap: 10px !important;
+                    }
+
+                    /* Feature cards mobile styling */
+                    .features-mockup-container > div:last-child > div {
+                        padding: 12px 14px !important;
+                        gap: 10px !important;
+                        border-radius: 12px !important;
+                    }
+
+                    .features-mockup-container > div:last-child > div > div:first-child {
+                        width: 32px !important;
+                        height: 32px !important;
+                        min-width: 32px !important;
+                        font-size: 14px !important;
+                        border-radius: 8px !important;
+                    }
+
+                    .features-mockup-container > div:last-child > div h3 {
+                        font-size: 0.8125rem !important;
+                        margin-bottom: 4px !important;
+                        line-height: 1.3 !important;
+                    }
+
+                    .features-mockup-container > div:last-child > div p {
+                        font-size: 0.6875rem !important;
+                        line-height: 1.4 !important;
+                    }
+
+                    /* Features section padding on mobile */
+                    #features {
+                        padding: 50px 16px !important;
+                    }
+
+                    #features > div:first-child {
+                        margin-bottom: 30px !important;
+                    }
+                }
+
+                /* Очень маленькие экраны - возвращаемся к одной колонке */
+                @media (max-width: 480px) {
+                    /* Navbar для очень маленьких экранов */
+                    nav {
+                        padding: 6px 12px !important;
+                        gap: 8px !important;
+                        max-width: 95% !important;
+                    }
+
+                    nav .landing-logo {
+                        height: 36px !important;
+                        width: 36px !important;
+                    }
+
+                    nav > div {
+                        gap: 6px !important;
+                    }
+
+                    /* Features section для очень маленьких экранов */
+                    .features-mockup-container {
+                        grid-template-columns: 1fr !important;
+                        gap: 30px !important;
+                    }
+
+                    .features-mockup-container > div:first-child {
+                        order: 1;
+                        align-items: center !important;
+                    }
+
+                    .laptop-mockup-features {
+                        max-width: 100% !important;
+                    }
+
+                    .phone-mockup-features {
+                        max-width: 200px !important;
+                        margin: 0 auto !important;
+                        margin-top: 20px !important;
+                        padding-bottom: 50px !important;
+                    }
+
+                    .phone-mockup-features img {
+                        max-width: 200px !important;
+                    }
+
+                    .features-mockup-container > div:last-child {
+                        order: 2;
+                    }
+
+                    nav > div > button {
+                        padding: 10px 20px !important;
+                        font-size: 0.9rem !important;
+                        min-width: 70px !important;
+                    }
+
+                    .features-mockup-container {
+                        grid-template-columns: 1fr !important;
+                        gap: 30px !important;
+                    }
+
+                    .features-mockup-container > div:first-child {
+                        order: 1;
+                        align-items: center !important;
+                    }
+
+                    .laptop-mockup-features {
+                        max-width: 100% !important;
+                    }
+
+                    .phone-mockup-features {
+                        max-width: 200px !important;
+                        margin: 0 auto !important;
+                        margin-top: 10px !important;
+                    }
+
+                    .features-mockup-container > div:last-child {
+                        order: 2;
+                    }
                 }
             `}</style>
             <div className="min-h-screen" style={{ background: '#0a0a0a', color: '#FFFFFF', overflowY: 'auto', position: 'relative', width: '100%', height: 'auto' }}>
@@ -258,69 +483,69 @@ const LandingPage = () => {
                     WebkitBackdropFilter: 'blur(20px)',
                     borderRadius: '16px',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                    padding: '18px 24px',
+                    padding: '10px 24px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '24px',
                     overflow: 'visible'
                 }}>
-                    {/* Logo */}
-                    <button
-                        onClick={handleLogoClick}
-                        className="flex items-center cursor-pointer"
-                        style={{ background: 'transparent', border: 'none', padding: 0 }}
-                    >
-                        <img
-                            ref={logoRef}
-                            src="/logo.png"
-                            alt="Swipy"
-                            className="landing-logo"
-                            style={{
+                            {/* Logo */}
+                            <button
+                                onClick={handleLogoClick}
+                                className="flex items-center cursor-pointer"
+                                style={{ background: 'transparent', border: 'none', padding: 0 }}
+                            >
+                                <img
+                                    ref={logoRef}
+                            src="/Vector.png"
+                                    alt="Swipy"
+                                    className="landing-logo"
+                                    style={{
                                 height: '48px',
                                 width: '48px',
-                                borderRadius: '12px',
-                                objectFit: 'contain',
-                                transition: 'transform 0.6s ease-in-out',
-                                display: 'block',
-                            }}
-                        />
-                    </button>
+                                        borderRadius: '12px',
+                                        objectFit: 'contain',
+                                        transition: 'transform 0.6s ease-in-out',
+                                        display: 'block',
+                                    }}
+                                />
+                            </button>
 
-                    {/* Auth Buttons */}
+                            {/* Auth Buttons */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <button
-                            onClick={() => navigate('/login')}
-                            style={{
+                                <button
+                                    onClick={() => navigate('/login')}
+                                    style={{
                                 background: 'rgba(255, 255, 255, 0.1)',
                                 color: 'rgba(255, 255, 255, 0.9)',
                                 padding: '8px 20px',
                                 borderRadius: '20px',
-                                fontSize: '0.9rem',
-                                fontWeight: '500',
-                                border: 'none',
-                                cursor: 'pointer',
+                                        fontSize: '0.9rem',
+                                        fontWeight: '500',
+                                        border: 'none',
+                                        cursor: 'pointer',
                                 transition: 'all 0.3s ease'
-                            }}
+                                    }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
                             }}
                             onMouseLeave={(e) => {
                                 e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
                             }}
-                        >
-                            Log In
-                        </button>
-                        <button
+                                            >
+                                                Log In
+                                            </button>
+                                            <button
                             onClick={() => navigate('/login')}
-                            style={{
+                                                style={{
                                 background: '#4880ff',
                                 color: '#ffffff',
                                 padding: '8px 20px',
                                 borderRadius: '20px',
-                                fontSize: '0.9rem',
+                                                    fontSize: '0.9rem',
                                 fontWeight: '600',
-                                border: 'none',
-                                cursor: 'pointer',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
                                 transition: 'all 0.3s ease',
                                 boxShadow: '0 4px 15px rgba(72, 128, 255, 0.4)'
                             }}
@@ -331,10 +556,10 @@ const LandingPage = () => {
                             onMouseLeave={(e) => {
                                 e.currentTarget.style.transform = 'translateY(0)'
                                 e.currentTarget.style.boxShadow = '0 4px 15px rgba(72, 128, 255, 0.4)'
-                            }}
-                        >
-                            Sign Up
-                        </button>
+                                                }}
+                                            >
+                                                Sign Up
+                                            </button>
                     </div>
                 </nav>
 
@@ -342,55 +567,55 @@ const LandingPage = () => {
                 <section
                     ref={heroRef}
                     style={{
-                        minHeight: '100vh',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        padding: '100px 24px 60px',
-                        maxWidth: '1400px',
-                        margin: '0 auto',
+                    minHeight: '100vh',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                        padding: '100px 24px 5px',
+                        maxWidth: '1000x',
+                    margin: '0 auto',
                         textAlign: 'center',
                         position: 'relative'
                     }}
                 >
                     <div className="fade-in-up" style={{ marginBottom: '60px', maxWidth: '900px' }}>
-                        <h1 style={{
+                    <h1 style={{
                             fontSize: 'clamp(2.5rem, 6vw, 5rem)',
                             fontWeight: '700',
                             letterSpacing: '-0.03em',
-                            lineHeight: '1.1',
+                        lineHeight: '1.1',
                             marginBottom: '24px',
-                            color: '#ffffff'
-                        }}>
+                        color: '#ffffff'
+                    }}>
                             Tinder for{' '}
                             <span style={{ color: '#4880ff' }}>Startups</span>
-                        </h1>
-                        <p style={{
+                    </h1>
+                    <p style={{
                             fontSize: 'clamp(1.125rem, 2vw, 1.5rem)',
                             color: 'rgba(255, 255, 255, 0.7)',
-                            maxWidth: '700px',
+                        maxWidth: '700px',
                             margin: '0 auto 48px',
-                            lineHeight: '1.6',
+                        lineHeight: '1.6',
                             fontWeight: '400'
-                        }}>
-                            Discover, connect, and invest in the next generation of innovative startups. Swipe your way to the perfect match.
-                        </p>
-                        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                            <button
-                                onClick={() => navigate('/login')}
-                                style={{
+                    }}>
+                        Discover, connect, and invest in the next generation of innovative startups. Swipe your way to the perfect match.
+                    </p>
+                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                        <button
+                            onClick={() => navigate('/login')}
+                            style={{
                                     background: '#4880ff',
                                     color: '#ffffff',
                                     padding: '16px 40px',
                                     borderRadius: '12px',
-                                    fontSize: '1rem',
+                                fontSize: '1rem',
                                     fontWeight: '600',
-                                    border: 'none',
-                                    cursor: 'pointer',
+                                border: 'none',
+                                cursor: 'pointer',
                                     transition: 'all 0.3s ease',
                                     boxShadow: '0 4px 20px rgba(72, 128, 255, 0.4)'
-                                }}
+                            }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.transform = 'translateY(-2px)'
                                     e.currentTarget.style.boxShadow = '0 6px 25px rgba(72, 128, 255, 0.5)'
@@ -399,113 +624,45 @@ const LandingPage = () => {
                                     e.currentTarget.style.transform = 'translateY(0)'
                                     e.currentTarget.style.boxShadow = '0 4px 20px rgba(72, 128, 255, 0.4)'
                                 }}
-                            >
+                        >
                                 Get Started Free
-                            </button>
-                            <button
-                                onClick={() => handleAnchorClick({ preventDefault: () => { } }, '#how-it-works')}
-                                style={{
+                        </button>
+                        <button
+                            onClick={() => handleAnchorClick({ preventDefault: () => { } }, '#how-it-works')}
+                            style={{
                                     background: 'rgba(255, 255, 255, 0.05)',
-                                    color: '#ffffff',
+                                color: '#ffffff',
                                     padding: '16px 40px',
                                     borderRadius: '12px',
-                                    fontSize: '1rem',
+                                fontSize: '1rem',
                                     fontWeight: '600',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    cursor: 'pointer',
+                                cursor: 'pointer',
                                     transition: 'all 0.3s ease'
-                                }}
-                                onMouseEnter={(e) => {
+                            }}
+                            onMouseEnter={(e) => {
                                     e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
                                     e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
-                                }}
-                                onMouseLeave={(e) => {
+                            }}
+                            onMouseLeave={(e) => {
                                     e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
                                     e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
-                                }}
-                            >
-                                Learn More
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Device Mockups - Side by Side */}
-                    <div className="fade-in-up device-mockup-container" style={{
-                        width: '100%',
-                        marginTop: '60px',
-                        display: 'flex',
-                        flexDirection: 'row',
-                        gap: '60px',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexWrap: 'wrap',
-                        overflow: 'visible'
-                    }}>
-                        {/* Laptop Mockup */}
-                        <div className="device-mockup laptop-mockup" style={{
-                            maxWidth: '600px',
-                            flex: '1 1 500px',
-                            minWidth: '300px'
-                        }}>
-                            <img
-                                src="/laptop-mockup.png"
-                                alt="Desktop Screenshot"
-                                style={{
-                                    width: '100%',
-                                    height: 'auto',
-                                    display: 'block',
-                                    filter: 'drop-shadow(0 20px 60px rgba(0, 0, 0, 0.3))'
-                                }}
-                                onError={(e) => {
-                                    // Fallback if image doesn't exist
-                                    e.target.style.display = 'none'
-                                    e.target.nextSibling.style.display = 'block'
-                                }}
-                            />
-                            <div style={{ display: 'none', textAlign: 'center', color: 'rgba(255, 255, 255, 0.5)', padding: '40px' }}>
-                                <i className="fas fa-laptop" style={{ fontSize: '3rem', marginBottom: '16px', opacity: 0.3 }}></i>
-                                <div>Place laptop-mockup.png in public folder</div>
-                            </div>
-                        </div>
-
-                        {/* Phone Mockup */}
-                        <div className="device-mockup phone-mockup" style={{
-                            maxWidth: '400px',
-                            flex: '0 1 400px',
-                            minWidth: '250px',
-                            paddingTop: '20px',
-                            overflow: 'visible'
-                        }}>
-                            <img
-                                src="/phone-mockup.png"
-                                alt="Mobile Screenshot"
-                                style={{
-                                    width: '100%',
-                                    height: 'auto',
-                                    display: 'block',
-                                    filter: 'drop-shadow(0 20px 60px rgba(0, 0, 0, 0.3))'
-                                }}
-                                onError={(e) => {
-                                    // Fallback if image doesn't exist
-                                    e.target.style.display = 'none'
-                                    e.target.nextSibling.style.display = 'block'
-                                }}
-                            />
-                            <div style={{ display: 'none', textAlign: 'center', color: 'rgba(255, 255, 255, 0.5)', padding: '20px' }}>
-                                <i className="fas fa-mobile-alt" style={{ fontSize: '2rem', marginBottom: '12px', opacity: 0.3 }}></i>
-                                <div>Place phone-mockup.png in public folder</div>
-                            </div>
+                            }}
+                        >
+                            Learn More
+                        </button>
                         </div>
                     </div>
                 </section>
 
-                {/* Features Section */}
+                {/* Powerful Features Section with Mockups */}
                 <section id="features" className="fade-in-up" style={{
-                    padding: '80px 24px',
-                    maxWidth: '1200px',
-                    margin: '0 auto'
+                    padding: '5px 24px 60px',
+                    maxWidth: '1400px',
+                    margin: '0 auto',
+                    position: 'relative'
                 }}>
-                    <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '50px' }}>
                         <h2 style={{
                             fontSize: 'clamp(2rem, 5vw, 3.5rem)',
                             fontWeight: '700',
@@ -527,104 +684,194 @@ const LandingPage = () => {
                         </p>
                     </div>
 
-                    <div style={{
+                    {/* Desktop Layout: Laptop on left, Features cards on right, Phone below laptop */}
+                    <div className="features-mockup-container" style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))',
-                        gap: 'clamp(32px, 5vw, 48px)'
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '60px',
+                        alignItems: 'start',
+                        marginBottom: '40px',
+                        overflow: 'visible'
                     }}>
-                        {[
-                            {
-                                icon: 'fa-rocket',
-                                title: 'Curated Startups',
-                                description: 'Access a carefully selected database of innovative startups across various industries and stages.',
-                            },
-                            {
-                                icon: 'fa-brain',
-                                title: 'Smart Matching',
-                                description: 'Our algorithm learns your preferences and suggests startups that align with your investment goals.',
-                            },
-                            {
-                                icon: 'fa-comments',
-                                title: 'Direct Communication',
-                                description: 'Connect directly with founders through our built-in messaging system. No middlemen, no delays.',
-                            },
-                            {
-                                icon: 'fa-bell',
-                                title: 'Real-time Updates',
-                                description: 'Stay informed about new startups, funding rounds, and opportunities as they happen.',
-                            },
-                            {
-                                icon: 'fa-shield-alt',
-                                title: 'Secure Platform',
-                                description: 'Your data and investments are protected with enterprise-grade security and privacy measures.',
-                            },
-                            {
-                                icon: 'fa-globe',
-                                title: 'Global Reach',
-                                description: 'Discover startups from around the world. Expand your investment portfolio beyond borders.',
-                            },
-                        ].map((feature, index) => (
-                            <div key={index} style={{
-                                padding: '40px',
-                                background: 'rgba(255, 255, 255, 0.03)',
-                                borderRadius: '16px',
-                                border: '1px solid rgba(255, 255, 255, 0.05)',
-                                transition: 'all 0.3s ease'
-                            }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
-                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
-                                    e.currentTarget.style.transform = 'translateY(-4px)'
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'
-                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)'
-                                    e.currentTarget.style.transform = 'translateY(0)'
-                                }}
-                            >
-                                <div style={{
-                                    width: '56px',
-                                    height: '56px',
-                                    background: '#4880ff',
-                                    borderRadius: '12px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    marginBottom: '24px',
-                                    fontSize: '24px',
-                                    color: '#ffffff'
-                                }}>
-                                    <i className={`fas ${feature.icon}`}></i>
+                        {/* Left Column: Laptop and Phone Mockups */}
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '40px',
+                            alignItems: 'center',
+                            overflow: 'visible'
+                        }}>
+                            {/* Laptop Mockup */}
+                            <div className="device-mockup laptop-mockup-features" style={{
+                                width: '100%',
+                                maxWidth: '900px',
+                                position: 'relative'
+                            }}>
+                                <img
+                                    src="/laptop-mockup.png"
+                                    alt="Desktop Screenshot"
+                                    style={{
+                                        width: '100%',
+                                        height: 'auto',
+                                        display: 'block',
+                                        filter: 'drop-shadow(0 20px 60px rgba(0, 0, 0, 0.3))'
+                                    }}
+                                    onError={(e) => {
+                                        e.target.style.display = 'none'
+                                        if (e.target.nextSibling) {
+                                            e.target.nextSibling.style.display = 'block'
+                                        }
+                                    }}
+                                />
+                                <div style={{ display: 'none', textAlign: 'center', color: 'rgba(255, 255, 255, 0.5)', padding: '40px' }}>
+                                    <i className="fas fa-laptop" style={{ fontSize: '3rem', marginBottom: '16px', opacity: 0.3 }}></i>
+                                    <div>Place laptop-mockup.png in public folder</div>
                                 </div>
-                                <h3 style={{
-                                    fontSize: 'clamp(1.25rem, 2.5vw, 1.5rem)',
-                                    fontWeight: '600',
-                                    marginBottom: '12px',
-                                    color: '#ffffff',
-                                    letterSpacing: '-0.01em'
-                                }}>
-                                    {feature.title}
-                                </h3>
-                                <p style={{
-                                    color: 'rgba(255, 255, 255, 0.7)',
-                                    fontSize: 'clamp(0.95rem, 1.8vw, 1rem)',
-                                    lineHeight: '1.7',
-                                    fontWeight: '400'
-                                }}>
-                                    {feature.description}
-                                </p>
                             </div>
-                        ))}
+
+                            {/* Phone Mockup - Below Laptop */}
+                            <div className="device-mockup phone-mockup-features" style={{
+                                width: '100%',
+                                maxWidth: '550px',
+                                position: 'relative',
+                                marginTop: '20px',
+                                paddingBottom: '40px',
+                                overflow: 'visible'
+                            }}>
+                                <img
+                                    src="/phone-mockup.png"
+                                    alt="Mobile Screenshot"
+                                    className="phone-mockup-image"
+                                    style={{
+                                        width: '100%',
+                                        height: 'auto',
+                                        display: 'block',
+                                        filter: 'drop-shadow(-20px 5px 30px rgba(239, 68, 68, 0.4)) drop-shadow(20px 5px 30px rgba(34, 197, 94, 0.4)) drop-shadow(0 30px 45px rgba(72, 128, 255, 0.4))'
+                                    }}
+                                    onError={(e) => {
+                                        e.target.style.display = 'none'
+                                        if (e.target.nextSibling) {
+                                            e.target.nextSibling.style.display = 'block'
+                                        }
+                                    }}
+                                />
+                                <div style={{ display: 'none', textAlign: 'center', color: 'rgba(255, 255, 255, 0.5)', padding: '20px' }}>
+                                    <i className="fas fa-mobile-alt" style={{ fontSize: '2rem', marginBottom: '12px', opacity: 0.3 }}></i>
+                                    <div>Place phone-mockup.png in public folder</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column: Feature Cards */}
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '24px',
+                            justifyContent: 'center'
+                        }}>
+                            {[
+                                {
+                                    icon: 'fa-rocket',
+                                    title: 'Curated Startups',
+                                    description: 'Access a carefully selected database of innovative startups across various industries and stages.',
+                                },
+                                {
+                                    icon: 'fa-brain',
+                                    title: 'Smart Matching',
+                                    description: 'Our algorithm learns your preferences and suggests startups that align with your investment goals.',
+                                },
+                                {
+                                    icon: 'fa-comments',
+                                    title: 'Direct Communication',
+                                    description: 'Connect directly with founders through our built-in messaging system. No middlemen, no delays.',
+                                },
+                                {
+                                    icon: 'fa-bell',
+                                    title: 'Real-time Updates',
+                                    description: 'Stay informed about new startups, funding rounds, and opportunities as they happen.',
+                                },
+                                {
+                                    icon: 'fa-shield-alt',
+                                    title: 'Secure Platform',
+                                    description: 'Your data and investments are protected with enterprise-grade security and privacy measures.',
+                                },
+                                {
+                                    icon: 'fa-globe',
+                                    title: 'Global Reach',
+                                    description: 'Discover startups from around the world. Expand your investment portfolio beyond borders.',
+                                },
+                            ].map((feature, index) => (
+                                <div key={index} style={{
+                                    padding: '24px 28px',
+                                    background: 'rgba(255, 255, 255, 0.03)',
+                                    borderRadius: '16px',
+                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                    transition: 'all 0.3s ease',
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    gap: '20px'
+                                }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
+                                        e.currentTarget.style.borderColor = 'rgba(72, 128, 255, 0.3)'
+                                        e.currentTarget.style.transform = 'translateX(4px)'
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'
+                                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)'
+                                        e.currentTarget.style.transform = 'translateX(0)'
+                                    }}
+                                >
+                                    {/* Minimalist Icon */}
+                                    <div style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        minWidth: '48px',
+                                        background: 'rgba(72, 128, 255, 0.1)',
+                                        borderRadius: '12px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '20px',
+                                        color: '#4880ff',
+                                        border: '1px solid rgba(72, 128, 255, 0.2)'
+                                    }}>
+                                        <i className={`fas ${feature.icon}`}></i>
+                                    </div>
+                                    {/* Text Content */}
+                                    <div style={{ flex: 1 }}>
+                                        <h3 style={{
+                                            fontSize: 'clamp(1.125rem, 2vw, 1.25rem)',
+                                            fontWeight: '600',
+                                            marginBottom: '8px',
+                                            color: '#ffffff',
+                                            letterSpacing: '-0.01em'
+                                        }}>
+                                            {feature.title}
+                                        </h3>
+                                        <p style={{
+                                            color: 'rgba(255, 255, 255, 0.6)',
+                                            fontSize: 'clamp(0.875rem, 1.5vw, 0.95rem)',
+                                            lineHeight: '1.6',
+                                            fontWeight: '400',
+                                            margin: 0
+                                        }}>
+                                            {feature.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </section>
 
                 {/* How It Works Section */}
                 <section id="how-it-works" className="fade-in-up" style={{
-                    padding: '80px 24px',
+                    padding: '60px 24px',
                     maxWidth: '1200px',
                     margin: '0 auto'
                 }}>
-                    <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '40px' }}>
                         <h2 style={{
                             fontSize: 'clamp(2rem, 5vw, 3.5rem)',
                             fontWeight: '700',
@@ -650,7 +897,7 @@ const LandingPage = () => {
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
                         gap: 'clamp(40px, 6vw, 60px)',
-                        marginTop: '60px',
+                        marginTop: '40px',
                         position: 'relative'
                     }}>
                         {[
@@ -725,10 +972,10 @@ const LandingPage = () => {
                                         WebkitBackgroundClip: 'text',
                                         WebkitTextFillColor: 'transparent',
                                         backgroundClip: 'text',
-                                        lineHeight: '1',
-                                        letterSpacing: '-0.05em'
-                                    }}>
-                                        {step.number}
+                                    lineHeight: '1',
+                                    letterSpacing: '-0.05em'
+                                }}>
+                                    {step.number}
                                     </div>
                                 </div>
                                 <h3 style={{
@@ -759,7 +1006,7 @@ const LandingPage = () => {
                     id="faq"
                     className="fade-in-up"
                     style={{
-                        padding: '80px 24px 40px',
+                        padding: '60px 24px 30px',
                         width: '100%',
                         margin: '5px auto 0',
                         position: 'sticky',
@@ -774,7 +1021,7 @@ const LandingPage = () => {
                 >
                     <div style={{
                         textAlign: 'center',
-                        marginBottom: '60px',
+                        marginBottom: '40px',
                         maxWidth: '1000px',
                         marginLeft: 'auto',
                         marginRight: 'auto',
@@ -861,16 +1108,16 @@ const LandingPage = () => {
                                         color: '#ffffff'
                                     }}
                                 >
-                                    <h3 style={{
+                                <h3 style={{
                                         fontSize: 'clamp(1rem, 2vw, 1.125rem)',
                                         fontWeight: '600',
                                         margin: 0,
-                                        color: '#ffffff',
+                                    color: '#ffffff',
                                         flex: 1,
                                         paddingRight: '20px'
-                                    }}>
+                                }}>
                                         {faq.question}
-                                    </h3>
+                                </h3>
                                     <i
                                         className={`fas ${openFaqIndex === index ? 'fa-minus' : 'fa-plus'}`}
                                         style={{
@@ -894,15 +1141,15 @@ const LandingPage = () => {
                                         padding: openFaqIndex === index ? '0 32px 28px 32px' : '0 32px',
                                     }}
                                 >
-                                    <p style={{
+                                <p style={{
                                         color: 'rgba(255, 255, 255, 0.7)',
                                         fontSize: 'clamp(0.9rem, 1.8vw, 1rem)',
-                                        lineHeight: '1.7',
+                                    lineHeight: '1.7',
                                         margin: 0,
                                         fontWeight: '400'
-                                    }}>
+                                }}>
                                         {faq.answer}
-                                    </p>
+                                </p>
                                 </div>
                             </div>
                         ))}
@@ -920,15 +1167,15 @@ const LandingPage = () => {
                         position: 'relative',
                         zIndex: 0,
                         marginTop: '-400px',
-                        paddingTop: '100px'
+                        paddingTop: '130px'
                     }}
                 >
                     <h2 style={{
                         fontSize: 'clamp(2rem, 5vw, 3.5rem)',
                         fontWeight: '700',
                         letterSpacing: '-0.02em',
-                        marginBottom: '48px',
-                        marginTop: '60px',
+                        marginBottom: '40px',
+                        marginTop: '40px',
                         color: '#ffffff'
                     }}>
                         Ready to Find Your Next Startup?
@@ -965,8 +1212,8 @@ const LandingPage = () => {
                     ref={footerRef}
                     style={{
                         padding: '40px 24px 40px',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                        maxWidth: '1200px',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                    maxWidth: '1200px',
                         margin: '0 auto',
                         opacity: footerVisible ? 1 : 0,
                         transform: footerVisible ? 'translateY(0)' : 'translateY(30px)',
@@ -983,7 +1230,7 @@ const LandingPage = () => {
                         <div>
                             <div style={{ marginBottom: '24px' }}>
                                 <img
-                                    src="/logo.png"
+                                    src="/Vector.png"
                                     alt="Swipy"
                                     style={{
                                         height: '32px',
