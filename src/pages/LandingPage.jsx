@@ -186,7 +186,7 @@ const LandingPage = () => {
 
                 .phone-mockup {
                     width: 100%;
-                    max-width: 300px;
+                    max-width: 400px;
                     margin: 0 auto;
                 }
 
@@ -238,8 +238,8 @@ const LandingPage = () => {
                     }
                     
                     .phone-mockup {
-                        max-width: 250px !important;
-                        flex: 0 1 250px !important;
+                        max-width: 350px !important;
+                        flex: 0 1 350px !important;
                     }
                 }
             `}</style>
@@ -347,7 +347,7 @@ const LandingPage = () => {
                         flexDirection: 'column',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        padding: '120px 24px 80px',
+                        padding: '100px 24px 60px',
                         maxWidth: '1400px',
                         margin: '0 auto',
                         textAlign: 'center',
@@ -432,7 +432,7 @@ const LandingPage = () => {
                     {/* Device Mockups - Side by Side */}
                     <div className="fade-in-up device-mockup-container" style={{
                         width: '100%',
-                        marginTop: '80px',
+                        marginTop: '60px',
                         display: 'flex',
                         flexDirection: 'row',
                         gap: '60px',
@@ -442,8 +442,7 @@ const LandingPage = () => {
                         overflow: 'visible'
                     }}>
                         {/* Laptop Mockup */}
-                        <div className="device-mockup laptop-mockup float-animation" style={{
-                            animationDelay: '0s',
+                        <div className="device-mockup laptop-mockup" style={{
                             maxWidth: '600px',
                             flex: '1 1 500px',
                             minWidth: '300px'
@@ -470,11 +469,10 @@ const LandingPage = () => {
                         </div>
 
                         {/* Phone Mockup */}
-                        <div className="device-mockup phone-mockup float-animation" style={{
-                            animationDelay: '1s',
-                            maxWidth: '280px',
-                            flex: '0 1 280px',
-                            minWidth: '200px',
+                        <div className="device-mockup phone-mockup" style={{
+                            maxWidth: '400px',
+                            flex: '0 1 400px',
+                            minWidth: '250px',
                             paddingTop: '20px',
                             overflow: 'visible'
                         }}>
@@ -503,11 +501,11 @@ const LandingPage = () => {
 
                 {/* Features Section */}
                 <section id="features" className="fade-in-up" style={{
-                    padding: '120px 24px',
+                    padding: '80px 24px',
                     maxWidth: '1200px',
                     margin: '0 auto'
                 }}>
-                    <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '60px' }}>
                         <h2 style={{
                             fontSize: 'clamp(2rem, 5vw, 3.5rem)',
                             fontWeight: '700',
@@ -622,11 +620,11 @@ const LandingPage = () => {
 
                 {/* How It Works Section */}
                 <section id="how-it-works" className="fade-in-up" style={{
-                    padding: '120px 24px',
+                    padding: '80px 24px',
                     maxWidth: '1200px',
                     margin: '0 auto'
                 }}>
-                    <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '60px' }}>
                         <h2 style={{
                             fontSize: 'clamp(2rem, 5vw, 3.5rem)',
                             fontWeight: '700',
@@ -652,7 +650,7 @@ const LandingPage = () => {
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
                         gap: 'clamp(40px, 6vw, 60px)',
-                        marginTop: '80px',
+                        marginTop: '60px',
                         position: 'relative'
                     }}>
                         {[
@@ -761,7 +759,7 @@ const LandingPage = () => {
                     id="faq"
                     className="fade-in-up"
                     style={{
-                        padding: '120px 24px 60px',
+                        padding: '80px 24px 40px',
                         width: '100%',
                         margin: '5px auto 0',
                         position: 'sticky',

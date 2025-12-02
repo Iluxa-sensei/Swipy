@@ -26,6 +26,7 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
     const [searchResults, setSearchResults] = useState({ startups: [], profiles: [] })
     const [isSearching, setIsSearching] = useState(false)
     const [showSearchResults, setShowSearchResults] = useState(false)
+    const [searchPosition, setSearchPosition] = useState({ top: 0, left: 0, width: 0 })
     const searchRef = useRef(null)
     const searchContainerRef = useRef(null)
 
@@ -68,13 +69,16 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
 
             try {
                 if (isUserSearch) {
-                    // Search for users only
+                    // Search for users only when @ prefix is used
                     const profiles = await searchService.searchProfiles(searchTerm, 5)
                     setSearchResults({ startups: [], profiles })
                 } else {
-                    // Search for startups only
-                    const startups = await searchService.searchStartups(searchTerm, 5)
-                    setSearchResults({ startups, profiles: [] })
+                    // Search both startups and profiles simultaneously
+                    const [startups, profiles] = await Promise.all([
+                        searchService.searchStartups(searchTerm, 5),
+                        searchService.searchProfiles(searchTerm, 5)
+                    ])
+                    setSearchResults({ startups, profiles })
                 }
                 setShowSearchResults(true)
             } catch (error) {
@@ -89,6 +93,29 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
         return () => clearTimeout(debounceTimer)
     }, [searchQuery])
 
+    // Update search position when window resizes or search container changes
+    useEffect(() => {
+        const updateSearchPosition = () => {
+            if (searchContainerRef.current) {
+                const rect = searchContainerRef.current.getBoundingClientRect()
+                setSearchPosition({
+                    top: rect.bottom + 8,
+                    left: rect.left,
+                    width: rect.width
+                })
+            }
+        }
+
+        updateSearchPosition()
+        window.addEventListener('resize', updateSearchPosition)
+        window.addEventListener('scroll', updateSearchPosition, true)
+
+        return () => {
+            window.removeEventListener('resize', updateSearchPosition)
+            window.removeEventListener('scroll', updateSearchPosition, true)
+        }
+    }, [showSearchResults, currentScreen])
+
     // Close search results when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -102,7 +129,14 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
     }, [])
 
     const handleSearchChange = (e) => {
-        setSearchQuery(e.target.value)
+        const value = e.target.value
+        setSearchQuery(value)
+        // Show results dropdown when typing
+        if (value.trim().length >= 2) {
+            setShowSearchResults(true)
+        } else {
+            setShowSearchResults(false)
+        }
     }
 
     const handleResultClick = (type, id) => {
@@ -113,9 +147,8 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
             if (id === user?.id) {
                 navigate('/profile')
             } else {
-                // For other users, navigate to their profile page
-                // If profile page doesn't support viewing other users, just go to profile
-                navigate('/profile')
+                // Navigate to public profile page for other users
+                navigate(`/profile/${id}`)
             }
         }
         setSearchQuery('')
@@ -159,8 +192,8 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                     <div className="desktop-header-title">
                         {currentScreen === 'home' && (
                             <>
-                                <p className="desktop-header-eyebrow">Startup news</p>
-                                <h1>Startups</h1>
+                        <p className="desktop-header-eyebrow">Startup news</p>
+                        <h1>Startups</h1>
                             </>
                         )}
                         {currentScreen === 'chat' && (
@@ -209,7 +242,7 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                     <div className="desktop-header-actions wide">
                         {currentScreen === 'home' && (
                             <div className="desktop-search wide" ref={searchContainerRef}>
-                                <i className="fa-solid fa-magnifying-glass"></i>
+                            <i className="fa-solid fa-magnifying-glass"></i>
                                 <input
                                     type="search"
                                     placeholder="Search startups or @users..."
@@ -221,26 +254,34 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                                 {isSearching && (
                                     <i className="fa-solid fa-spinner fa-spin" style={{ marginLeft: '8px', color: 'rgba(255, 255, 255, 0.5)' }}></i>
                                 )}
-                                {console.log('Render check:', {
-                                    showSearchResults,
-                                    startupsCount: searchResults.startups.length,
-                                    profilesCount: searchResults.profiles.length,
-                                    shouldShow: showSearchResults && (searchResults.startups.length > 0 || searchResults.profiles.length > 0)
-                                })}
-                                {showSearchResults && (searchResults.startups.length > 0 || searchResults.profiles.length > 0) && (
+                                {showSearchResults && searchQuery.trim().length >= 2 && (
                                     <div className="desktop-search-results" style={{
-                                        position: 'absolute',
-                                        top: 'calc(100% + 8px)',
-                                        left: 0,
-                                        right: 0,
+                                        position: 'fixed',
+                                        top: `${searchPosition.top}px`,
+                                        left: `${searchPosition.left}px`,
+                                        width: `${searchPosition.width}px`,
                                         background: 'rgba(0, 0, 0, 0.95)',
                                         borderRadius: '16px',
                                         border: '1px solid rgba(255, 255, 255, 0.1)',
                                         padding: '8px',
-                                        zIndex: 99999,
-                                        display: 'block'
+                                        zIndex: 999999,
+                                        display: 'block',
+                                        maxHeight: '400px',
+                                        overflowY: 'auto',
+                                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
                                     }}>
-                                        {console.log('DROPDOWN RENDERING!', searchResults)}
+                                        {isSearching ? (
+                                            <div className="desktop-search-empty" style={{ padding: '20px', textAlign: 'center' }}>
+                                                <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '8px' }}></i>
+                                                <span>Searching...</span>
+                                            </div>
+                                        ) : searchResults.startups.length === 0 && searchResults.profiles.length === 0 ? (
+                                            <div className="desktop-search-empty">
+                                                <i className="fa-solid fa-search"></i>
+                                                <span>No results found</span>
+                                            </div>
+                                        ) : (
+                                            <>
                                         {searchResults.startups.length > 0 && (
                                             <div className="search-results-section">
                                                 <div className="search-results-header">
@@ -311,9 +352,11 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                                                 ))}
                                             </div>
                                         )}
+                                            </>
+                                        )}
                                     </div>
                                 )}
-                            </div>
+                        </div>
                         )}
                         {currentScreen === 'home' && (
                             <button

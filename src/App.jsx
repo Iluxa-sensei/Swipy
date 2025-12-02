@@ -14,6 +14,7 @@ import ChatPage from './pages/ChatPage'
 import DesktopChatPage from './pages/DesktopChatPage.jsx'
 import ProfilePage from './pages/ProfilePage'
 import DesktopProfilePage from './pages/DesktopProfilePage.jsx'
+import PublicProfilePage from './pages/PublicProfilePage'
 import AddPage from './pages/AddPage'
 import FiltersPage from './pages/FiltersPage'
 import OnboardingPage from './pages/OnboardingPage'
@@ -43,7 +44,8 @@ function App() {
     if (location.pathname === '/') {
       return // Don't set currentScreen for landing page
     }
-    const path = location.pathname.substring(1) || 'login'
+    // Extract base path (without params)
+    const path = location.pathname.substring(1).split('/')[0] || 'login'
     setCurrentScreen(path)
   }, [location.pathname])
 
@@ -73,8 +75,9 @@ function App() {
         <Route path="/saved" element={isDesktop ? <DesktopSavedPage /> : <SavedPage />} />
         <Route path="/notifications" element={isDesktop ? <DesktopNotificationsPage /> : <NotificationsPage />} />
         <Route path="/chat" element={isDesktop ? <DesktopChatPage /> : <ChatPage />} />
-        <Route path="/profile" element={isDesktop ? <DesktopProfilePage /> : <ProfilePage />} />
         <Route path="/profile/edit" element={<ProfileEditPage />} />
+        <Route path="/profile/:id" element={<PublicProfilePage />} />
+        <Route path="/profile" element={isDesktop ? <DesktopProfilePage /> : <ProfilePage />} />
         <Route path="/settings" element={isDesktop ? <DesktopSettingsPage /> : <SettingsPage />} />
         <Route path="/activity-dashboard" element={<ActivityDashboardPage />} />
         <Route path="/add" element={<AddPage />} />

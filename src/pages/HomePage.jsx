@@ -27,9 +27,12 @@ const HomePageFixed = () => {
     const [currentPos, setCurrentPos] = useState({ x: 0, y: 0 })
     const [showTutorial, setShowTutorial] = useState(false)
 
-    // TEST: Search results display
-    const [testSearchQuery, setTestSearchQuery] = useState('')
-    const [testSearchResults, setTestSearchResults] = useState({ startups: [], profiles: [] })
+    // Search state
+    const [searchQuery, setSearchQuery] = useState('')
+    const [searchResults, setSearchResults] = useState({ startups: [], profiles: [] })
+    const [isSearching, setIsSearching] = useState(false)
+    const [showSearchResults, setShowSearchResults] = useState(false)
+    const searchContainerRef = useRef(null)
 
     const cardRef = useRef(null)
     const lastTapRef = useRef(0)
@@ -51,36 +54,100 @@ const HomePageFixed = () => {
     console.log('displayStartups.length:', displayStartups?.length)
     console.log('============================')
 
-    // TEST: Search functionality
+    // Search functionality
     useEffect(() => {
-        const performTestSearch = async () => {
-            if (!testSearchQuery.trim() || testSearchQuery.trim().length < 2) {
-                setTestSearchResults({ startups: [], profiles: [] })
+        const performSearch = async () => {
+            if (!searchQuery.trim()) {
+                setSearchResults({ startups: [], profiles: [] })
+                setShowSearchResults(false)
                 return
             }
 
-            const query = testSearchQuery.trim()
+            setIsSearching(true)
+            const query = searchQuery.trim()
             const isUserSearch = query.startsWith('@')
-            const searchTerm = isUserSearch ? query.substring(1).trim() : query
+            const searchTerm = isUserSearch ? query.substring(1).trim() : query.trim()
+
+            // Require at least 2 characters for search
+            if (isUserSearch && searchTerm.length < 2) {
+                setSearchResults({ startups: [], profiles: [] })
+                setShowSearchResults(false)
+                setIsSearching(false)
+                return
+            }
+
+            if (!isUserSearch && searchTerm.length < 2) {
+                setSearchResults({ startups: [], profiles: [] })
+                setShowSearchResults(false)
+                setIsSearching(false)
+                return
+            }
 
             try {
-                if (isUserSearch && searchTerm.length >= 2) {
+                if (isUserSearch) {
+                    // Search for users only when @ prefix is used
                     const profiles = await searchService.searchProfiles(searchTerm, 5)
-                    console.log('TEST SEARCH PROFILES:', profiles)
-                    setTestSearchResults({ startups: [], profiles })
-                } else if (!isUserSearch && query.length >= 2) {
-                    const startups = await searchService.searchStartups(searchTerm, 5)
-                    console.log('TEST SEARCH STARTUPS:', startups)
-                    setTestSearchResults({ startups, profiles: [] })
+                    setSearchResults({ startups: [], profiles })
+                } else {
+                    // Search both startups and profiles simultaneously
+                    const [startups, profiles] = await Promise.all([
+                        searchService.searchStartups(searchTerm, 5),
+                        searchService.searchProfiles(searchTerm, 5)
+                    ])
+                    setSearchResults({ startups, profiles })
                 }
+                setShowSearchResults(true)
             } catch (error) {
-                console.error('Test search error:', error)
+                console.error('Search error:', error)
+                setSearchResults({ startups: [], profiles: [] })
+            } finally {
+                setIsSearching(false)
             }
         }
 
-        const timer = setTimeout(performTestSearch, 300)
-        return () => clearTimeout(timer)
-    }, [testSearchQuery])
+        const debounceTimer = setTimeout(performSearch, 300)
+        return () => clearTimeout(debounceTimer)
+    }, [searchQuery])
+
+    // Close search results when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+                setShowSearchResults(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        document.addEventListener('touchstart', handleClickOutside)
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+            document.removeEventListener('touchstart', handleClickOutside)
+        }
+    }, [])
+
+    const handleSearchChange = (e) => {
+        const value = e.target.value
+        setSearchQuery(value)
+        if (value.trim().length >= 2) {
+            setShowSearchResults(true)
+        } else {
+            setShowSearchResults(false)
+        }
+    }
+
+    const handleResultClick = (type, id) => {
+        if (type === 'startup') {
+            navigate(`/startup/${id}`)
+        } else if (type === 'profile') {
+            if (id === user?.id) {
+                navigate('/profile')
+            } else {
+                navigate(`/profile/${id}`)
+            }
+        }
+        setSearchQuery('')
+        setShowSearchResults(false)
+    }
 
     useEffect(() => {
         const tutorialCompleted = localStorage.getItem('tutorial-completed')
@@ -373,73 +440,123 @@ const HomePageFixed = () => {
 
     return (
         <div className="screen active">
-
-            {/* TEST SEARCH BOX */}
-            <div style={{
-                position: 'fixed',
-                top: '80px',
-                right: '20px',
-                background: 'rgba(0,0,0,0.9)',
-                padding: '20px',
-                borderRadius: '12px',
-                border: '2px solid #00ff00',
-                zIndex: 99999,
-                maxWidth: '300px',
-                color: 'white'
-            }}>
-                <h3 style={{ color: '#00ff00', marginBottom: '10px' }}>TEST SEARCH</h3>
-                <input
-                    type="text"
-                    placeholder="Type to search..."
-                    value={testSearchQuery}
-                    onChange={(e) => setTestSearchQuery(e.target.value)}
-                    style={{
-                        width: '100%',
-                        padding: '8px',
-                        marginBottom: '10px',
-                        borderRadius: '6px',
-                        border: '1px solid #00ff00',
-                        background: 'rgba(0,0,0,0.5)',
-                        color: 'white'
-                    }}
-                />
-                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                    {testSearchResults.profiles.length > 0 && (
-                        <div>
-                            <h4 style={{ color: '#00ff00' }}>PROFILES:</h4>
-                            {testSearchResults.profiles.map(profile => (
-                                <div key={profile.id} style={{
-                                    padding: '8px',
-                                    marginBottom: '5px',
-                                    background: 'rgba(0,255,0,0.1)',
-                                    borderRadius: '4px'
-                                }}>
-                                    <div>{profile.full_name || profile.username}</div>
-                                    <div style={{ fontSize: '12px', opacity: 0.7 }}>@{profile.username}</div>
-                                </div>
-                            ))}
-                        </div>
+            {/* Mobile Search Bar */}
+            <div className="mobile-search-container" ref={searchContainerRef}>
+                <div className="mobile-search-bar">
+                    <i className="fas fa-search mobile-search-icon"></i>
+                    <input
+                        type="search"
+                        placeholder="Search startups or @users..."
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        onFocus={() => searchQuery.trim().length >= 2 && setShowSearchResults(true)}
+                        className="mobile-search-input"
+                    />
+                    {isSearching && (
+                        <i className="fas fa-spinner fa-spin mobile-search-spinner"></i>
                     )}
-                    {testSearchResults.startups.length > 0 && (
-                        <div>
-                            <h4 style={{ color: '#00ff00' }}>STARTUPS:</h4>
-                            {testSearchResults.startups.map(startup => (
-                                <div key={startup.id} style={{
-                                    padding: '8px',
-                                    marginBottom: '5px',
-                                    background: 'rgba(0,255,0,0.1)',
-                                    borderRadius: '4px'
-                                }}>
-                                    <div>{startup.name}</div>
-                                    <div style={{ fontSize: '12px', opacity: 0.7 }}>{startup.industry}</div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                    {testSearchQuery.length >= 2 && testSearchResults.profiles.length === 0 && testSearchResults.startups.length === 0 && (
-                        <div style={{ color: '#ff0000' }}>No results found</div>
+                    {searchQuery && !isSearching && (
+                        <button
+                            className="mobile-search-clear"
+                            onClick={() => {
+                                setSearchQuery('')
+                                setShowSearchResults(false)
+                            }}
+                        >
+                            <i className="fas fa-times"></i>
+                        </button>
                     )}
                 </div>
+
+                {/* Search Results Dropdown */}
+                {showSearchResults && searchQuery.trim().length >= 2 && (
+                    <div className="mobile-search-results">
+                        {isSearching ? (
+                            <div className="mobile-search-empty">
+                                <i className="fas fa-spinner fa-spin"></i>
+                                <span>Searching...</span>
+                            </div>
+                        ) : searchResults.startups.length === 0 && searchResults.profiles.length === 0 ? (
+                            <div className="mobile-search-empty">
+                                <i className="fas fa-search"></i>
+                                <span>No results found</span>
+                            </div>
+                        ) : (
+                            <>
+                                {searchResults.startups.length > 0 && (
+                                    <div className="mobile-search-section">
+                                        <div className="mobile-search-section-header">
+                                            <i className="fas fa-rocket"></i>
+                                            <span>Startups</span>
+                                        </div>
+                                        {searchResults.startups.map(startup => (
+                                            <div
+                                                key={startup.id}
+                                                className="mobile-search-result-item"
+                                                onClick={() => handleResultClick('startup', startup.id)}
+                                            >
+                                                <div className="mobile-search-result-avatar">
+                                                    {startup.logo_url ? (
+                                                        <img src={startup.logo_url} alt={startup.name} />
+                                                    ) : (
+                                                        <div className={`mobile-search-result-fallback ${startup.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'}`}>
+                                                            <span>{startup.logo || startup.name?.[0] || 'S'}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="mobile-search-result-info">
+                                                    <div className="mobile-search-result-name">{startup.name}</div>
+                                                    <div className="mobile-search-result-meta">
+                                                        {startup.industry && <span>{startup.industry}</span>}
+                                                        {startup.stage && <span>{startup.stage}</span>}
+                                                    </div>
+                                                </div>
+                                                <i className="fas fa-chevron-right mobile-search-result-arrow"></i>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                {searchResults.profiles.length > 0 && (
+                                    <div className="mobile-search-section">
+                                        <div className="mobile-search-section-header">
+                                            <i className="fas fa-user"></i>
+                                            <span>People</span>
+                                        </div>
+                                        {searchResults.profiles.map(profile => (
+                                            <div
+                                                key={profile.id}
+                                                className="mobile-search-result-item"
+                                                onClick={() => handleResultClick('profile', profile.id)}
+                                            >
+                                                <div className="mobile-search-result-avatar">
+                                                    {profile.avatar_url ? (
+                                                        <img src={profile.avatar_url} alt={profile.full_name || profile.username} />
+                                                    ) : (
+                                                        <div className="mobile-search-result-fallback bg-gradient-to-br from-blue-300 to-blue-700">
+                                                            <span>{(profile.full_name || profile.username || 'U')?.[0]?.toUpperCase() || '?'}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="mobile-search-result-info">
+                                                    <div className="mobile-search-result-name">
+                                                        {profile.full_name || profile.username || 'User'}
+                                                        {profile.username && <span className="mobile-search-result-username">@{profile.username}</span>}
+                                                    </div>
+                                                    {profile.role && (
+                                                        <div className="mobile-search-result-meta">
+                                                            <span>{profile.role}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <i className="fas fa-chevron-right mobile-search-result-arrow"></i>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className="header">
