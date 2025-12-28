@@ -145,6 +145,7 @@
     @apply flex justify-between items-center px-5 py-4 bg-bg-primary/95 backdrop-blur-xl border-b border-glass-border/50 sticky top-0 z-40;
     /* Обеспечиваем минимальную высоту */
     min-height: 64px;
+    position: relative;
   }
 
   .header-btn {
@@ -209,6 +210,7 @@
 
   .screen {
     @apply absolute inset-0 opacity-0 translate-x-full transition-all duration-300 ease-out overflow-y-auto bg-bg-primary;
+    overflow-x: visible !important;
   }
 
   .screen.active {
@@ -1648,9 +1650,14 @@
     width: 100%;
     max-width: 100%;
     margin-bottom: 10px;
-    overflow: visible;
+    overflow: visible !important;
     position: relative;
     z-index: 1;
+  }
+
+  .desktop-header-actions {
+    position: relative;
+    overflow: visible !important;
   }
 
   .desktop-header-title h1 {
@@ -1712,19 +1719,16 @@
   }
 
   .desktop-search-results {
-    position: absolute !important;
-    top: calc(100% + 8px) !important;
-    left: 0 !important;
-    right: 0 !important;
+    position: fixed !important;
     max-height: 400px;
     overflow-y: auto;
     overflow-x: visible !important;
     background: rgba(0, 0, 0, 0.95) !important;
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    borderRadius: 16px;
+    border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    z-index: 9999 !important;
+    z-index: 999999 !important;
     padding: 8px;
     min-height: 50px !important;
     display: block !important;
@@ -1853,6 +1857,224 @@
   .search-result-item:hover .search-result-arrow {
     color: rgba(255, 255, 255, 0.6);
     transform: translateX(2px);
+  }
+
+  /* Mobile Search Styles */
+  .mobile-search-container {
+    position: relative;
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 100;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .mobile-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    height: 48px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    position: relative;
+  }
+
+  .mobile-search-icon {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .mobile-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 400;
+  }
+
+  .mobile-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .mobile-search-spinner {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .mobile-search-clear {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    padding: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+  }
+
+  .mobile-search-clear:hover {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .mobile-search-results {
+    position: fixed;
+    top: calc(64px + 72px + 8px); /* header height + search bar height + margin */
+    left: 16px;
+    right: 16px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    z-index: 9999 !important;
+    padding: 8px;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .mobile-search-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+  }
+
+  .mobile-search-empty i {
+    font-size: 1rem;
+  }
+
+  .mobile-search-section {
+    margin-bottom: 8px;
+  }
+
+  .mobile-search-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .mobile-search-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 4px;
+  }
+
+  .mobile-search-section-header i {
+    font-size: 0.7rem;
+  }
+
+  .mobile-search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .mobile-search-result-item:active {
+    background: rgba(255, 255, 255, 0.12);
+    transform: scale(0.98);
+  }
+
+  .mobile-search-result-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .mobile-search-result-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .mobile-search-result-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mobile-search-result-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #fff;
+  }
+
+  .mobile-search-result-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .mobile-search-result-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #fff;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-search-result-username {
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-left: 6px;
+  }
+
+  .mobile-search-result-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .mobile-search-result-meta span {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+  }
+
+  .mobile-search-result-arrow {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.75rem;
+    flex-shrink: 0;
   }
 
   .desktop-icon-btn {
