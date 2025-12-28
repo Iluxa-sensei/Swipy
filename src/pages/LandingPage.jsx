@@ -245,7 +245,7 @@ const LandingPage = () => {
             `}</style>
             <div className="min-h-screen" style={{ background: '#0a0a0a', color: '#FFFFFF', overflowY: 'auto', position: 'relative', width: '100%', height: 'auto' }}>
                 {/* Minimal Navbar - Centered with rounded corners like playntest.com */}
-                <nav style={{
+                <div style={{
                     position: 'fixed',
                     top: '20px',
                     left: '50%',
@@ -253,90 +253,97 @@ const LandingPage = () => {
                     zIndex: 50,
                     width: 'fit-content',
                     maxWidth: '90%',
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    padding: '18px 24px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '24px',
+                    padding: '10px',
                     overflow: 'visible'
                 }}>
-                    {/* Logo */}
-                    <button
-                        onClick={handleLogoClick}
-                        className="flex items-center cursor-pointer"
-                        style={{ background: 'transparent', border: 'none', padding: 0 }}
-                    >
-                        <img
-                            ref={logoRef}
-                            src="/logo.png"
-                            alt="Swipy"
-                            className="landing-logo"
-                            style={{
-                                height: '48px',
-                                width: '48px',
-                                borderRadius: '12px',
-                                objectFit: 'contain',
-                                transition: 'transform 0.6s ease-in-out',
-                                display: 'block',
-                            }}
-                        />
-                    </button>
+                    <nav style={{
+                        background: 'rgba(255, 255, 255, 0.08)',
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        padding: '18px 28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '24px',
+                        overflow: 'visible'
+                    }}>
+                        {/* Logo */}
+                        <button
+                            onClick={handleLogoClick}
+                            className="flex items-center cursor-pointer"
+                            style={{ background: 'transparent', border: 'none', padding: 0 }}
+                        >
+                            <img
+                                ref={logoRef}
+                                src="/logo.png"
+                                alt="Swipy"
+                                className="landing-logo"
+                                style={{
+                                    height: '48px',
+                                    width: '48px',
+                                    borderRadius: '12px',
+                                    objectFit: 'contain',
+                                    transition: 'transform 0.6s ease-in-out',
+                                    display: 'block',
+                                }}
+                            />
+                        </button>
 
-                    {/* Auth Buttons */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <button
-                            onClick={() => navigate('/login')}
-                            style={{
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                color: 'rgba(255, 255, 255, 0.9)',
-                                padding: '8px 20px',
-                                borderRadius: '20px',
-                                fontSize: '0.9rem',
-                                fontWeight: '500',
-                                border: 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
-                            }}
-                        >
-                            Log In
-                        </button>
-                        <button
-                            onClick={() => navigate('/login')}
-                            style={{
-                                background: '#4880ff',
-                                color: '#ffffff',
-                                padding: '8px 20px',
-                                borderRadius: '20px',
-                                fontSize: '0.9rem',
-                                fontWeight: '600',
-                                border: 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s ease',
-                                boxShadow: '0 4px 15px rgba(72, 128, 255, 0.4)'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-2px)'
-                                e.currentTarget.style.boxShadow = '0 6px 20px rgba(72, 128, 255, 0.5)'
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)'
-                                e.currentTarget.style.boxShadow = '0 4px 15px rgba(72, 128, 255, 0.4)'
-                            }}
-                        >
-                            Sign Up
-                        </button>
-                    </div>
-                </nav>
+                        {/* Auth Buttons */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'visible' }}>
+                            <button
+                                onClick={() => navigate('/login')}
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    color: 'rgba(255, 255, 255, 0.9)',
+                                    padding: '8px 20px',
+                                    borderRadius: '20px',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '500',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
+                                }}
+                            >
+                                Log In
+                            </button>
+                            <button
+                                onClick={() => navigate('/login')}
+                                style={{
+                                    background: '#4880ff',
+                                    color: '#ffffff',
+                                    padding: '8px 20px',
+                                    borderRadius: '20px',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '600',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 4px 15px rgba(72, 128, 255, 0.4)',
+                                    position: 'relative',
+                                    zIndex: 1
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-2px)'
+                                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(72, 128, 255, 0.5)'
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)'
+                                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(72, 128, 255, 0.4)'
+                                }}
+                            >
+                                Sign Up
+                            </button>
+                        </div>
+                    </nav>
+                </div>
 
                 {/* Hero Section with Device Mockups */}
                 <section

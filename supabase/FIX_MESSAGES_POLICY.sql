@@ -38,3 +38,5 @@ create policy "Users can read messages in their chats" on public.messages
   );
 
 
+
+

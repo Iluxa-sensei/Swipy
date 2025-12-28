@@ -274,3 +274,5 @@ create or replace function public.get_chat_info_rpc(p_chat_id uuid)
 grant execute on function public.get_chat_info_rpc(uuid) to authenticated;
 
 
+
+
