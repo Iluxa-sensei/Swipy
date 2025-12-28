@@ -1358,6 +1358,24 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+  }
+
+  .desktop-minimal-wrapper::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60vh;
+    z-index: 0;
+    background: radial-gradient(ellipse 120% 80% at 50% 0%, rgba(72, 128, 255, 0.25) 0%, rgba(72, 128, 255, 0.18) 20%, rgba(72, 128, 255, 0.12) 35%, rgba(72, 128, 255, 0.06) 50%, rgba(72, 128, 255, 0.03) 65%, transparent 80%);
+    pointer-events: none;
+  }
+
+  .desktop-minimal-wrapper>* {
+    position: relative;
+    z-index: 1;
   }
 
   .desktop-minimal-wrapper>* {
@@ -1572,17 +1590,21 @@
     margin: 0;
     background: #0f0f0f;
     width: 100%;
+    position: relative;
   }
 
   .desktop-auth-card {
     width: 100%;
-    max-width: none;
-    background: transparent;
+    max-width: 480px;
+    background: #111111;
     border: none;
     box-shadow: none;
-    padding: 40px;
+    padding: 32px 40px;
     margin: 0;
     animation: auth-card-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    z-index: 1;
+    border-radius: 24px;
   }
 
   @keyframes auth-card-in {
@@ -1931,7 +1953,8 @@
 
   .mobile-search-results {
     position: fixed;
-    top: calc(64px + 72px + 8px); /* header height + search bar height + margin */
+    top: calc(64px + 72px + 8px);
+    /* header height + search bar height + margin */
     left: 16px;
     right: 16px;
     max-height: calc(100vh - 200px);

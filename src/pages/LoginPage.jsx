@@ -6,6 +6,7 @@ import { useAuth } from '../providers/AuthProvider.jsx'
 import { useDeviceType } from '../hooks'
 import AuthInput from '../components/AuthInput.jsx'
 import AuthButton from '../components/AuthButton.jsx'
+// import AsciiLogo from '../components/AsciiLogo.jsx'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -91,12 +92,12 @@ const LoginPage = () => {
       if (isLogin) {
         try {
           const data = await authService.signIn(formData.email, formData.password)
-          
+
           // Check if user has completed onboarding
           if (data?.user?.id) {
             try {
               const profile = await profileService.getProfile(data.user.id)
-              
+
               // If onboarding not completed, redirect to onboarding
               if (!profile || !profile.onboarding_completed) {
                 navigate('/onboarding', { replace: true })
@@ -109,7 +110,7 @@ const LoginPage = () => {
               return
             }
           }
-          
+
           // User has completed onboarding, redirect to intended destination or home
           const redirectTo = location.state?.from?.pathname || '/home'
           navigate(redirectTo)
@@ -191,7 +192,7 @@ const LoginPage = () => {
       <div className="w-full max-w-md mx-auto">
         {/* Logo and Welcome */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-black mb-5 animate-super-gradient bg-gradient-to-r from-white via-blue-200 via-blue-400 to-blue-600 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-black mb-5 text-white" style={{ paddingBottom: '8px', lineHeight: '1.2' }}>
             Swipy
           </h1>
           <p className="text-text-secondary text-lg">
@@ -315,7 +316,7 @@ const LoginPage = () => {
               <div className="w-full border-t border-white/5"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-[#0f0f0f] text-text-secondary">Or continue with</span>
+              <span className="px-3 text-text-secondary">Or continue with</span>
             </div>
           </div>
         </div>
@@ -354,11 +355,6 @@ const LoginPage = () => {
             </button>
           </p>
         </div>
-
-
-
-        {/* Bottom spacing for laptops */}
-        <div className="h-20"></div>
       </div>
 
       {/* Email Confirmation Modal */}
@@ -401,7 +397,7 @@ const LoginPage = () => {
       <div className="flex-1 overflow-y-auto p-6 md:p-10 lg:p-12">
         {/* Logo and Welcome */}
         <div className="text-center mb-10 md:mb-12">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 animate-super-gradient bg-gradient-to-r from-white via-blue-200 via-blue-400 to-blue-600 bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 text-white">
             Swipy
           </h1>
           <p className="text-text-secondary text-base md:text-lg">
@@ -520,9 +516,9 @@ const LoginPage = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white w-full font-semibold rounded-2xl py-4 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white w-full font-semibold rounded-2xl py-4 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
           >
-            <i className={`fas ${isLogin ? 'fa-sign-in-alt' : 'fa-user-plus'} mr-2`}></i>
+            <i className={`fas ${isLogin ? 'fa-sign-in-alt' : 'fa-user-plus'} mr-2 text-lg`}></i>
             {isSubmitting ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
           </button>
         </form>

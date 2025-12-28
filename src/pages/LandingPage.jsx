@@ -7,12 +7,38 @@ const LandingPage = () => {
     const [openFaqIndex, setOpenFaqIndex] = useState(null)
     const [footerVisible, setFooterVisible] = useState(false)
     const [faqTransform, setFaqTransform] = useState(0)
+    const [isAnimating, setIsAnimating] = useState(false)
+    const [displayWord, setDisplayWord] = useState(0)
+    const words = ['Startups', 'Investors', 'Founders']
+
+    // Calculate next word dynamically
+    const nextWord = (displayWord + 1) % words.length
     const logoRef = useRef(null)
     const heroRef = useRef(null)
     const faqRef = useRef(null)
     const footerRef = useRef(null)
     const ctaRef = useRef(null)
     const scrollHandlerRef = useRef(null)
+    const isLogoAnimating = useRef(false)
+
+    // Animated word rotation
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const next = (displayWord + 1) % words.length
+
+            // Start animation
+            setIsAnimating(true)
+
+            // After animation completes, update displayWord
+            setTimeout(() => {
+                setDisplayWord(next)
+                // End animation
+                setIsAnimating(false)
+            }, 700) // Wait for animation to complete
+        }, 700) // 0.7 seconds
+
+        return () => clearInterval(interval)
+    }, [displayWord, words.length])
 
     // Enable scrolling for landing page
     useEffect(() => {
@@ -57,40 +83,38 @@ const LandingPage = () => {
         elements.forEach(el => observer.observe(el))
 
         // FAQ slides up effect - FAQ section is sticky above footer, slides up to reveal footer (like playntest.com)
+        let rafId = null
         scrollHandlerRef.current = () => {
-            if (faqRef.current && ctaRef.current) {
-                const faqRect = faqRef.current.getBoundingClientRect()
-                const ctaRect = ctaRef.current.getBoundingClientRect()
-                const windowHeight = window.innerHeight
-                const scrollY = window.scrollY || window.pageYOffset
+            if (rafId) return
+            rafId = requestAnimationFrame(() => {
+                rafId = null
+                if (faqRef.current && ctaRef.current) {
+                    const ctaRect = ctaRef.current.getBoundingClientRect()
+                    const windowHeight = window.innerHeight
+                    const faqHeight = faqRef.current.getBoundingClientRect().height
 
-                // Get the container to calculate original position
-                const faqContainer = faqRef.current.offsetParent || document.body
-                const faqOffsetTop = faqRef.current.offsetTop
-                const faqHeight = faqRect.height
+                    // Start sliding only when CTA section is significantly in viewport
+                    // Wait until CTA top is closer to middle of viewport before starting
+                    const ctaTop = ctaRect.top
+                    const triggerPoint = windowHeight * 0.6 // Start when CTA is 60% down viewport
 
-                // FAQ becomes sticky when it reaches top of viewport
-                // FAQ should start sliding up when user scrolls past the point where
-                // the bottom of FAQ would naturally be at the top of viewport
-                const stickyStart = faqOffsetTop
-                const stickyEnd = faqOffsetTop + faqHeight - windowHeight
+                    let progress = 0
+                    // Start sliding only when CTA top passes the trigger point
+                    if (ctaTop < triggerPoint) {
+                        // Calculate progress based on how far CTA has scrolled past trigger
+                        const scrollPast = triggerPoint - ctaTop
+                        const slideDistance = faqHeight + windowHeight * 0.6
+                        progress = Math.min(1, Math.max(0, scrollPast / slideDistance))
+                    }
 
-                let progress = 0
-                // When user scrolls past sticky end, FAQ starts sliding up
-                if (scrollY > stickyEnd) {
-                    const scrollPast = scrollY - stickyEnd
-                    // Distance to scroll to fully hide FAQ
-                    const slideDistance = faqHeight + windowHeight * 0.4
-                    progress = Math.min(1, scrollPast / slideDistance)
+                    // Apply transform: FAQ slides up (negative Y) to reveal footer below
+                    const maxSlide = -(faqHeight + 100)
+                    setFaqTransform(progress * maxSlide)
+
+                    // Show footer when FAQ starts sliding
+                    setFooterVisible(progress > 0.15)
                 }
-
-                // Apply transform: FAQ slides up (negative Y) to reveal footer below
-                const maxSlide = -(faqHeight + windowHeight * 0.2)
-                setFaqTransform(progress * maxSlide)
-
-                // Show footer when FAQ starts sliding
-                setFooterVisible(progress > 0.15)
-            }
+            })
         }
 
         window.addEventListener('scroll', scrollHandlerRef.current)
@@ -128,13 +152,33 @@ const LandingPage = () => {
     }
 
     const handleLogoClick = () => {
-        if (logoRef.current) {
-            logoRef.current.style.transform = 'rotate(360deg)'
-            logoRef.current.style.transition = 'transform 0.6s ease-in-out'
-            setTimeout(() => {
-                logoRef.current.style.transform = 'rotate(0deg)'
-            }, 600)
+        // Предотвращаем повторные клики во время анимации
+        if (isLogoAnimating.current || !logoRef.current) {
+            return
         }
+
+        isLogoAnimating.current = true
+
+        // Сбрасываем предыдущие стили
+        logoRef.current.style.transition = 'transform 0.6s ease-in-out'
+        logoRef.current.style.transform = 'rotate(0deg)'
+
+        // Запускаем анимацию поворота
+        requestAnimationFrame(() => {
+            if (logoRef.current) {
+                logoRef.current.style.transform = 'rotate(360deg)'
+            }
+        })
+
+        // После завершения анимации сбрасываем состояние
+        setTimeout(() => {
+            if (logoRef.current) {
+                logoRef.current.style.transform = 'rotate(0deg)'
+                logoRef.current.style.transition = ''
+            }
+            isLogoAnimating.current = false
+        }, 600)
+
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
@@ -151,7 +195,7 @@ const LandingPage = () => {
                     height: auto !important;
                     min-height: 100vh !important;
                     width: 100% !important;
-                    }
+                }
                 
                 * {
                     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -194,6 +238,7 @@ const LandingPage = () => {
 
                 .phone-mockup-image {
                     transition: filter 0.3s ease;
+                    filter: drop-shadow(0 20px 40px rgba(72, 128, 255, 0.2));
                 }
 
                 .phone-mockup-features:hover {
@@ -201,9 +246,7 @@ const LandingPage = () => {
                 }
 
                 .phone-mockup-features:hover .phone-mockup-image {
-                    filter: drop-shadow(-25px 5px 35px rgba(239, 68, 68, 0.5)) 
-                            drop-shadow(25px 5px 35px rgba(34, 197, 94, 0.5)) 
-                            drop-shadow(0 35px 50px rgba(72, 128, 255, 0.5)) !important;
+                    filter: drop-shadow(0 25px 50px rgba(72, 128, 255, 0.3)) !important;
                 }
 
                 .laptop-mockup {
@@ -269,25 +312,24 @@ const LandingPage = () => {
 
                 @media (max-width: 768px) {
                     /* Navbar mobile optimization */
-                    nav {
+                    .landing-navbar {
                         padding: 8px 16px !important;
                         gap: 12px !important;
                         top: 10px !important;
                     }
 
-                    nav .landing-logo {
-                        height: 40px !important;
-                        width: 40px !important;
+                    .landing-navbar .landing-logo {
+                        height: 36px !important;
+                        width: 36px !important;
                     }
 
-                    nav > div {
+                    .landing-navbar > div {
                         gap: 8px !important;
                     }
 
-                    nav > div > button {
-                        padding: 10px 24px !important;
-                        font-size: 0.95rem !important;
-                        min-width: 80px !important;
+                    .landing-navbar > div > button {
+                        padding: 6px 16px !important;
+                        font-size: 0.85rem !important;
                         white-space: nowrap !important;
                     }
 
@@ -392,85 +434,107 @@ const LandingPage = () => {
                 /* Очень маленькие экраны - возвращаемся к одной колонке */
                 @media (max-width: 480px) {
                     /* Navbar для очень маленьких экранов */
-                    nav {
+                    .landing-navbar {
                         padding: 6px 12px !important;
                         gap: 8px !important;
                         max-width: 95% !important;
                     }
 
-                    nav .landing-logo {
-                        height: 36px !important;
-                        width: 36px !important;
+                    .landing-navbar .landing-logo {
+                        height: 32px !important;
+                        width: 32px !important;
                     }
 
-                    nav > div {
+                    .landing-navbar > div {
                         gap: 6px !important;
                     }
 
-                    /* Features section для очень маленьких экранов */
+                    /* Features section для очень маленьких экранов - сохраняем две колонки */
                     .features-mockup-container {
-                        grid-template-columns: 1fr !important;
-                        gap: 30px !important;
+                        grid-template-columns: 1fr 1fr !important;
+                        gap: 12px !important;
                     }
 
                     .features-mockup-container > div:first-child {
                         order: 1;
-                        align-items: center !important;
+                        gap: 15px !important;
                     }
 
                     .laptop-mockup-features {
                         max-width: 100% !important;
                     }
 
+                    .laptop-mockup-features img {
+                        width: 100% !important;
+                        height: auto !important;
+                    }
+
                     .phone-mockup-features {
-                        max-width: 200px !important;
+                        max-width: 180px !important;
+                        width: 100% !important;
                         margin: 0 auto !important;
-                        margin-top: 20px !important;
-                        padding-bottom: 50px !important;
+                        padding-bottom: 40px !important;
+                        margin-top: 5px !important;
                     }
 
                     .phone-mockup-features img {
-                        max-width: 200px !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        max-width: 180px !important;
                     }
 
                     .features-mockup-container > div:last-child {
                         order: 2;
+                        gap: 8px !important;
                     }
 
-                    nav > div > button {
-                        padding: 10px 20px !important;
-                        font-size: 0.9rem !important;
-                        min-width: 70px !important;
+                    .features-mockup-container > div:last-child > div {
+                        padding: 10px 12px !important;
+                        gap: 8px !important;
+                        border-radius: 10px !important;
                     }
 
-                    .features-mockup-container {
-                        grid-template-columns: 1fr !important;
-                        gap: 30px !important;
+                    .features-mockup-container > div:last-child > div > div:first-child {
+                        width: 28px !important;
+                        height: 28px !important;
+                        min-width: 28px !important;
+                        font-size: 12px !important;
+                        border-radius: 6px !important;
                     }
 
-                    .features-mockup-container > div:first-child {
-                        order: 1;
-                        align-items: center !important;
+                    .features-mockup-container > div:last-child > div h3 {
+                        font-size: 0.75rem !important;
+                        margin-bottom: 3px !important;
+                        line-height: 1.2 !important;
                     }
 
-                    .laptop-mockup-features {
-                        max-width: 100% !important;
+                    .features-mockup-container > div:last-child > div p {
+                        font-size: 0.625rem !important;
+                        line-height: 1.3 !important;
                     }
 
-                    .phone-mockup-features {
-                        max-width: 200px !important;
-                        margin: 0 auto !important;
-                        margin-top: 10px !important;
-                    }
-
-                    .features-mockup-container > div:last-child {
-                        order: 2;
+                    .landing-navbar > div > button {
+                        padding: 6px 14px !important;
+                        font-size: 0.8rem !important;
                     }
                 }
             `}</style>
             <div className="min-h-screen" style={{ background: '#0a0a0a', color: '#FFFFFF', overflowY: 'auto', position: 'relative', width: '100%', height: 'auto' }}>
+                {/* Blue crescent moon gradient at top */}
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '60vh',
+                        zIndex: 0,
+                        background: 'radial-gradient(ellipse 120% 80% at 50% 0%, rgba(72, 128, 255, 0.2) 0%, rgba(72, 128, 255, 0.12) 20%, rgba(72, 128, 255, 0.08) 35%, rgba(72, 128, 255, 0.04) 50%, rgba(72, 128, 255, 0.02) 65%, transparent 80%)',
+                        pointerEvents: 'none'
+                    }}
+                />
                 {/* Minimal Navbar - Centered with rounded corners like playntest.com */}
-                <div style={{
+                <div className="landing-navbar" style={{
                     position: 'fixed',
                     top: '20px',
                     left: '50%',
@@ -489,77 +553,74 @@ const LandingPage = () => {
                     gap: '24px',
                     overflow: 'visible'
                 }}>
-                            {/* Logo */}
-                            <button
-                                onClick={handleLogoClick}
-                                className="flex items-center cursor-pointer"
-                                style={{ background: 'transparent', border: 'none', padding: 0 }}
-                            >
-                                <img
-                                    ref={logoRef}
-                                    src="/Vector.png"
-                                    alt="Swipy"
-                                    className="landing-logo"
-                                    style={{
-                                        height: '48px',
-                                        width: '48px',
-                                        borderRadius: '12px',
-                                        objectFit: 'contain',
-                                        transition: 'transform 0.6s ease-in-out',
-                                        display: 'block',
-                                    }}
-                                />
-                            </button>
+                    {/* Logo */}
+                    <button
+                        onClick={handleLogoClick}
+                        className="flex items-center cursor-pointer"
+                        style={{ background: 'transparent', border: 'none', padding: 0 }}
+                    >
+                        <img
+                            ref={logoRef}
+                            src="/Vector.png"
+                            alt="Swipy"
+                            className="landing-logo"
+                            style={{
+                                height: '48px',
+                                width: '48px',
+                                borderRadius: '12px',
+                                objectFit: 'contain',
+                                transition: 'transform 0.6s ease-in-out',
+                                display: 'block',
+                            }}
+                        />
+                    </button>
 
-                            {/* Auth Buttons */}
+                    {/* Auth Buttons */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <button
-                                    onClick={() => navigate('/login')}
-                                    style={{
-                                        background: 'rgba(255, 255, 255, 0.1)',
-                                        color: 'rgba(255, 255, 255, 0.9)',
-                                        padding: '8px 20px',
-                                        borderRadius: '20px',
-                                        fontSize: '0.9rem',
-                                        fontWeight: '500',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.3s ease'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
-                                    }}
-                                >
-                                    Log In
-                                </button>
-                                <button
-                                    onClick={() => navigate('/login')}
-                                    style={{
-                                        background: '#4880ff',
-                                        color: '#ffffff',
-                                        padding: '8px 20px',
-                                        borderRadius: '20px',
-                                        fontSize: '0.9rem',
-                                        fontWeight: '600',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.3s ease',
-                                        boxShadow: '0 4px 15px rgba(72, 128, 255, 0.4)'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.transform = 'translateY(-2px)'
-                                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(72, 128, 255, 0.5)'
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.transform = 'translateY(0)'
-                                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(72, 128, 255, 0.4)'
-                                    }}
-                                >
-                                    Sign Up
-                                </button>
+                        <button
+                            onClick={() => navigate('/login')}
+                            style={{
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                color: 'rgba(255, 255, 255, 0.9)',
+                                padding: '8px 20px',
+                                borderRadius: '20px',
+                                fontSize: '0.9rem',
+                                fontWeight: '500',
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
+                            }}
+                        >
+                            Log In
+                        </button>
+                        <button
+                            onClick={() => navigate('/login')}
+                            style={{
+                                background: '#4880ff',
+                                color: '#ffffff',
+                                padding: '8px 20px',
+                                borderRadius: '20px',
+                                fontSize: '0.9rem',
+                                fontWeight: '600',
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'filter 0.3s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.filter = 'brightness(1.15)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.filter = 'brightness(1)'
+                            }}
+                        >
+                            Sign Up
+                        </button>
                     </div>
                 </div>
 
@@ -579,7 +640,7 @@ const LandingPage = () => {
                         position: 'relative'
                     }}
                 >
-                    <div className="fade-in-up" style={{ marginBottom: '60px', maxWidth: '900px' }}>
+                    <div style={{ marginBottom: '60px', maxWidth: '900px' }}>
                         <h1 style={{
                             fontSize: 'clamp(2.5rem, 6vw, 5rem)',
                             fontWeight: '700',
@@ -589,7 +650,43 @@ const LandingPage = () => {
                             color: '#ffffff'
                         }}>
                             Tinder for{' '}
-                            <span style={{ color: '#4880ff' }}>Startups</span>
+                            <span
+                                style={{
+                                    color: '#4880ff',
+                                    display: 'inline-block',
+                                    width: 'clamp(200px, 30vw, 350px)',
+                                    textAlign: 'left',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    verticalAlign: 'top',
+                                    height: '1.1em'
+                                }}
+                            >
+                                <span
+                                    className="animated-word-current"
+                                    style={{
+                                        display: 'block',
+                                        transition: 'transform 0.7s cubic-bezier(0.19, 1, 0.22, 1)',
+                                        transform: isAnimating ? 'translateY(-100%)' : 'translateY(0)'
+                                    }}
+                                >
+                                    {words[displayWord]}
+                                </span>
+                                <span
+                                    className="animated-word-next"
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        display: 'block',
+                                        width: '100%',
+                                        transition: 'transform 0.7s cubic-bezier(0.19, 1, 0.22, 1)',
+                                        transform: isAnimating ? 'translateY(0)' : 'translateY(100%)'
+                                    }}
+                                >
+                                    {words[nextWord]}
+                                </span>
+                            </span>
                         </h1>
                         <p style={{
                             fontSize: 'clamp(1.125rem, 2vw, 1.5rem)',
@@ -613,16 +710,13 @@ const LandingPage = () => {
                                     fontWeight: '600',
                                     border: 'none',
                                     cursor: 'pointer',
-                                    transition: 'all 0.3s ease',
-                                    boxShadow: '0 4px 20px rgba(72, 128, 255, 0.4)'
+                                    transition: 'filter 0.3s ease'
                                 }}
                                 onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-2px)'
-                                    e.currentTarget.style.boxShadow = '0 6px 25px rgba(72, 128, 255, 0.5)'
+                                    e.currentTarget.style.filter = 'brightness(1.15)'
                                 }}
                                 onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)'
-                                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(72, 128, 255, 0.4)'
+                                    e.currentTarget.style.filter = 'brightness(1)'
                                 }}
                             >
                                 Get Started Free
@@ -745,8 +839,7 @@ const LandingPage = () => {
                                     style={{
                                         width: '100%',
                                         height: 'auto',
-                                        display: 'block',
-                                        filter: 'drop-shadow(-20px 5px 30px rgba(239, 68, 68, 0.4)) drop-shadow(20px 5px 30px rgba(34, 197, 94, 0.4)) drop-shadow(0 30px 45px rgba(72, 128, 255, 0.4))'
+                                        display: 'block'
                                     }}
                                     onError={(e) => {
                                         e.target.style.display = 'none'
@@ -814,12 +907,10 @@ const LandingPage = () => {
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
                                         e.currentTarget.style.borderColor = 'rgba(72, 128, 255, 0.3)'
-                                        e.currentTarget.style.transform = 'translateX(4px)'
                                     }}
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'
                                         e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)'
-                                        e.currentTarget.style.transform = 'translateX(0)'
                                     }}
                                 >
                                     {/* Minimalist Icon */}
@@ -867,9 +958,10 @@ const LandingPage = () => {
 
                 {/* How It Works Section */}
                 <section id="how-it-works" className="fade-in-up" style={{
-                    padding: '60px 24px',
+                    padding: '80px 24px 60px',
                     maxWidth: '1200px',
-                    margin: '0 auto'
+                    margin: '0 auto',
+                    overflow: 'visible'
                 }}>
                     <div style={{ textAlign: 'center', marginBottom: '40px' }}>
                         <h2 style={{
@@ -898,7 +990,9 @@ const LandingPage = () => {
                         gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
                         gap: 'clamp(40px, 6vw, 60px)',
                         marginTop: '40px',
-                        position: 'relative'
+                        position: 'relative',
+                        paddingTop: '20px',
+                        overflow: 'visible'
                     }}>
                         {[
                             {
@@ -924,12 +1018,13 @@ const LandingPage = () => {
                                 key={index}
                                 style={{
                                     position: 'relative',
-                                    padding: '40px',
+                                    padding: '50px 40px',
                                     borderRadius: '20px',
                                     background: 'linear-gradient(135deg, rgba(72, 128, 255, 0.05) 0%, rgba(72, 128, 255, 0.02) 100%)',
                                     border: '1px solid rgba(72, 128, 255, 0.1)',
                                     transition: 'all 0.3s ease',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    overflow: 'visible'
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.transform = 'translateY(-8px)'
@@ -960,8 +1055,7 @@ const LandingPage = () => {
                                         justifyContent: 'center',
                                         fontSize: '24px',
                                         color: '#ffffff',
-                                        flexShrink: 0,
-                                        boxShadow: '0 8px 20px rgba(72, 128, 255, 0.3)'
+                                        flexShrink: 0
                                     }}>
                                         <i className={`fas ${step.icon}`}></i>
                                     </div>
@@ -1191,16 +1285,13 @@ const LandingPage = () => {
                             fontWeight: '600',
                             border: 'none',
                             cursor: 'pointer',
-                            transition: 'all 0.3s ease',
-                            boxShadow: '0 4px 20px rgba(72, 128, 255, 0.4)'
+                            transition: 'filter 0.3s ease'
                         }}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-2px)'
-                            e.currentTarget.style.boxShadow = '0 6px 25px rgba(72, 128, 255, 0.5)'
+                            e.currentTarget.style.filter = 'brightness(1.15)'
                         }}
                         onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)'
-                            e.currentTarget.style.boxShadow = '0 4px 20px rgba(72, 128, 255, 0.4)'
+                            e.currentTarget.style.filter = 'brightness(1)'
                         }}
                     >
                         Get Started Free
