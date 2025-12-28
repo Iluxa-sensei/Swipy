@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks'
 import { notificationService } from '../services'
+import { supabase } from '../services/supabaseClient'
 
 const DesktopNotificationsPage = () => {
     const [notificationsList, setNotificationsList] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [startupNames, setStartupNames] = useState({})
+    const [userNames, setUserNames] = useState({})
     const navigate = useNavigate()
     const { user } = useAuth()
 
@@ -17,6 +20,51 @@ const DesktopNotificationsPage = () => {
                 setLoading(true)
                 const notifications = await notificationService.getUserNotifications(user.id)
                 setNotificationsList(notifications)
+
+                // Extract unique startup IDs and user IDs from notifications
+                const startupIds = new Set()
+                const userIds = new Set()
+
+                notifications.forEach(notification => {
+                    if (notification.data?.startup_id) {
+                        startupIds.add(notification.data.startup_id)
+                    }
+                    if (notification.data?.matched_user_id) {
+                        userIds.add(notification.data.matched_user_id)
+                    }
+                })
+
+                // Load startup names
+                if (startupIds.size > 0) {
+                    const { data: startups, error: startupsError } = await supabase
+                        .from('startups')
+                        .select('id, name')
+                        .in('id', Array.from(startupIds))
+
+                    if (!startupsError && startups) {
+                        const namesMap = {}
+                        startups.forEach(startup => {
+                            namesMap[startup.id] = startup.name
+                        })
+                        setStartupNames(namesMap)
+                    }
+                }
+
+                // Load user names
+                if (userIds.size > 0) {
+                    const { data: profiles, error: profilesError } = await supabase
+                        .from('profiles')
+                        .select('id, full_name, username')
+                        .in('id', Array.from(userIds))
+
+                    if (!profilesError && profiles) {
+                        const namesMap = {}
+                        profiles.forEach(profile => {
+                            namesMap[profile.id] = profile.full_name || profile.username || 'Unknown User'
+                        })
+                        setUserNames(namesMap)
+                    }
+                }
             } catch (err) {
                 setError(err.message)
             } finally {
@@ -167,8 +215,8 @@ const DesktopNotificationsPage = () => {
                         >
                             <div className="flex items-start gap-4">
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${!notification.read
-                                        ? 'bg-gradient-to-r from-blue-300 to-blue-700'
-                                        : 'bg-bg-secondary/80 border border-glass-border'
+                                    ? 'bg-gradient-to-r from-blue-300 to-blue-700'
+                                    : 'bg-bg-secondary/80 border border-glass-border'
                                     }`}>
                                     <i className={`${getNotificationIcon(notification.type)} ${!notification.read ? 'text-white' : 'text-text-secondary'}`}></i>
                                 </div>
@@ -182,15 +230,20 @@ const DesktopNotificationsPage = () => {
                                         )}
                                     </div>
                                     <p className="text-sm text-text-secondary mb-3">{notification.message}</p>
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between flex-wrap gap-2">
                                         <span className="text-xs text-text-secondary">{formatNotificationTime(notification.created_at)}</span>
                                         {notification.data && (
-                                            <div className="flex gap-2">
-                                                {Object.entries(notification.data).slice(0, 2).map(([key, value]) => (
-                                                    <span key={key} className="px-2 py-1 bg-bg-secondary/80 border border-glass-border rounded-lg text-xs text-text-secondary">
-                                                        {key}: {value}
+                                            <div className="flex gap-2 flex-wrap">
+                                                {notification.data.startup_id && startupNames[notification.data.startup_id] && (
+                                                    <span className="px-2 py-1 bg-bg-secondary/80 border border-glass-border rounded-lg text-xs text-text-secondary">
+                                                        Startup: {startupNames[notification.data.startup_id]}
                                                     </span>
-                                                ))}
+                                                )}
+                                                {notification.data.matched_user_id && userNames[notification.data.matched_user_id] && (
+                                                    <span className="px-2 py-1 bg-bg-secondary/80 border border-glass-border rounded-lg text-xs text-text-secondary">
+                                                        User: {userNames[notification.data.matched_user_id]}
+                                                    </span>
+                                                )}
                                             </div>
                                         )}
                                     </div>

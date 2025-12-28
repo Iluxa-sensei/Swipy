@@ -166,7 +166,7 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
     return (
         <div className="desktop-shell">
             <aside className="desktop-sidebar compact">
-                <div className="sidebar-logo">
+                <div className="sidebar-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
                     <img src="/Vector.png" alt="Swipy" />
                 </div>
                 <nav className="desktop-nav compact">
@@ -192,8 +192,8 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                     <div className="desktop-header-title">
                         {currentScreen === 'home' && (
                             <>
-                        <p className="desktop-header-eyebrow">Startup news</p>
-                        <h1>Startups</h1>
+                                <p className="desktop-header-eyebrow">Startup news</p>
+                                <h1>Startups</h1>
                             </>
                         )}
                         {currentScreen === 'chat' && (
@@ -242,7 +242,7 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                     <div className="desktop-header-actions wide">
                         {currentScreen === 'home' && (
                             <div className="desktop-search wide" ref={searchContainerRef}>
-                            <i className="fa-solid fa-magnifying-glass"></i>
+                                <i className="fa-solid fa-magnifying-glass"></i>
                                 <input
                                     type="search"
                                     placeholder="Search startups or @users..."
@@ -282,81 +282,81 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                                             </div>
                                         ) : (
                                             <>
-                                        {searchResults.startups.length > 0 && (
-                                            <div className="search-results-section">
-                                                <div className="search-results-header">
-                                                    <i className="fa-solid fa-rocket"></i>
-                                                    <span>Startups</span>
-                                                </div>
-                                                {searchResults.startups.map(startup => (
-                                                    <div
-                                                        key={startup.id}
-                                                        className="search-result-item"
-                                                        onClick={() => handleResultClick('startup', startup.id)}
-                                                    >
-                                                        <div className="search-result-avatar">
-                                                            {startup.logo_url ? (
-                                                                <img src={startup.logo_url} alt={startup.name} />
-                                                            ) : (
-                                                                <div className={`search-result-fallback ${startup.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'}`}>
-                                                                    <span>{startup.logo || startup.name?.[0] || 'S'}</span>
-                                                                </div>
-                                                            )}
+                                                {searchResults.startups.length > 0 && (
+                                                    <div className="search-results-section">
+                                                        <div className="search-results-header">
+                                                            <i className="fa-solid fa-rocket"></i>
+                                                            <span>Startups</span>
                                                         </div>
-                                                        <div className="search-result-info">
-                                                            <div className="search-result-name">{startup.name}</div>
-                                                            <div className="search-result-meta">
-                                                                {startup.industry && <span>{startup.industry}</span>}
-                                                                {startup.stage && <span>{startup.stage}</span>}
+                                                        {searchResults.startups.map(startup => (
+                                                            <div
+                                                                key={startup.id}
+                                                                className="search-result-item"
+                                                                onClick={() => handleResultClick('startup', startup.id)}
+                                                            >
+                                                                <div className="search-result-avatar">
+                                                                    {startup.logo_url ? (
+                                                                        <img src={startup.logo_url} alt={startup.name} />
+                                                                    ) : (
+                                                                        <div className={`search-result-fallback ${startup.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'}`}>
+                                                                            <span>{startup.logo || startup.name?.[0] || 'S'}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="search-result-info">
+                                                                    <div className="search-result-name">{startup.name}</div>
+                                                                    <div className="search-result-meta">
+                                                                        {startup.industry && <span>{startup.industry}</span>}
+                                                                        {startup.stage && <span>{startup.stage}</span>}
+                                                                    </div>
+                                                                </div>
+                                                                <i className="fa-solid fa-chevron-right search-result-arrow"></i>
                                                             </div>
-                                                        </div>
-                                                        <i className="fa-solid fa-chevron-right search-result-arrow"></i>
+                                                        ))}
                                                     </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        {searchResults.profiles.length > 0 && (
-                                            <div className="search-results-section">
-                                                <div className="search-results-header">
-                                                    <i className="fa-solid fa-user"></i>
-                                                    <span>People</span>
-                                                </div>
-                                                {searchResults.profiles.map(profile => (
-                                                    <div
-                                                        key={profile.id}
-                                                        className="search-result-item"
-                                                        onClick={() => handleResultClick('profile', profile.id)}
-                                                    >
-                                                        <div className="search-result-avatar">
-                                                            {profile.avatar_url ? (
-                                                                <img src={profile.avatar_url} alt={profile.full_name || profile.username} />
-                                                            ) : (
-                                                                <div className="search-result-fallback bg-gradient-to-br from-blue-300 to-blue-700">
-                                                                    <span>{(profile.full_name || profile.username || 'U')?.[0]?.toUpperCase() || '?'}</span>
-                                                                </div>
-                                                            )}
+                                                )}
+                                                {searchResults.profiles.length > 0 && (
+                                                    <div className="search-results-section">
+                                                        <div className="search-results-header">
+                                                            <i className="fa-solid fa-user"></i>
+                                                            <span>People</span>
                                                         </div>
-                                                        <div className="search-result-info">
-                                                            <div className="search-result-name">
-                                                                {profile.full_name || profile.username || 'User'}
-                                                                {profile.username && <span className="search-result-username">@{profile.username}</span>}
+                                                        {searchResults.profiles.map(profile => (
+                                                            <div
+                                                                key={profile.id}
+                                                                className="search-result-item"
+                                                                onClick={() => handleResultClick('profile', profile.id)}
+                                                            >
+                                                                <div className="search-result-avatar">
+                                                                    {profile.avatar_url ? (
+                                                                        <img src={profile.avatar_url} alt={profile.full_name || profile.username} />
+                                                                    ) : (
+                                                                        <div className="search-result-fallback bg-gradient-to-br from-blue-300 to-blue-700">
+                                                                            <span>{(profile.full_name || profile.username || 'U')?.[0]?.toUpperCase() || '?'}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="search-result-info">
+                                                                    <div className="search-result-name">
+                                                                        {profile.full_name || profile.username || 'User'}
+                                                                        {profile.username && <span className="search-result-username">@{profile.username}</span>}
+                                                                    </div>
+                                                                    {profile.role && (
+                                                                        <div className="search-result-meta">
+                                                                            <span>{profile.role}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <i className="fa-solid fa-chevron-right search-result-arrow"></i>
                                                             </div>
-                                                            {profile.role && (
-                                                                <div className="search-result-meta">
-                                                                    <span>{profile.role}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <i className="fa-solid fa-chevron-right search-result-arrow"></i>
+                                                        ))}
                                                     </div>
-                                                ))}
-                                            </div>
-                                        )}
+                                                )}
                                             </>
                                         )}
                                     </div>
                                 )}
-                        </div>
+                            </div>
                         )}
                         {currentScreen === 'home' && (
                             <button
@@ -377,7 +377,7 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                         <button type="button" className="desktop-icon-btn" onClick={() => navigate('/chat')}>
                             <i className="fa-regular fa-comment-dots"></i>
                         </button>
-                        <div className="desktop-user-pill">
+                        <div className="desktop-user-pill" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }}>
                             <div className="user-meta">
                                 <p className="user-name">{profile?.username ? `@${profile.username}` : profile?.full_name || 'User'}</p>
                                 <p className="user-role">{profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'User'}</p>

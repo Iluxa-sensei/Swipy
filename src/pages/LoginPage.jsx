@@ -6,7 +6,6 @@ import { useAuth } from '../providers/AuthProvider.jsx'
 import { useDeviceType } from '../hooks'
 import AuthInput from '../components/AuthInput.jsx'
 import AuthButton from '../components/AuthButton.jsx'
-// import AsciiLogo from '../components/AsciiLogo.jsx'
 
 const LoginPage = () => {
   const navigate = useNavigate()
