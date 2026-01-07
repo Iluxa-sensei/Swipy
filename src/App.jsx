@@ -31,6 +31,7 @@ import ActivityDashboardPage from './pages/ActivityDashboardPage'
 import OAuthCallback from './components/OAuthCallback'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import LandingPage from './pages/LandingPage'
+import LegalPage from './pages/LegalPage.tsx'
 
 
 function App() {
@@ -59,9 +60,13 @@ function App() {
   // Only use minimal layout for login, reset-password, and auth callback pages
   const desktopMinimal = ['login', 'reset-password'].includes(currentScreen) || currentScreen.startsWith('auth/callback')
 
-  // Don't wrap landing page in layouts
+  // Don't wrap landing or legal pages in app layouts
   if (location.pathname === '/') {
     return <LandingPage />
+  }
+
+  if (location.pathname.startsWith('/legal')) {
+    return <LegalPage />
   }
 
   const routes = (
@@ -69,6 +74,7 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/auth/callback" element={<OAuthCallback />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/legal" element={<LegalPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/home" element={isDesktop ? <DesktopHomePage /> : <HomePage />} />
         <Route path="/startup/:id" element={<StartupDetailPage />} />

@@ -1352,8 +1352,26 @@ const LandingPage = () => {
                                 Product
                             </h4>
                             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <li><a href="#features" onClick={(e) => handleAnchorClick(e, '#features')} style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }} className="hover:text-white transition-colors">Features</a></li>
-                                <li><a href="#how-it-works" onClick={(e) => handleAnchorClick(e, '#how-it-works')} style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }} className="hover:text-white transition-colors">How It Works</a></li>
+                                <li>
+                                    <a
+                                        href="#features"
+                                        onClick={(e) => handleAnchorClick(e, '#features')}
+                                        style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        Features
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="#how-it-works"
+                                        onClick={(e) => handleAnchorClick(e, '#how-it-works')}
+                                        style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        How It Works
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                         <div>
@@ -1368,8 +1386,24 @@ const LandingPage = () => {
                                 Company
                             </h4>
                             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <li><a href="#" style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }} className="hover:text-white transition-colors">About</a></li>
-                                <li><a href="#" style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }} className="hover:text-white transition-colors">Blog</a></li>
+                                <li>
+                                    <a
+                                        href="#"
+                                        style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        About
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="#"
+                                        style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        Blog
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                         <div>
@@ -1384,8 +1418,32 @@ const LandingPage = () => {
                                 Legal
                             </h4>
                             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <li><a href="#" style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }} className="hover:text-white transition-colors">Privacy</a></li>
-                                <li><a href="#" style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }} className="hover:text-white transition-colors">Terms</a></li>
+                                <li>
+                                    <a
+                                        href="/legal?tab=privacy"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            navigate('/legal?tab=privacy')
+                                        }}
+                                        style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        Privacy
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="/legal?tab=terms"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            navigate('/legal?tab=terms')
+                                        }}
+                                        style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
+                                        className="hover:text-white transition-colors"
+                                    >
+                                        Terms
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </div>

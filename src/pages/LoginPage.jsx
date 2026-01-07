@@ -154,14 +154,12 @@ const LoginPage = () => {
 
   const handleTermsClick = (e) => {
     e.preventDefault()
-    // TODO: Navigate to actual terms page
-    alert('Terms of Service - Coming Soon')
+    navigate('/legal?tab=terms')
   }
 
   const handlePrivacyClick = (e) => {
     e.preventDefault()
-    // TODO: Navigate to actual privacy policy page
-    alert('Privacy Policy - Coming Soon')
+    navigate('/legal?tab=privacy')
   }
 
   const handleForgotPassword = (e) => {
