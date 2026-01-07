@@ -7,12 +7,7 @@ const LandingPage = () => {
     const [openFaqIndex, setOpenFaqIndex] = useState(null)
     const [footerVisible, setFooterVisible] = useState(false)
     const [faqTransform, setFaqTransform] = useState(0)
-    const [isAnimating, setIsAnimating] = useState(false)
-    const [displayWord, setDisplayWord] = useState(0)
-    const words = ['Startups', 'Investors', 'Founders']
 
-    // Calculate next word dynamically
-    const nextWord = (displayWord + 1) % words.length
     const logoRef = useRef(null)
     const heroRef = useRef(null)
     const faqRef = useRef(null)
@@ -21,24 +16,18 @@ const LandingPage = () => {
     const scrollHandlerRef = useRef(null)
     const isLogoAnimating = useRef(false)
 
-    // Animated word rotation
+    // Load fonts
     useEffect(() => {
-        const interval = setInterval(() => {
-            const next = (displayWord + 1) % words.length
-
-            // Start animation
-            setIsAnimating(true)
-
-            // After animation completes, update displayWord
-            setTimeout(() => {
-                setDisplayWord(next)
-                // End animation
-                setIsAnimating(false)
-            }, 700) // Wait for animation to complete
-        }, 700) // 0.7 seconds
-
-        return () => clearInterval(interval)
-    }, [displayWord, words.length])
+        const link = document.createElement('link')
+        link.href = 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400..900&display=swap'
+        link.rel = 'stylesheet'
+        document.head.appendChild(link)
+        return () => {
+            if (document.head.contains(link)) {
+                document.head.removeChild(link)
+            }
+        }
+    }, [])
 
     // Enable scrolling for landing page
     useEffect(() => {
@@ -160,7 +149,7 @@ const LandingPage = () => {
         isLogoAnimating.current = true
 
         // Сбрасываем предыдущие стили
-        logoRef.current.style.transition = 'transform 0.6s ease-in-out'
+        logoRef.current.style.transition = 'transform 1s ease-in-out'
         logoRef.current.style.transform = 'rotate(0deg)'
 
         // Запускаем анимацию поворота
@@ -185,7 +174,7 @@ const LandingPage = () => {
     return (
         <>
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
                 
                 /* Override global styles for landing page to enable scrolling */
                 body.landing-page-active,
@@ -199,6 +188,51 @@ const LandingPage = () => {
                 
                 * {
                     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                }
+
+                .italic-font, .italic-font span {
+                    font-family: 'Playfair Display', serif !important;
+                    font-style: italic !important;
+                    font-weight: 500 !important;
+                    text-shadow: none !important;
+                }
+
+                /* Text Animation Styles */
+                .scroller-container {
+                    height: 1.4em;
+                    line-height: 1.4em;
+                    overflow: hidden;
+                    display: inline-block;
+                    vertical-align: -0.28em;
+                    margin-left: 20px;
+                    padding: 0 10px;
+                    width: auto;
+                    min-width: 300px;
+                    position: relative;
+                    text-align: left;
+                }
+                
+                .scroller-content {
+                    display: block;
+                    animation: scrollUpInfinity 7s infinite cubic-bezier(0.2, 0, 0.2, 1);
+                    text-align: left;
+                    width: 100%;
+                }
+                
+                .scroller-item {
+                    height: 1.4em;
+                    line-height: 1.4em;
+                    display: block;
+                    white-space: nowrap;
+                    padding-left: 2px; /* Extra space for italic slant */
+                }
+
+                @keyframes scrollUpInfinity {
+                    0%, 20% { transform: translateY(0); }
+                    25%, 45% { transform: translateY(-1.4em); }
+                    50%, 70% { transform: translateY(-2.8em); }
+                    75%, 95% { transform: translateY(-4.2em); }
+                    100% { transform: translateY(-4.2em); }
                 }
 
                 .landing-logo {
@@ -517,6 +551,28 @@ const LandingPage = () => {
                         padding: 6px 14px !important;
                         font-size: 0.8rem !important;
                     }
+
+                    .scroller-container {
+                        min-width: 200px !important;
+                        margin-left: 10px !important;
+                        padding: 0 10px !important;
+                        height: 1.3em !important;
+                        line-height: 1.3em !important;
+                        vertical-align: -0.22em !important;
+                    }
+
+                    @keyframes scrollUpInfinity {
+                        0%, 20% { transform: translateY(0); }
+                        25%, 45% { transform: translateY(-1.3em); }
+                        50%, 70% { transform: translateY(-2.6em); }
+                        75%, 95% { transform: translateY(-3.9em); }
+                        100% { transform: translateY(-3.9em); }
+                    }
+
+                    .scroller-item {
+                        height: 1.3em !important;
+                        line-height: 1.3em !important;
+                    }
                 }
             `}</style>
             <div className="min-h-screen" style={{ background: '#0a0a0a', color: '#FFFFFF', overflowY: 'auto', position: 'relative', width: '100%', height: 'auto' }}>
@@ -647,44 +703,17 @@ const LandingPage = () => {
                             letterSpacing: '-0.03em',
                             lineHeight: '1.1',
                             marginBottom: '24px',
-                            color: '#ffffff'
+                            color: '#ffffff',
+                            textAlign: 'center',
+                            width: '100%'
                         }}>
-                            Tinder for{' '}
-                            <span
-                                style={{
-                                    color: '#4880ff',
-                                    display: 'inline-block',
-                                    width: 'clamp(200px, 30vw, 350px)',
-                                    textAlign: 'left',
-                                    position: 'relative',
-                                    overflow: 'hidden',
-                                    verticalAlign: 'top',
-                                    height: '1.1em'
-                                }}
-                            >
-                                <span
-                                    className="animated-word-current"
-                                    style={{
-                                        display: 'block',
-                                        transition: 'transform 0.7s cubic-bezier(0.19, 1, 0.22, 1)',
-                                        transform: isAnimating ? 'translateY(-100%)' : 'translateY(0)'
-                                    }}
-                                >
-                                    {words[displayWord]}
-                                </span>
-                                <span
-                                    className="animated-word-next"
-                                    style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        display: 'block',
-                                        width: '100%',
-                                        transition: 'transform 0.7s cubic-bezier(0.19, 1, 0.22, 1)',
-                                        transform: isAnimating ? 'translateY(0)' : 'translateY(100%)'
-                                    }}
-                                >
-                                    {words[nextWord]}
+                            <span>Tinder for</span>
+                            <span className="scroller-container">
+                                <span className="scroller-content italic-font" style={{ color: '#4880ff' }}>
+                                    <span className="scroller-item">Startups</span>
+                                    <span className="scroller-item">Investors</span>
+                                    <span className="scroller-item">Founders</span>
+                                    <span className="scroller-item">Startups</span>
                                 </span>
                             </span>
                         </h1>
@@ -1091,6 +1120,73 @@ const LandingPage = () => {
                                 </p>
                             </div>
                         ))}
+                    </div>
+                </section>
+
+                {/* NEW SECTION: Cut through the noise */}
+                <section className="py-24 border-t border-white/5 bg-[#050505]">
+                    <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center">
+                        <div className="relative order-2 md:order-1">
+                            {/* Abstract Chat Interface */}
+                            <div className="relative bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden max-w-sm mx-auto shadow-2xl">
+                                <div className="px-5 py-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs text-white font-medium">IM</div>
+                                        <div>
+                                            <div className="text-xs font-medium text-white"> Iluxa Mathews</div>
+                                            <div className="text-[10px] text-blue-400">It's a Match!</div>
+                                        </div>
+                                    </div>
+                                    <i className="fas fa-ellipsis-h text-zinc-500" style={{ fontSize: '14px' }}></i>
+                                </div>
+                                <div className="p-5 space-y-4">
+                                    <div className="flex gap-3">
+                                        <div className="w-6 h-6 rounded-full bg-zinc-800 flex-shrink-0"></div>
+                                        <div className="bg-zinc-800/50 p-3 rounded-2xl rounded-tl-none text-xs text-zinc-300 leading-relaxed border border-white/5">
+                                            Saw you're building in the GenAI space. I've been working on the infra layer for 2 years.
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3 flex-row-reverse">
+                                        <div className="w-6 h-6 rounded-full bg-blue-600 flex-shrink-0"></div>
+                                        <div className="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none text-xs font-medium leading-relaxed">
+                                            That's exactly what we're missing. Do you have time for a quick sync tomorrow?
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-center pt-2">
+                                        <span className="text-[10px] text-zinc-600">Calendar invite sent</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="order-1 md:order-2 space-y-8">
+                            <div>
+                                <h2 className="text-3xl md:text-5xl font-semibold tracking-tight text-white mb-6">Cut through the noise.</h2>
+                                <p className="text-zinc-400 text-base leading-relaxed max-w-md">
+                                    No recruiters. No outsourcing agencies. Just founders and investors looking to build the next unicorn. Once you match, you can chat directly with verified users and start building your network instantly.
+                                </p>
+                            </div>
+                            <ul className="space-y-4">
+                                <li className="flex items-center gap-3 text-sm text-zinc-300">
+                                    <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
+                                        <i className="fas fa-check" style={{ fontSize: '10px' }}></i>
+                                    </div>
+                                    Verified Github Identity
+                                </li>
+                                <li className="flex items-center gap-3 text-sm text-zinc-300">
+                                    <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
+                                        <i className="fas fa-check" style={{ fontSize: '10px' }}></i>
+                                    </div>
+                                    Direct Founder-to-Investor Chat
+                                </li>
+                                <li className="flex items-center gap-3 text-sm text-zinc-300">
+                                    <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
+                                        <i className="fas fa-check" style={{ fontSize: '10px' }}></i>
+                                    </div>
+                                    Smart Matching Algorithm
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </section>
 

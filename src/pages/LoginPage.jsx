@@ -332,6 +332,15 @@ const LoginPage = () => {
           <AuthButton
             type="button"
             variant="secondary"
+            disabled={isSubmitting}
+            onClick={() => signInWithProvider('github')}
+            icon="fab fa-github"
+          >
+            Continue with GitHub
+          </AuthButton>
+          <AuthButton
+            type="button"
+            variant="secondary"
             disabled
             icon="fab fa-linkedin"
           >
@@ -542,6 +551,15 @@ const LoginPage = () => {
           >
             <i className="fab fa-google text-xl"></i>
             Continue with Google
+          </button>
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => signInWithProvider('github')}
+            className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary hover:bg-glass-border transition-colors duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <i className="fab fa-github text-xl"></i>
+            Continue with GitHub
           </button>
           <button type="button" disabled className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-secondary cursor-not-allowed flex items-center justify-center gap-3">
             <i className="fab fa-linkedin text-xl"></i>
