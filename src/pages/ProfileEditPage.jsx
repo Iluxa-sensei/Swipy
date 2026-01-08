@@ -343,8 +343,8 @@ const ProfileEditPage = () => {
 
     if (profileLoading || loading) {
         return (
-            <div className="screen active bg-black/90 backdrop-blur-xl">
-                <div className="flex items-center justify-center h-full">
+            <div className="screen active bg-black/90 backdrop-blur-xl flex flex-col">
+                <div className="flex items-center justify-center flex-1">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-16 w-16 border-2 border-transparent border-t-blue-500 border-r-blue-500 mx-auto mb-6"></div>
                         <p className="text-white/70 text-lg font-medium">Loading profile...</p>
@@ -355,7 +355,7 @@ const ProfileEditPage = () => {
     }
 
     return (
-        <div className="screen active bg-black/90 backdrop-blur-xl">
+        <div className="screen active bg-black/90 backdrop-blur-xl flex flex-col">
             {/* Header */}
             <div className="header bg-black/50 backdrop-blur-xl border-b border-white/10">
                 <button
@@ -414,6 +414,7 @@ const ProfileEditPage = () => {
                         handleAvatarUpload={handleAvatarUpload}
                         setAvatarFile={setAvatarFile}
                         setAvatarPreview={setAvatarPreview}
+                        existingProfile={existingProfile}
                     />
                 )}
                 {activeTab === 'portfolio' && (
@@ -473,7 +474,8 @@ const ProfileTab = ({
     avatarFile,
     handleAvatarUpload,
     setAvatarFile,
-    setAvatarPreview
+    setAvatarPreview,
+    existingProfile
 }) => {
     const handleInputChange = (field, value) => {
         setProfile(prev => ({ ...prev, [field]: value }))
