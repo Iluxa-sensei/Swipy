@@ -1340,8 +1340,7 @@
 
   /* Desktop layout */
   .desktop-shell {
-    display: grid;
-    grid-template-columns: 96px 1fr;
+    display: block;
     min-height: 100vh;
     width: 100%;
     max-width: 100%;
@@ -1373,19 +1372,30 @@
   }
 
   .desktop-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 96px;
+    height: 100vh;
     border-right: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 32px 28px;
+    padding: 32px 0;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 32px;
     background: linear-gradient(180deg, rgba(18, 19, 24, 0.95), rgba(8, 9, 14, 0.98));
+    z-index: 1000;
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .desktop-sidebar::-webkit-scrollbar {
+    display: none;
   }
 
   .desktop-sidebar.compact {
-    width: 96px;
-    padding: 32px 0;
-    align-items: center;
-    gap: 24px;
+    /* Свойства перенесены в основной класс */
   }
 
   .sidebar-logo {
@@ -1571,8 +1581,8 @@
     flex-direction: column;
     padding: 0;
     gap: 0;
-    width: 100%;
-    max-width: 100%;
+    width: calc(100% - 96px);
+    margin-left: 96px;
     overflow-x: hidden;
   }
 
@@ -2505,7 +2515,6 @@
   .news-like-btn:hover {
     border-color: rgba(59, 130, 246, 0.5);
     background: rgba(59, 130, 246, 0.1);
-    transform: scale(1.1);
   }
 
   .news-like-btn.liked {
@@ -2593,6 +2602,13 @@
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+  }
+
+  /* Remove hover scale and shadow for buttons inside cards */
+  .news-card-actions .btn-primary:hover,
+  .news-card-actions .btn-secondary:hover {
+    transform: none !important;
+    box-shadow: none !important;
   }
 
   .news-card-actions.compact .btn-secondary,
@@ -2790,5 +2806,14 @@
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.03);
+  }
+
+  /* Hero Read More Button - compact width, без анимации */
+  .hero-read-more-btn {
+    padding: 0.5rem 1rem !important;
+    width: fit-content !important;
+    align-self: flex-start !important;
+    display: flex !important;
+    border-radius: 0.75rem !important;
   }
 }

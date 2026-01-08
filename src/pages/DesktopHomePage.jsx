@@ -370,7 +370,7 @@ const DesktopHomePage = () => {
                                 <p className="hero-subtitle">
                                     {currentHero.description}
                                 </p>
-                                <button type="button" className="btn-primary" onClick={() => handleDetails(currentHero.id)}>
+                                <button type="button" className="btn-primary hero-read-more-btn" onClick={() => handleDetails(currentHero.id)}>
                                     Read more
                                 </button>
                             </div>

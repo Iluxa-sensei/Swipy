@@ -31,27 +31,9 @@ const LandingPage = () => {
 
     // Enable scrolling for landing page
     useEffect(() => {
-        // Add class to body to enable scrolling via CSS
+        // Add class to body and html to enable scrolling via CSS
         document.body.classList.add('landing-page-active')
-
-        // Enable scrolling on body
-        document.body.style.overflow = 'auto'
-        document.body.style.position = 'relative'
-        document.body.style.height = 'auto'
-        document.body.style.minHeight = '100vh'
-
-        // Enable scrolling on root
-        const rootElement = document.getElementById('root')
-        if (rootElement) {
-            rootElement.style.overflow = 'auto'
-            rootElement.style.position = 'relative'
-            rootElement.style.height = 'auto'
-            rootElement.style.minHeight = '100vh'
-        }
-
-        document.documentElement.style.scrollBehavior = 'smooth'
-        document.documentElement.style.overflow = 'auto'
-        document.documentElement.style.height = 'auto'
+        document.documentElement.classList.add('landing-page-active')
 
         // Add scroll animations
         const observerOptions = {
@@ -106,25 +88,21 @@ const LandingPage = () => {
             })
         }
 
-        window.addEventListener('scroll', scrollHandlerRef.current)
-        // Check on mount in case sections are already scrolled
-        scrollHandlerRef.current()
+        // Use passive listener for better scroll performance
+        window.addEventListener('scroll', scrollHandlerRef.current, { passive: true })
+
+        // Delay initial check to ensure page is fully rendered
+        const initTimeout = setTimeout(() => {
+            if (scrollHandlerRef.current) {
+                scrollHandlerRef.current()
+            }
+        }, 100)
 
         return () => {
-            // Remove class and restore styles
+            clearTimeout(initTimeout)
+            // Remove classes to restore styles
             document.body.classList.remove('landing-page-active')
-            document.body.style.overflow = ''
-            document.body.style.position = ''
-            document.body.style.height = ''
-            document.documentElement.style.overflow = ''
-            document.documentElement.style.position = ''
-            document.documentElement.style.height = ''
-            document.documentElement.style.scrollBehavior = ''
-            if (rootElement) {
-                rootElement.style.overflow = ''
-                rootElement.style.position = ''
-                rootElement.style.height = ''
-            }
+            document.documentElement.classList.remove('landing-page-active')
             observer.disconnect()
             if (scrollHandlerRef.current) {
                 window.removeEventListener('scroll', scrollHandlerRef.current)
@@ -177,13 +155,30 @@ const LandingPage = () => {
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
                 
                 /* Override global styles for landing page to enable scrolling */
-                body.landing-page-active,
-                body.landing-page-active #root {
-                    overflow: auto !important;
+                body.landing-page-active {
+                    overflow: visible !important;
+                    overflow-y: scroll !important;
                     position: relative !important;
                     height: auto !important;
                     min-height: 100vh !important;
                     width: 100% !important;
+                    top: unset !important;
+                    left: unset !important;
+                }
+                
+                body.landing-page-active #root {
+                    overflow: visible !important;
+                    overflow-y: visible !important;
+                    position: relative !important;
+                    height: auto !important;
+                    min-height: 100vh !important;
+                    width: 100% !important;
+                }
+                
+                html.landing-page-active {
+                    overflow: visible !important;
+                    overflow-y: scroll !important;
+                    height: auto !important;
                 }
                 
                 * {
@@ -205,11 +200,20 @@ const LandingPage = () => {
                     display: inline-block;
                     vertical-align: -0.28em;
                     margin-left: 20px;
-                    padding: 0 10px;
+                    padding: 0 20px;
                     width: auto;
                     min-width: 300px;
                     position: relative;
                     text-align: left;
+                }
+                
+                @media (max-width: 768px) {
+                    .scroller-container {
+                        min-width: 180px !important;
+                        margin-left: 8px !important;
+                        padding: 0 15px !important;
+                        vertical-align: -0.25em !important;
+                    }
                 }
                 
                 .scroller-content {
@@ -224,7 +228,8 @@ const LandingPage = () => {
                     line-height: 1.4em;
                     display: block;
                     white-space: nowrap;
-                    padding-left: 2px; /* Extra space for italic slant */
+                    padding-left: 1px; /* Extra space for italic slant */
+                    padding-right: 2px; /* Extra space to prevent letter clipping */
                 }
 
                 @keyframes scrollUpInfinity {
@@ -327,6 +332,17 @@ const LandingPage = () => {
                     animation: pulse 3s ease-in-out infinite;
                 }
 
+                /* Desktop mockup alignment */
+                @media (min-width: 1469px) {
+                    .laptop-mockup-features {
+                        margin-top: 80px !important;
+                    }
+
+                    .phone-mockup-features {
+                        margin-top: 0px !important;
+                    }
+                }
+
                 /* Tablet styles */
                 @media (max-width: 1024px) and (min-width: 769px) {
                     .features-mockup-container {
@@ -347,28 +363,38 @@ const LandingPage = () => {
                 @media (max-width: 768px) {
                     /* Navbar mobile optimization */
                     .landing-navbar {
-                        padding: 8px 16px !important;
-                        gap: 12px !important;
+                        padding: 8px 12px !important;
+                        gap: 10px !important;
                         top: 10px !important;
+                        max-width: 85% !important;
                     }
 
                     .landing-navbar .landing-logo {
-                        height: 36px !important;
-                        width: 36px !important;
+                        height: 32px !important;
+                        width: 32px !important;
                     }
 
                     .landing-navbar > div {
-                        gap: 8px !important;
+                        gap: 6px !important;
                     }
 
                     .landing-navbar > div > button {
-                        padding: 6px 16px !important;
-                        font-size: 0.85rem !important;
+                        padding: 6px 12px !important;
+                        font-size: 0.8rem !important;
                         white-space: nowrap !important;
                     }
 
                     .desktop-hero.modern {
                         margin-top: 64px !important;
+                    }
+
+                    /* Hero title mobile optimization */
+                    h1 {
+                        font-size: clamp(2rem, 6vw, 5rem) !important;
+                        display: flex !important;
+                        flex-wrap: wrap !important;
+                        justify-content: center !important;
+                        align-items: center !important;
                     }
                     
                     .device-mockup-container {
@@ -402,6 +428,7 @@ const LandingPage = () => {
                     .laptop-mockup-features {
                         max-width: 100% !important;
                         width: 100% !important;
+                        margin-top: 0 !important;
                     }
 
                     .laptop-mockup-features img {
@@ -469,18 +496,19 @@ const LandingPage = () => {
                 @media (max-width: 480px) {
                     /* Navbar для очень маленьких экранов */
                     .landing-navbar {
-                        padding: 6px 12px !important;
-                        gap: 8px !important;
-                        max-width: 95% !important;
+                        padding: 6px 10px !important;
+                        gap: 6px !important;
+                        max-width: 92% !important;
+                        border-radius: 12px !important;
                     }
 
                     .landing-navbar .landing-logo {
-                        height: 32px !important;
-                        width: 32px !important;
+                        height: 28px !important;
+                        width: 28px !important;
                     }
 
                     .landing-navbar > div {
-                        gap: 6px !important;
+                        gap: 4px !important;
                     }
 
                     /* Features section для очень маленьких экранов - сохраняем две колонки */
@@ -496,6 +524,7 @@ const LandingPage = () => {
 
                     .laptop-mockup-features {
                         max-width: 100% !important;
+                        margin-top: 0 !important;
                     }
 
                     .laptop-mockup-features img {
@@ -548,14 +577,19 @@ const LandingPage = () => {
                     }
 
                     .landing-navbar > div > button {
-                        padding: 6px 14px !important;
-                        font-size: 0.8rem !important;
+                        padding: 5px 10px !important;
+                        font-size: 0.75rem !important;
+                    }
+
+                    /* Hero title optimization for very small screens */
+                    h1 {
+                        font-size: clamp(1.75rem, 5.5vw, 5rem) !important;
                     }
 
                     .scroller-container {
-                        min-width: 200px !important;
-                        margin-left: 10px !important;
-                        padding: 0 10px !important;
+                        min-width: 150px !important;
+                        margin-left: 6px !important;
+                        padding: 0 5px !important;
                         height: 1.3em !important;
                         line-height: 1.3em !important;
                         vertical-align: -0.22em !important;
@@ -1160,8 +1194,8 @@ const LandingPage = () => {
                         </div>
 
                         <div className="order-1 md:order-2 space-y-8">
-                            <div>
-                                <h2 className="text-3xl md:text-5xl font-semibold tracking-tight text-white mb-6">Cut through the noise.</h2>
+                            <div style={{ paddingTop: '24px', paddingBottom: '24px' }}>
+                                <h2 className="text-3xl md:text-5xl font-semibold tracking-tight text-white mb-6" style={{ paddingTop: '12px', paddingBottom: '12px' }}>Cut through the noise.</h2>
                                 <p className="text-zinc-400 text-base leading-relaxed max-w-md">
                                     No recruiters. No outsourcing agencies. Just founders and investors looking to build the next unicorn. Once you match, you can chat directly with verified users and start building your network instantly.
                                 </p>
@@ -1404,7 +1438,8 @@ const LandingPage = () => {
                         margin: '0 auto',
                         opacity: footerVisible ? 1 : 0,
                         transform: footerVisible ? 'translateY(0)' : 'translateY(30px)',
-                        transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
+                        transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
+                        overflow: 'visible'
                     }}
                 >
                     <div style={{
@@ -1412,7 +1447,9 @@ const LandingPage = () => {
                         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                         gap: '48px',
                         marginBottom: '48px',
-                        paddingTop: '1px'
+                        paddingTop: '1px',
+                        padding: '0 20px',
+                        overflow: 'visible'
                     }}>
                         <div>
                             <div style={{ marginBottom: '24px' }}>
@@ -1479,38 +1516,6 @@ const LandingPage = () => {
                                 letterSpacing: '0.05em',
                                 textTransform: 'uppercase'
                             }}>
-                                Company
-                            </h4>
-                            <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <li>
-                                    <a
-                                        href="#"
-                                        style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
-                                        className="hover:text-white transition-colors"
-                                    >
-                                        About
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
-                                        className="hover:text-white transition-colors"
-                                    >
-                                        Blog
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 style={{
-                                fontWeight: '600',
-                                marginBottom: '16px',
-                                color: '#ffffff',
-                                fontSize: '0.95rem',
-                                letterSpacing: '0.05em',
-                                textTransform: 'uppercase'
-                            }}>
                                 Legal
                             </h4>
                             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1541,6 +1546,146 @@ const LandingPage = () => {
                                     </a>
                                 </li>
                             </ul>
+                        </div>
+                        <div style={{ overflow: 'visible' }}>
+                            <h4 style={{
+                                fontWeight: '600',
+                                marginBottom: '16px',
+                                color: '#ffffff',
+                                fontSize: '0.95rem',
+                                letterSpacing: '0.05em',
+                                textTransform: 'uppercase'
+                            }}>
+                                Follow Us
+                            </h4>
+                            <div style={{
+                                display: 'flex',
+                                gap: '12px',
+                                flexWrap: 'wrap',
+                                padding: '20px',
+                                margin: '-20px',
+                                overflow: 'visible'
+                            }}>
+                                <a
+                                    href="https://x.com/swipy"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '12px',
+                                        color: 'rgba(255, 255, 255, 0.7)',
+                                        fontSize: '1.25rem',
+                                        textDecoration: 'none',
+                                        transition: 'all 0.3s ease',
+                                        backdropFilter: 'blur(10px)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(72, 128, 255, 0.15)'
+                                        e.currentTarget.style.borderColor = '#4880ff'
+                                        e.currentTarget.style.color = '#4880ff'
+                                        e.currentTarget.style.transform = 'translateY(-4px)'
+                                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(72, 128, 255, 0.3)'
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
+                                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
+                                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'
+                                        e.currentTarget.style.transform = 'translateY(0)'
+                                        e.currentTarget.style.boxShadow = 'none'
+                                    }}
+                                    title="X (Twitter)"
+                                >
+                                    <svg
+                                        viewBox="0 0 24 24"
+                                        width="20"
+                                        height="20"
+                                        fill="currentColor"
+                                        style={{ display: 'block' }}
+                                    >
+                                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                    </svg>
+                                </a>
+                                <a
+                                    href="https://www.producthunt.com/posts/swipy"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '12px',
+                                        color: 'rgba(255, 255, 255, 0.7)',
+                                        fontSize: '1.25rem',
+                                        textDecoration: 'none',
+                                        transition: 'all 0.3s ease',
+                                        backdropFilter: 'blur(10px)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(72, 128, 255, 0.15)'
+                                        e.currentTarget.style.borderColor = '#4880ff'
+                                        e.currentTarget.style.color = '#4880ff'
+                                        e.currentTarget.style.transform = 'translateY(-4px)'
+                                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(72, 128, 255, 0.3)'
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
+                                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
+                                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'
+                                        e.currentTarget.style.transform = 'translateY(0)'
+                                        e.currentTarget.style.boxShadow = 'none'
+                                    }}
+                                    title="Product Hunt"
+                                >
+                                    <i className="fab fa-product-hunt"></i>
+                                </a>
+                                <a
+                                    href="https://www.instagram.com/swipy"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '12px',
+                                        color: 'rgba(255, 255, 255, 0.7)',
+                                        fontSize: '1.25rem',
+                                        textDecoration: 'none',
+                                        transition: 'all 0.3s ease',
+                                        backdropFilter: 'blur(10px)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(72, 128, 255, 0.15)'
+                                        e.currentTarget.style.borderColor = '#4880ff'
+                                        e.currentTarget.style.color = '#4880ff'
+                                        e.currentTarget.style.transform = 'translateY(-4px)'
+                                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(72, 128, 255, 0.3)'
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
+                                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
+                                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'
+                                        e.currentTarget.style.transform = 'translateY(0)'
+                                        e.currentTarget.style.boxShadow = 'none'
+                                    }}
+                                    title="Instagram"
+                                >
+                                    <i className="fab fa-instagram"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                     <div style={{
