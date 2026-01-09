@@ -163,6 +163,12 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
         )
     }
 
+    const navItems = [
+        ...NAV_ITEMS.slice(0, 3),
+        ...(profile?.role === 'founder' ? [{ id: 'add', label: 'Add Startup', icon: 'fa-solid fa-plus', path: '/add' }] : []),
+        ...NAV_ITEMS.slice(3)
+    ]
+
     return (
         <div className="desktop-shell">
             <aside className="desktop-sidebar compact">
@@ -170,11 +176,11 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                     <img src="/Vector.png" alt="Swipy" />
                 </div>
                 <nav className="desktop-nav compact">
-                    {NAV_ITEMS.map(item => (
+                    {navItems.map(item => (
                         <button
                             key={item.id}
                             type="button"
-                            className={`desktop-nav-icon ${currentScreen === item.id || currentScreen?.startsWith(item.id)
+                            className={`desktop-nav-icon ${currentScreen === item.id || (item.id === 'add' && currentScreen === 'add') || currentScreen?.startsWith(item.id)
                                 ? 'active'
                                 : ''}`}
                             onClick={() => handleNavClick(item)}

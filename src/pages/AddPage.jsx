@@ -216,10 +216,10 @@ const AddPage = () => {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-20">
-        <div className="p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto pb-20" style={{ overflowY: 'auto', overflowX: 'visible' }}>
+        <div className="p-6 space-y-6" style={{ overflow: 'visible' }}>
           {/* Image Upload Section */}
-          <div className="form-group">
+          <div className="form-group" style={{ overflow: 'visible' }}>
             <label className="block text-text-primary font-medium mb-4">Startup Image</label>
             <div className="flex items-center gap-4">
               <div className="w-24 h-24 rounded-2xl overflow-hidden bg-glass-bg border border-glass-border flex items-center justify-center">
@@ -262,7 +262,7 @@ const AddPage = () => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ overflow: 'visible' }}>
             <label className="block text-text-primary font-medium mb-2">
               Startup Name *
               <span className={`ml-2 text-sm ${formData.startup.name.length > 15 ? 'text-red-400' : 'text-text-secondary'}`}>
@@ -283,14 +283,16 @@ const AddPage = () => {
           </div>
 
           {/* Custom Category Dropdown */}
-          <CustomDropdown
-            label="Category *"
-            options={categories}
-            value={formData.startup.category}
-            onChange={handleCategoryChange}
-            placeholder="Select a category"
-            type="category"
-          />
+          <div className="form-group" style={{ overflow: 'visible' }}>
+            <CustomDropdown
+              label="Category *"
+              options={categories}
+              value={formData.startup.category}
+              onChange={handleCategoryChange}
+              placeholder="Select a category"
+              type="category"
+            />
+          </div>
           {showCustomCategory && (
             <div className="mt-3 flex gap-2">
               <input
@@ -312,16 +314,18 @@ const AddPage = () => {
           )}
 
           {/* Custom Stage Dropdown */}
-          <CustomDropdown
-            label="Stage"
-            options={stages}
-            value={formData.startup.stage}
-            onChange={handleStageChange}
-            placeholder="Select a stage"
-            type="stage"
-          />
+          <div className="form-group" style={{ overflow: 'visible' }}>
+            <CustomDropdown
+              label="Stage"
+              options={stages}
+              value={formData.startup.stage}
+              onChange={handleStageChange}
+              placeholder="Select a stage"
+              type="stage"
+            />
+          </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ overflow: 'visible' }}>
             <label className="block text-text-primary font-medium mb-2">
               Description *
               <span className={`ml-2 text-sm ${formData.startup.description.length > 100 ? 'text-red-400' : 'text-text-secondary'}`}>
@@ -342,14 +346,16 @@ const AddPage = () => {
           </div>
 
           {/* Custom Funding Stage Dropdown */}
-          <CustomDropdown
-            label="Funding Stage"
-            options={fundingOptions}
-            value={formData.startup.funding}
-            onChange={handleFundingChange}
-            placeholder="Select funding stage"
-            type="funding"
-          />
+          <div className="form-group" style={{ overflow: 'visible' }}>
+            <CustomDropdown
+              label="Funding Stage"
+              options={fundingOptions}
+              value={formData.startup.funding}
+              onChange={handleFundingChange}
+              placeholder="Select funding stage"
+              type="funding"
+            />
+          </div>
 
           {formData.startup.funding && (
             <div className="form-group">
@@ -397,7 +403,7 @@ const AddPage = () => {
           </div>
 
           {/* Location Selection */}
-          <div className="form-group">
+          <div className="form-group" style={{ overflow: 'visible' }}>
             <label className="block text-text-primary font-medium mb-2">Location</label>
 
             {/* Step 1: Select Continent/Remote */}

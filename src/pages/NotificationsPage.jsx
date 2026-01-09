@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks'
 import { notificationService } from '../services'
+import { supabase } from '../services/supabaseClient'
 
 const NotificationsPage = () => {
   const [notificationsList, setNotificationsList] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [startupNames, setStartupNames] = useState({})
+  const [userNames, setUserNames] = useState({})
   const navigate = useNavigate()
   const { user } = useAuth()
 
@@ -19,6 +22,51 @@ const NotificationsPage = () => {
         setLoading(true)
         const notifications = await notificationService.getUserNotifications(user.id)
         setNotificationsList(notifications)
+
+        // Extract unique startup IDs and user IDs from notifications
+        const startupIds = new Set()
+        const userIds = new Set()
+
+        notifications.forEach(notification => {
+          if (notification.data?.startup_id) {
+            startupIds.add(notification.data.startup_id)
+          }
+          if (notification.data?.matched_user_id) {
+            userIds.add(notification.data.matched_user_id)
+          }
+        })
+
+        // Load startup names
+        if (startupIds.size > 0) {
+          const { data: startups, error: startupsError } = await supabase
+            .from('startups')
+            .select('id, name')
+            .in('id', Array.from(startupIds))
+
+          if (!startupsError && startups) {
+            const namesMap = {}
+            startups.forEach(startup => {
+              namesMap[startup.id] = startup.name
+            })
+            setStartupNames(namesMap)
+          }
+        }
+
+        // Load user names
+        if (userIds.size > 0) {
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, full_name, username')
+            .in('id', Array.from(userIds))
+
+          if (!profilesError && profiles) {
+            const namesMap = {}
+            profiles.forEach(profile => {
+              namesMap[profile.id] = profile.full_name || profile.username || 'Unknown User'
+            })
+            setUserNames(namesMap)
+          }
+        }
       } catch (err) {
         setError(err.message)
       } finally {
@@ -98,7 +146,7 @@ const NotificationsPage = () => {
 
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
               <i className="fas fa-spinner fa-spin text-3xl text-white"></i>
             </div>
             <h2 className="text-2xl font-bold text-text-primary mb-4">Loading Notifications</h2>
@@ -125,13 +173,13 @@ const NotificationsPage = () => {
 
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-full flex items-center justify-center mx-auto mb-6">
               <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
             </div>
             <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Notifications</h2>
             <p className="text-text-secondary mb-6">{error}</p>
             <button
-              className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+              className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-full font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200 hover:scale-100 active:scale-100"
               onClick={() => window.location.reload()}
             >
               Retry
@@ -158,13 +206,13 @@ const NotificationsPage = () => {
         {notificationsList.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
                 <i className="fas fa-bell text-3xl text-white"></i>
               </div>
               <h2 className="text-2xl font-bold text-text-primary mb-4">No Notifications</h2>
               <p className="text-text-secondary mb-8">Notifications will appear here when you interact with startups.</p>
               <button
-                className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-full font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200 hover:scale-100 active:scale-100"
                 onClick={() => navigate('/home')}
               >
                 Browse Startups
@@ -190,9 +238,16 @@ const NotificationsPage = () => {
                 <p className="notification-text">{notification.message}</p>
                 {notification.data && (
                   <div className="notification-badges">
-                    {Object.entries(notification.data).map(([key, value]) => (
-                      <span key={key} className="notification-badge">{key}: {value}</span>
-                    ))}
+                    {notification.data.startup_id && startupNames[notification.data.startup_id] && (
+                      <span className="notification-badge">
+                        Startup: {startupNames[notification.data.startup_id]}
+                      </span>
+                    )}
+                    {notification.data.matched_user_id && userNames[notification.data.matched_user_id] && (
+                      <span className="notification-badge">
+                        User: {userNames[notification.data.matched_user_id]}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -206,11 +261,11 @@ const NotificationsPage = () => {
 
       {notificationsList.length > 0 && (
         <div className="notifications-actions">
-          <button className="btn-secondary" onClick={markAllRead}>
+          <button className="btn-secondary rounded-full hover:scale-100 active:scale-100" onClick={markAllRead}>
             <i className="fas fa-check-double"></i>
             Mark All Read
           </button>
-          <button className="btn-primary" onClick={clearAllNotifications}>
+          <button className="btn-primary rounded-full hover:scale-100 active:scale-100" onClick={clearAllNotifications}>
             <i className="fas fa-trash"></i>
             Clear All
           </button>

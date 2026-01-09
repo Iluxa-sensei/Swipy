@@ -271,78 +271,135 @@ const DesktopHomePage = () => {
         }
 
         return (
-            <div className="news-grid modern">
-                {startups.map(startup => (
-                    <article key={startup.id || startup.name} className="news-card modern">
-                        <div className="news-card-cover">
-                            {startup.image || startup.logo_url ? (
-                                <img src={startup.image || startup.logo_url} alt={startup.name} />
-                            ) : (
-                                <div className={`news-card-fallback ${startup.gradient || ''}`}>
-                                    <span>{startup.logo || startup.name?.[0] || 'S'}</span>
-                                </div>
-                            )}
-                            <div className="news-card-slider">
-                                <button type="button" aria-label="Previous card">
-                                    <i className="fa-solid fa-chevron-left"></i>
-                                </button>
-                                <button type="button" aria-label="Next card">
-                                    <i className="fa-solid fa-chevron-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div className="news-card-body">
-                            <div className="news-card-header">
-                                <div>
-                                    <p className="news-card-category">{startup.industry || 'General'}</p>
-                                    <h3 className="news-card-title">{startup.name}</h3>
-                                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {startups.map(startup => {
+                    const isLiked = likedStartups.has(startup.id)
+                    const likesCount = likesCountUpdates[startup.id] !== undefined 
+                        ? likesCountUpdates[startup.id] 
+                        : (startup.likes_count ?? 0)
+                    
+                    return (
+                        <article 
+                            key={startup.id || startup.name} 
+                            className="desktop-card group cursor-pointer hover:border-accent-primary/30 transition-all duration-300 !p-0 overflow-hidden"
+                            onClick={() => handleDetails(startup.id)}
+                        >
+                            {/* Image Section */}
+                            <div className="relative h-48 overflow-hidden">
+                                {startup.image || startup.logo_url ? (
+                                    <img 
+                                        src={startup.image || startup.logo_url} 
+                                        alt={startup.name}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                    />
+                                ) : (
+                                    <div className={`w-full h-full ${startup.gradient || 'bg-gradient-primary'} flex items-center justify-center`}>
+                                        <span className="text-white font-bold text-4xl">
+                                            {startup.logo || startup.name?.[0]?.toUpperCase() || 'S'}
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                                
+                                {/* Like Button - Top Right */}
                                 <button
                                     type="button"
-                                    className={`news-like-btn ${likedStartups.has(startup.id) ? 'liked' : ''}`}
-                                    onClick={() => handleLike(startup.id)}
-                                    aria-label={likedStartups.has(startup.id) ? 'Unlike startup' : 'Like startup'}
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleLike(startup.id)
+                                    }}
+                                    className={`absolute top-3 right-3 w-10 h-10 rounded-xl flex items-center justify-center backdrop-blur-md border transition-all ${
+                                        isLiked
+                                            ? 'bg-red-500/20 border-red-500/50 text-red-400'
+                                            : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                                    }`}
+                                    aria-label={isLiked ? 'Unlike startup' : 'Like startup'}
                                 >
-                                    <i className={likedStartups.has(startup.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}></i>
+                                    <i className={`fas ${isLiked ? 'fa-heart' : 'fa-heart'} ${isLiked ? 'text-red-400' : ''}`}></i>
                                 </button>
-                            </div>
-                            <p className="news-card-description">{startup.description}</p>
-                            <div className="news-card-tags">
-                                {startup.stage && <span>{startup.stage}</span>}
-                                {startup.funding_round && <span>{startup.funding_round}</span>}
-                                {startup.location && <span>{startup.location}</span>}
-                            </div>
-                        </div>
-                        <div className="news-card-footer">
-                            <div className="news-card-stats">
-                                <div>
-                                    <i className={likedStartups.has(startup.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}></i>
-                                    <span>{likesCountUpdates[startup.id] !== undefined ? likesCountUpdates[startup.id] : (startup.likes_count ?? '—')}</span>
+
+                                {/* Badges - Top Left */}
+                                <div className="absolute top-3 left-3 flex flex-col gap-2">
+                                    {startup.stage && (
+                                        <span className="px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[10px] font-bold text-white border border-white/30">
+                                            {startup.stage}
+                                        </span>
+                                    )}
+                                    {startup.funding_round && (
+                                        <span className="px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[10px] font-bold text-white border border-white/30">
+                                            {startup.funding_round}
+                                        </span>
+                                    )}
                                 </div>
+                            </div>
+
+                            {/* Content Section */}
+                            <div className="p-5 space-y-4">
+                                {/* Header */}
                                 <div>
-                                    <i className="fa-regular fa-comment"></i>
-                                    <span>{startup.chat_count ?? '—'}</span>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-semibold text-accent-primary uppercase tracking-wider">
+                                            {startup.industry || 'General'}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-text-primary mb-2 line-clamp-1 group-hover:text-accent-primary transition-colors">
+                                        {startup.name}
+                                    </h3>
+                                    <p className="text-sm text-text-secondary line-clamp-2 leading-relaxed">
+                                        {startup.description}
+                                    </p>
+                                </div>
+
+                                {/* Tags */}
+                                <div className="flex flex-wrap gap-2">
+                                    {startup.location && (
+                                        <span className="px-2.5 py-1 bg-bg-secondary/40 border border-glass-border rounded-lg text-xs text-text-secondary">
+                                            <i className="fas fa-map-marker-alt mr-1 text-accent-primary"></i>
+                                            {startup.location}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Stats & Actions */}
+                                <div className="flex items-center justify-between pt-3 border-t border-glass-border">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-1.5 text-sm text-text-secondary">
+                                            <i className={`fas ${isLiked ? 'fa-heart text-red-400' : 'fa-heart'}`}></i>
+                                            <span className="font-medium">{likesCount}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-sm text-text-secondary">
+                                            <i className="fas fa-comments text-accent-primary"></i>
+                                            <span className="font-medium">{startup.chat_count ?? 0}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="button"
+                                            className="btn-secondary py-2 px-4 rounded-xl text-sm"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                handleChat(startup.id)
+                                            }}
+                                        >
+                                            <i className="fas fa-comment mr-1.5"></i>
+                                            Chat
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn-primary py-2 px-4 rounded-xl text-sm"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                handleDetails(startup.id)
+                                            }}
+                                        >
+                                            View
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="news-card-actions compact">
-                                <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    onClick={() => handleChat(startup.id)}
-                                >
-                                    Chat
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn-primary"
-                                    onClick={() => handleDetails(startup.id)}
-                                >
-                                    Details
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-                ))}
+                        </article>
+                    )
+                })}
             </div>
         )
     }

@@ -16,6 +16,48 @@ const LandingPage = () => {
     const scrollHandlerRef = useRef(null)
     const isLogoAnimating = useRef(false)
 
+    // #region agent log
+    useEffect(() => {
+        const logStyle = (element, label, hypothesisId) => {
+            if (!element) return;
+            const style = window.getComputedStyle(element);
+            fetch('http://127.0.0.1:7242/ingest/70e91777-b172-47d5-aaa0-2af0bf264088', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    location: 'LandingPage.jsx:runtime',
+                    message: `Computed style for ${label}`,
+                    data: {
+                        overflow: style.overflow,
+                        overflowY: style.overflowY,
+                        height: style.height,
+                        minHeight: style.minHeight,
+                        display: style.display,
+                        position: style.position,
+                        className: element.className,
+                        tagName: element.tagName
+                    },
+                    timestamp: Date.now(),
+                    sessionId: 'debug-session',
+                    runId: 'initial-check',
+                    hypothesisId
+                })
+            }).catch(() => {});
+        };
+
+        // Ждем немного, чтобы все стили применились
+        const timer = setTimeout(() => {
+            logStyle(document.documentElement, 'HTML', 'H1');
+            logStyle(document.body, 'BODY', 'H1');
+            logStyle(document.getElementById('root'), 'ROOT', 'H1');
+            logStyle(heroRef.current, 'HERO_SECTION', 'H3');
+            logStyle(heroRef.current?.parentElement, 'HERO_PARENT', 'H2');
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, []);
+    // #endregion
+
     // Load fonts
     useEffect(() => {
         const link = document.createElement('link')
@@ -155,9 +197,15 @@ const LandingPage = () => {
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
                 
                 /* Override global styles for landing page to enable scrolling */
+                html.landing-page-active {
+                    overflow-y: auto !important;
+                    height: auto !important;
+                }
+
                 body.landing-page-active {
                     overflow: visible !important;
-                    overflow-y: scroll !important;
+                    overflow-x: hidden !important;
+                    overflow-y: visible !important;
                     position: relative !important;
                     height: auto !important;
                     min-height: 100vh !important;
@@ -168,17 +216,10 @@ const LandingPage = () => {
                 
                 body.landing-page-active #root {
                     overflow: visible !important;
-                    overflow-y: visible !important;
                     position: relative !important;
                     height: auto !important;
                     min-height: 100vh !important;
                     width: 100% !important;
-                }
-                
-                html.landing-page-active {
-                    overflow: visible !important;
-                    overflow-y: scroll !important;
-                    height: auto !important;
                 }
                 
                 * {
@@ -609,7 +650,7 @@ const LandingPage = () => {
                     }
                 }
             `}</style>
-            <div className="min-h-screen" style={{ background: '#0a0a0a', color: '#FFFFFF', overflowY: 'auto', position: 'relative', width: '100%', height: 'auto' }}>
+            <div className="min-h-screen" style={{ background: '#0a0a0a', color: '#FFFFFF', overflow: 'visible', position: 'relative', width: '100%', height: 'auto' }}>
                 {/* Blue crescent moon gradient at top */}
                 <div
                     style={{
@@ -724,7 +765,7 @@ const LandingPage = () => {
                         justifyContent: 'center',
                         alignItems: 'center',
                         padding: '100px 24px 5px',
-                        maxWidth: '1000x',
+                        maxWidth: '1000px',
                         margin: '0 auto',
                         textAlign: 'center',
                         position: 'relative'

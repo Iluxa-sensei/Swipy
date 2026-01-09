@@ -160,12 +160,12 @@ const DesktopNotificationsPage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Notifications</h2>
                             <p className="text-text-secondary mb-6">{error}</p>
-                            <button className="btn-primary" onClick={() => window.location.reload()}>
+                            <button className="btn-primary rounded-full hover:scale-100 active:scale-100" onClick={() => window.location.reload()}>
                                 Retry
                             </button>
                         </div>
@@ -179,11 +179,11 @@ const DesktopNotificationsPage = () => {
         <div className="desktop-page">
             {notificationsList.length > 0 && (
                 <div className="mb-6 flex justify-end gap-3">
-                    <button className="btn-secondary" onClick={markAllRead}>
+                    <button className="btn-secondary rounded-full hover:scale-100 active:scale-100" onClick={markAllRead}>
                         <i className="fas fa-check-double mr-2"></i>
                         Mark All Read
                     </button>
-                    <button className="btn-primary" onClick={clearAllNotifications}>
+                    <button className="btn-primary rounded-full hover:scale-100 active:scale-100" onClick={clearAllNotifications}>
                         <i className="fas fa-trash mr-2"></i>
                         Clear All
                     </button>
@@ -194,12 +194,12 @@ const DesktopNotificationsPage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <i className="fas fa-bell text-3xl text-white"></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">No Notifications</h2>
                             <p className="text-text-secondary mb-8">Notifications will appear here when you interact with startups.</p>
-                            <button className="btn-primary" onClick={() => navigate('/home')}>
+                            <button className="btn-primary rounded-full hover:scale-100 active:scale-100" onClick={() => navigate('/home')}>
                                 Browse Startups
                             </button>
                         </div>

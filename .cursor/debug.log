@@ -1,0 +1,107 @@
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975325936,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975325946,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975325938,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975325948,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975326014,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975326017,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975326024,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975326025,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975326103,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975326104,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975326965,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975326966,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975327587,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975327588,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975374368,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975374368,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"CustomDropdown.jsx:183","message":"Dropdown button clicked","data":{"isOpen":true,"type":"category"},"timestamp":1767975376976,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"CustomDropdown.jsx:202","message":"Dropdown Portal rendering","data":{"top":0,"left":0,"optionsCount":16},"timestamp":1767975376977,"sessionId":"debug-session","hypothesisId":"PORTAL_CHECK"}
+{"location":"CustomDropdown.jsx:202","message":"Dropdown Portal rendering","data":{"top":0,"left":0,"optionsCount":16},"timestamp":1767975376977,"sessionId":"debug-session","hypothesisId":"PORTAL_CHECK"}
+{"location":"CustomDropdown.jsx:202","message":"Dropdown Portal rendering","data":{"top":654.0550804138184,"left":587.0039672851562,"optionsCount":16},"timestamp":1767975376990,"sessionId":"debug-session","hypothesisId":"PORTAL_CHECK"}
+{"location":"CustomDropdown.jsx:202","message":"Dropdown Portal rendering","data":{"top":654.0550804138184,"left":587.0039672851562,"optionsCount":16},"timestamp":1767975376991,"sessionId":"debug-session","hypothesisId":"PORTAL_CHECK"}
+{"location":"CustomDropdown.jsx:183","message":"Dropdown button clicked","data":{"isOpen":false,"type":"category"},"timestamp":1767975377672,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"CustomDropdown.jsx:183","message":"Dropdown button clicked","data":{"isOpen":true,"type":"category"},"timestamp":1767975394509,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"CustomDropdown.jsx:202","message":"Dropdown Portal rendering","data":{"top":654.0550804138184,"left":587.0039672851562,"optionsCount":16},"timestamp":1767975394510,"sessionId":"debug-session","hypothesisId":"PORTAL_CHECK"}
+{"location":"CustomDropdown.jsx:202","message":"Dropdown Portal rendering","data":{"top":654.0550804138184,"left":587.0039672851562,"optionsCount":16},"timestamp":1767975394509,"sessionId":"debug-session","hypothesisId":"PORTAL_CHECK"}
+{"location":"CustomDropdown.jsx:202","message":"Dropdown Portal rendering","data":{"top":654.0550804138184,"left":587.0039672851562,"optionsCount":16},"timestamp":1767975394521,"sessionId":"debug-session","hypothesisId":"PORTAL_CHECK"}
+{"location":"CustomDropdown.jsx:202","message":"Dropdown Portal rendering","data":{"top":654.0550804138184,"left":587.0039672851562,"optionsCount":16},"timestamp":1767975394523,"sessionId":"debug-session","hypothesisId":"PORTAL_CHECK"}
+{"location":"CustomDropdown.jsx:183","message":"Dropdown button clicked","data":{"isOpen":false,"type":"category"},"timestamp":1767975394913,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975597748,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975597749,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975600357,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975600358,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975600362,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975600364,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975600413,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975600414,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975600418,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975600420,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975600468,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975600469,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975602015,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975602016,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"CustomDropdown.jsx:click","message":"Toggle clicked","data":{"nowOpen":true},"timestamp":1767975602334,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975602970,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975602970,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"CustomDropdown.jsx:click","message":"Toggle clicked","data":{"nowOpen":true},"timestamp":1767975605538,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"CustomDropdown.jsx:selection","message":"Option selected","data":{"option":"Europe","type":"location"},"timestamp":1767975608238,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975608238,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975608239,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"CustomDropdown.jsx:click","message":"Toggle clicked","data":{"nowOpen":true},"timestamp":1767975610018,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"CustomDropdown.jsx:click","message":"Toggle clicked","data":{"nowOpen":true},"timestamp":1767975610546,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"CustomDropdown.jsx:selection","message":"Option selected","data":{"option":"Remote","type":"location"},"timestamp":1767975611264,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975611265,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975611265,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"CustomDropdown.jsx:click","message":"Toggle clicked","data":{"nowOpen":true},"timestamp":1767975611813,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"CustomDropdown.jsx:selection","message":"Option selected","data":{"option":"MVP","type":"stage"},"timestamp":1767975617562,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975617563,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975617563,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975621497,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975621498,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975621508,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975621509,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975621514,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975621515,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"CustomDropdown.jsx:click","message":"Toggle clicked","data":{"nowOpen":true},"timestamp":1767975622763,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"CustomDropdown.jsx:click","message":"Toggle clicked","data":{"nowOpen":false},"timestamp":1767975625430,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"CustomDropdown.jsx:click","message":"Toggle clicked","data":{"nowOpen":true},"timestamp":1767975626155,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"CustomDropdown.jsx:click","message":"Toggle clicked","data":{"nowOpen":false},"timestamp":1767975628861,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"CustomDropdown.jsx:click","message":"Toggle clicked","data":{"nowOpen":true},"timestamp":1767975630401,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"CustomDropdown.jsx:click","message":"Toggle clicked","data":{"nowOpen":false},"timestamp":1767975632589,"sessionId":"debug-session","hypothesisId":"CLICK_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975642234,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975642235,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975642238,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975642239,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975642250,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975642251,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975642254,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975642255,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975642259,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975642261,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975642264,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975642266,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975642310,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975642311,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975642963,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975642964,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975643836,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"DesktopAddPage.jsx:9","message":"DesktopAddPage rendered","timestamp":1767975643836,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975646643,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975646643,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975646651,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"App.jsx:39","message":"App component mounted","data":{"isDesktop":true},"timestamp":1767975646651,"sessionId":"debug-session","hypothesisId":"BUILD_CHECK"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for HTML","data":{"overflow":"hidden auto","overflowY":"auto","height":"4493.03px","minHeight":"0px","display":"block","position":"static","className":"landing-page-active","tagName":"HTML"},"timestamp":1767983491243,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H1"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for BODY","data":{"overflow":"hidden auto","overflowY":"auto","height":"4493.03px","minHeight":"682.54px","display":"block","position":"relative","className":"landing-page-active","tagName":"BODY"},"timestamp":1767983491244,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H1"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for HERO_PARENT","data":{"overflow":"visible","overflowY":"visible","height":"4493.03px","minHeight":"682.54px","display":"block","position":"relative","className":"min-h-screen","tagName":"DIV"},"timestamp":1767983491244,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H2"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for HERO_SECTION","data":{"overflow":"visible","overflowY":"visible","height":"682.54px","minHeight":"682.54px","display":"flex","position":"relative","className":"","tagName":"SECTION"},"timestamp":1767983491244,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H3"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for ROOT","data":{"overflow":"visible","overflowY":"visible","height":"4493.03px","minHeight":"682.54px","display":"block","position":"relative","className":"","tagName":"DIV"},"timestamp":1767983491244,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H1"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for HTML","data":{"overflow":"hidden auto","overflowY":"auto","height":"4493.03px","minHeight":"0px","display":"block","position":"static","className":"landing-page-active","tagName":"HTML"},"timestamp":1767983496268,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H1"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for BODY","data":{"overflow":"hidden auto","overflowY":"auto","height":"4493.03px","minHeight":"682.54px","display":"block","position":"relative","className":"landing-page-active","tagName":"BODY"},"timestamp":1767983496269,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H1"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for ROOT","data":{"overflow":"visible","overflowY":"visible","height":"4493.03px","minHeight":"682.54px","display":"block","position":"relative","className":"","tagName":"DIV"},"timestamp":1767983496269,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H1"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for HERO_SECTION","data":{"overflow":"visible","overflowY":"visible","height":"682.54px","minHeight":"682.54px","display":"flex","position":"relative","className":"","tagName":"SECTION"},"timestamp":1767983496270,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H3"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for HERO_PARENT","data":{"overflow":"visible","overflowY":"visible","height":"4493.03px","minHeight":"682.54px","display":"block","position":"relative","className":"min-h-screen","tagName":"DIV"},"timestamp":1767983496270,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H2"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for HTML","data":{"overflow":"hidden auto","overflowY":"auto","height":"4493.03px","minHeight":"0px","display":"block","position":"static","className":"landing-page-active","tagName":"HTML"},"timestamp":1767984038358,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H1"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for HERO_PARENT","data":{"overflow":"visible","overflowY":"visible","height":"4493.03px","minHeight":"682.54px","display":"block","position":"relative","className":"min-h-screen","tagName":"DIV"},"timestamp":1767984038360,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H2"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for ROOT","data":{"overflow":"visible","overflowY":"visible","height":"4493.03px","minHeight":"682.54px","display":"block","position":"relative","className":"","tagName":"DIV"},"timestamp":1767984038359,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H1"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for HERO_SECTION","data":{"overflow":"visible","overflowY":"visible","height":"682.54px","minHeight":"682.54px","display":"flex","position":"relative","className":"","tagName":"SECTION"},"timestamp":1767984038360,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H3"}
+{"location":"LandingPage.jsx:runtime","message":"Computed style for BODY","data":{"overflow":"hidden auto","overflowY":"auto","height":"4493.03px","minHeight":"682.54px","display":"block","position":"relative","className":"landing-page-active","tagName":"BODY"},"timestamp":1767984038359,"sessionId":"debug-session","runId":"initial-check","hypothesisId":"H1"}

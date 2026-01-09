@@ -149,7 +149,7 @@
   }
 
   .header-btn {
-    @apply w-10 h-10 rounded-full bg-glass-bg border border-glass-border flex items-center justify-center text-text-primary hover:bg-glass-border transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-accent-primary/30 active:scale-95;
+    @apply w-10 h-10 rounded-full bg-glass-bg border border-glass-border flex items-center justify-center text-text-primary hover:bg-glass-border transition-all duration-200 active:scale-95;
   }
 
   .header h1 {
@@ -167,7 +167,7 @@
   }
 
   .nav-item {
-    @apply flex items-center justify-center text-text-secondary hover:text-text-primary transition-all duration-200 cursor-pointer hover:scale-105 relative;
+    @apply flex items-center justify-center text-text-secondary hover:text-text-primary transition-all duration-200 cursor-pointer relative;
     width: 44px;
     height: 44px;
   }
@@ -189,15 +189,42 @@
 
 
   .btn-primary {
-    @apply bg-gradient-primary text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105 hover:shadow-accent-primary/50 active:scale-95;
+    @apply bg-gradient-primary text-white px-6 py-3 rounded-full font-semibold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95;
   }
 
   .btn-secondary {
-    @apply bg-glass-bg border border-glass-border text-text-primary px-6 py-3 rounded-2xl font-semibold hover:bg-glass-border transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105 hover:shadow-lg hover:shadow-accent-secondary/30 active:scale-95;
+    @apply bg-glass-bg border border-glass-border text-text-primary px-6 py-3 rounded-full font-semibold hover:bg-glass-border transition-all duration-200 flex items-center justify-center gap-2 active:scale-95;
   }
 
   .btn-accent {
-    @apply bg-accent-primary text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 hover:shadow-accent-primary/50 active:scale-95;
+    @apply bg-accent-primary text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 flex items-center justify-center gap-2 active:scale-95;
+  }
+
+  /* Selection Bar Styles */
+  .selection-bar {
+    @apply flex flex-wrap gap-2 mt-2;
+  }
+
+  .selection-chip {
+    @apply px-4 py-2 rounded-full border border-glass-border bg-glass-bg text-text-secondary text-sm font-medium transition-all duration-300 hover:border-accent-primary/50 hover:text-text-primary hover:bg-glass-border/50;
+  }
+
+  .selection-chip.active {
+    @apply bg-gradient-to-r from-blue-500 to-blue-700 border-blue-600 text-white shadow-lg shadow-blue-500/20 scale-105;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Dropdown Styles */
+  .dropdown-menu {
+    @apply absolute top-full left-0 right-0 mt-2 bg-bg-secondary border border-glass-border rounded-2xl shadow-heavy z-50 overflow-hidden;
   }
 
   .form-group {
@@ -272,7 +299,7 @@
   }
 
   .notification-item {
-    @apply flex items-start gap-4 p-4 border-b border-glass-border hover:bg-bg-secondary/50 transition-all duration-200 cursor-pointer hover:scale-[1.02];
+    @apply flex items-start gap-4 p-4 border-b border-glass-border hover:bg-bg-secondary/50 transition-all duration-200 cursor-pointer;
   }
 
   .notification-item.unread {
@@ -384,7 +411,7 @@
   }
 
   .more-btn-top {
-    @apply w-8 h-8 rounded-full bg-white/20 backdrop-blur-xl border border-white/30 flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 hover:scale-110 active:scale-95 text-sm;
+    @apply w-8 h-8 rounded-full bg-white/20 backdrop-blur-xl border border-white/30 flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 active:scale-95 text-sm;
     position: relative;
     z-index: 100;
   }
@@ -437,7 +464,7 @@
   }
 
   .more-btn {
-    @apply px-4 py-2 bg-glass-bg border border-glass-border rounded-xl text-text-primary hover:bg-glass-border transition-all duration-200 flex items-center gap-2 hover:scale-105 hover:shadow-lg hover:shadow-accent-primary/30;
+    @apply px-4 py-2 bg-glass-bg border border-glass-border rounded-xl text-text-primary hover:bg-glass-border transition-all duration-200 flex items-center gap-2;
   }
 
   .swipe-container {
@@ -552,6 +579,36 @@
 
   .animate-card-appear {
     animation: cardAppear 0.5s ease forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
   @keyframes loading {
@@ -2748,7 +2805,6 @@
   .desktop-card:hover {
     border-color: rgba(255, 255, 255, 0.12);
     background: rgba(24, 25, 32, 0.95);
-    transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   }
 
@@ -2815,5 +2871,89 @@
     align-self: flex-start !important;
     display: flex !important;
     border-radius: 0.75rem !important;
+  }
+
+  /* Restore hover effects for Landing Page */
+  body.landing-page-active .btn-primary,
+  body.landing-page-active .btn-secondary,
+  body.landing-page-active .btn-accent {
+    @apply hover:scale-105;
+  }
+
+  body.landing-page-active .btn-primary {
+    @apply hover:shadow-lg hover:shadow-accent-primary/50;
+  }
+
+  body.landing-page-active .btn-secondary {
+    @apply hover:shadow-lg hover:shadow-accent-secondary/30;
+  }
+
+  body.landing-page-active .btn-accent {
+    @apply hover:shadow-lg hover:shadow-accent-primary/50;
+  }
+
+  body.landing-page-active .header-btn {
+    @apply hover:scale-105 hover:shadow-lg hover:shadow-accent-primary/30;
+  }
+
+  body.landing-page-active .nav-item {
+    @apply hover:scale-105;
+  }
+
+  body.landing-page-active .more-btn {
+    @apply hover:scale-105 hover:shadow-lg hover:shadow-accent-primary/30;
+  }
+
+  body.landing-page-active .more-btn-top {
+    @apply hover:scale-110;
+  }
+
+  body.landing-page-active .selection-chip {
+    @apply hover:scale-105;
+  }
+
+  /* Restore hover effects for Home Page - only when swipe-container is present */
+  .screen.active .swipe-container~* .btn-primary,
+  .screen.active .swipe-container .btn-primary,
+  .screen.active:has(.swipe-container) .btn-primary,
+  .screen.active .swipe-container~* .btn-secondary,
+  .screen.active .swipe-container .btn-secondary,
+  .screen.active:has(.swipe-container) .btn-secondary,
+  .screen.active .swipe-container~* .btn-accent,
+  .screen.active .swipe-container .btn-accent,
+  .screen.active:has(.swipe-container) .btn-accent {
+    @apply hover:scale-105;
+  }
+
+  .screen.active:has(.swipe-container) .btn-primary {
+    @apply hover:shadow-lg hover:shadow-accent-primary/50;
+  }
+
+  .screen.active:has(.swipe-container) .btn-secondary {
+    @apply hover:shadow-lg hover:shadow-accent-secondary/30;
+  }
+
+  .screen.active:has(.swipe-container) .btn-accent {
+    @apply hover:shadow-lg hover:shadow-accent-primary/50;
+  }
+
+  .screen.active:has(.swipe-container) .header-btn {
+    @apply hover:scale-105 hover:shadow-lg hover:shadow-accent-primary/30;
+  }
+
+  .screen.active:has(.swipe-container) .nav-item {
+    @apply hover:scale-105;
+  }
+
+  .screen.active:has(.swipe-container) .more-btn {
+    @apply hover:scale-105 hover:shadow-lg hover:shadow-accent-primary/30;
+  }
+
+  .screen.active:has(.swipe-container) .more-btn-top {
+    @apply hover:scale-110;
+  }
+
+  .screen.active:has(.swipe-container) .selection-chip {
+    @apply hover:scale-105;
   }
 }

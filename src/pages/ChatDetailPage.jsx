@@ -242,6 +242,37 @@ const ChatDetailPage = () => {
 
   // Get other participant (not current user)
   const otherParticipant = participants.find(p => p.id !== user?.id);
+  const chatName = chat?.startup_name || otherParticipant?.full_name || otherParticipant?.username || 'Unknown';
+  const chatAvatar = chat?.startup_logo || otherParticipant?.avatar_url;
+  const chatGradient = chat?.startup_gradient || 'bg-gradient-to-br from-blue-300 to-blue-700';
+
+  // Group messages by date (Copied from desktop version for consistency)
+  const groupMessagesByDate = (msgs) => {
+    const groups = [];
+    let currentDate = null;
+    let currentGroup = [];
+
+    msgs.forEach((message) => {
+      const messageDate = formatDate(message.created_at);
+      if (messageDate !== currentDate) {
+        if (currentGroup.length > 0) {
+          groups.push({ date: currentDate, messages: currentGroup });
+        }
+        currentDate = messageDate;
+        currentGroup = [message];
+      } else {
+        currentGroup.push(message);
+      }
+    });
+
+    if (currentGroup.length > 0) {
+      groups.push({ date: currentDate, messages: currentGroup });
+    }
+
+    return groups;
+  };
+
+  const messageGroups = groupMessagesByDate(messages);
 
   // Copy message function
   const copyMessage = (message) => {
@@ -396,179 +427,133 @@ const ChatDetailPage = () => {
     <div className="screen active chat-detail flex flex-col h-full">
       {/* Enhanced Chat Header */}
       <div className="header shrink-0 bg-bg-primary/95 backdrop-blur-xl border-b border-glass-border/50 shadow-lg">
-        <button className="header-btn hover:bg-glass-bg hover:scale-110 transition-all duration-200" onClick={() => navigate('/chat')}>
+        <button className="header-btn hover:bg-glass-bg transition-all duration-200" onClick={() => navigate('/chat')}>
           <i className="fas fa-arrow-left"></i>
         </button>
 
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="relative">
-            <div className={`w-12 h-12 ${chat?.startup_gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'} rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300`}>
-              <span className="text-white font-bold text-lg">
-                {chat?.startup_logo || chat?.startup_name?.charAt(0)?.toUpperCase() || 'S'}
-              </span>
+            <div className={`w-10 h-10 ${chatGradient} rounded-xl flex items-center justify-center shadow-lg`}>
+              {chatAvatar ? (
+                <img src={chatAvatar} alt={chatName} className="w-full h-full rounded-xl object-cover" />
+              ) : (
+                <span className="text-white font-bold text-base">
+                  {chatName?.charAt(0)?.toUpperCase() || 'S'}
+                </span>
+              )}
             </div>
-            {/* Online status */}
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 border-2 border-bg-primary rounded-full transition-all duration-300 bg-gray-500"></div>
+            {/* Online status indicator */}
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 border-2 border-bg-primary rounded-full bg-accent-secondary"></div>
           </div>
 
           <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold text-text-primary truncate">{chat?.startup_name || 'Unknown Startup'}</h1>
-            <div className="text-sm text-text-secondary">
-              <span>Chat about {chat?.startup_name || 'startup'} with {otherParticipant?.full_name || 'Unknown User'}</span>
+            <h1 className="text-base font-bold text-text-primary truncate">{chatName}</h1>
+            <div className="text-xs text-text-secondary truncate">
+              {chat?.startup_name ? `Chat about ${chat.startup_name}` : 'Direct Message'}
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="header-btn hover:bg-glass-bg hover:scale-110 transition-all duration-200" onClick={() => setShowMessageActions(true)}>
+          <button className="header-btn hover:bg-glass-bg transition-all duration-200" onClick={() => setShowMessageActions(true)}>
             <i className="fas fa-ellipsis-v"></i>
           </button>
         </div>
       </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-bg-primary to-bg-secondary">
-        {messages.map((message, index) => (
-          <div key={message.id} id={`message-${message.id}`} className="mb-4 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-            <div className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
-              {message.sender_id === user?.id && (
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center ml-3 flex-shrink-0 shadow-lg">
-                  <span className="text-white text-sm font-bold">YOU</span>
+      <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-bg-primary to-bg-secondary space-y-6">
+        {messageGroups.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center opacity-50">
+            <div className="w-16 h-16 bg-glass-bg rounded-2xl flex items-center justify-center mb-4">
+              <i className="fas fa-comments text-2xl text-text-secondary"></i>
+            </div>
+            <p className="text-text-secondary">No messages yet</p>
+          </div>
+        ) : (
+          messageGroups.map((group, groupIndex) => (
+            <div key={groupIndex}>
+              {/* Date separator */}
+              <div className="flex items-center justify-center my-6">
+                <div className="px-4 py-1 bg-bg-secondary/50 border border-glass-border rounded-full text-[10px] uppercase tracking-wider text-text-secondary">
+                  {group.date}
                 </div>
-              )}
-
-              <div className="max-w-[75%] group">
-                {/* Message Bubble */}
-                <div
-                  className={`relative px-4 py-3 rounded-2xl shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer hover:shadow-2xl ${message.sender_id === user?.id
-                    ? 'bg-gradient-primary text-white rounded-tr-md shadow-accent-primary/20'
-                    : 'bg-bg-secondary/80 border border-glass-border text-text-primary rounded-tl-md hover:bg-bg-secondary'
-                    } ${selectedMessages.includes(message.id) ? 'ring-2 ring-accent-primary animate-pulse' : ''}`}
-                  onClick={() => handleMessageSelect(message.id)}
-                  onDoubleClick={() => handleEmojiReaction('❤️')}
-                >
-                  {/* Image message - Not implemented yet */}
-                  {false && (
-                    <div className="mb-3">
-                      <div className="w-full h-32 bg-gray-600 rounded-xl flex items-center justify-center">
-                        <i className="fas fa-image text-white text-2xl"></i>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Voice message - Not implemented yet */}
-                  {false && (
-                    <div className="flex items-center gap-4 mb-2 p-4 bg-black/20 rounded-xl">
-                      <button
-                        onClick={() => {/* Voice playback not implemented yet */ }}
-                        className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 bg-white/20 text-white hover:bg-white/30"
-                      >
-                        <i className="fas fa-play"></i>
-                      </button>
-                      <div className="flex-1">
-                        <div className="text-sm text-white/80">Voice message</div>
-                        <div className="text-xs text-white/60">🎤 Tap to play</div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* File message - Not implemented yet */}
-                  {false && (
-                    <div className="flex items-center gap-3 mb-2 p-3 bg-black/20 rounded-xl">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-500/20 text-blue-400">
-                        <i className="fas fa-file"></i>
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-white">File name</div>
-                        <div className="text-xs text-white/70">File size</div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Text message */}
-                  {message.body && (
-                    <p className="mb-2 leading-relaxed">{message.body}</p>
-                  )}
-
-                  {/* Message Footer */}
-                  <div className={`flex items-center justify-end gap-2 text-xs ${message.sender_id === user?.id ? 'text-white/70' : 'text-text-secondary'
-                    }`}>
-                    <span>{formatMessageTime(message.created_at)}</span>
-                    {message.sender_id === user?.id && (
-                      <div className="flex items-center gap-1">
-                        <i className="fas fa-check text-blue-400"></i>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Quick reaction buttons */}
-                  <div className="absolute -top-12 left-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1 bg-bg-secondary/95 border border-glass-border rounded-full px-2 py-1 shadow-xl z-10">
-                    {['👍', '❤️', '😂', '😮', '📋'].map((emoji) => (
-                      <button
-                        key={emoji}
-                        className="w-8 h-8 hover:bg-bg-secondary rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 text-lg"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (emoji === '📋') {
-                            navigator.clipboard.writeText(message.body || '');
-                            setSuccessMessage('Message copied to clipboard');
-                            setShowSuccessModal(true);
-                          } else {
-                            handleEmojiReaction(emoji);
-                          }
-                        }}
-                        title={emoji === '📋' ? 'Copy message' : `React with ${emoji}`}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Reactions - Not implemented yet */}
-                {false && (
-                  <div className="flex flex-wrap gap-2 mt-2 ml-2">
-                    <div className="flex items-center gap-1 bg-bg-secondary/80 border border-glass-border rounded-full px-2 py-1 text-sm">
-                      <span>👍</span>
-                      <span className="text-text-secondary">1</span>
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {message.sender_id !== user?.id && (
-                <div className="w-10 h-10 rounded-full flex items-center justify-center mr-3 flex-shrink-0 shadow-lg">
-                  <span className="text-white text-sm font-bold">{otherParticipant?.full_name}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+              {/* Messages in group */}
+              <div className="space-y-4">
+                {group.messages.map((message, index) => {
+                  const isOwnMessage = message.sender_id === user?.id;
+                  const senderProfile = participants.find(p => p.id === message.sender_id);
+                  const showSenderInfo = index === 0 || group.messages[index - 1]?.sender_id !== message.sender_id;
 
-        {/* Typing Indicator */}
-        {isTyping && (
-          <div className="flex items-center gap-3 mb-4 animate-fade-in">
-            <div className={`w-10 h-10 ${chat.startup.gradient} rounded-full flex items-center justify-center shadow-lg`}>
-              <span className="text-white text-sm font-bold">{chat.startup.logo}</span>
-            </div>
-            <div className="bg-glass-bg border border-glass-border rounded-2xl rounded-tl-none px-4 py-3 shadow-lg">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  return (
+                    <div 
+                      key={message.id} 
+                      id={`message-${message.id}`} 
+                      className={`flex items-end gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}
+                    >
+                      {/* Avatar for received messages */}
+                      {!isOwnMessage ? (
+                        <div className="flex-shrink-0 mb-1">
+                          {showSenderInfo ? (
+                            <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-md">
+                              {senderProfile?.avatar_url ? (
+                                <img src={senderProfile.avatar_url} alt={senderProfile.full_name} className="w-full h-full rounded-lg object-cover" />
+                              ) : (
+                                <span>{(senderProfile?.full_name || 'U')?.[0]?.toUpperCase()}</span>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="w-8"></div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="w-2"></div>
+                      )}
+
+                      <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-[80%]`}>
+                        {/* Sender Name */}
+                        {!isOwnMessage && showSenderInfo && (
+                          <span className="text-[10px] font-semibold text-text-secondary mb-1 ml-1 uppercase tracking-wide">
+                            {senderProfile?.full_name || senderProfile?.username || 'User'}
+                          </span>
+                        )}
+
+                        {/* Message Bubble */}
+                        <div
+                          className={`relative px-4 py-2.5 rounded-2xl shadow-sm ${
+                            isOwnMessage
+                              ? 'bg-gradient-primary text-white rounded-br-none'
+                              : 'bg-bg-tertiary border border-glass-border text-text-primary rounded-bl-none'
+                          } ${selectedMessages.includes(message.id) ? 'ring-2 ring-accent-primary' : ''}`}
+                          onClick={() => handleMessageSelect(message.id)}
+                        >
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.body}</p>
+                          
+                          <div className={`flex items-center justify-end gap-1.5 mt-1 text-[9px] ${
+                            isOwnMessage ? 'text-white/60' : 'text-text-secondary'
+                          }`}>
+                            <span>{formatMessageTime(message.created_at)}</span>
+                            {isOwnMessage && <i className="fas fa-check"></i>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          </div>
+          ))
         )}
-
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-4" />
       </div>
 
       {/* ChatGPT-Style Message Input */}
       <div className="shrink-0 bg-bg-primary/95 backdrop-blur-xl border-t border-glass-border px-4 py-6">
         {/* Emoji Picker */}
         {showEmojiPicker && (
-          <div className="mb-4 p-4 bg-glass-bg border border-glass-border rounded-2xl shadow-2xl animate-slide-up">
+          <div className="mb-4 p-4 bg-glass-bg border border-glass-border rounded-2xl shadow-2xl">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-text-primary font-medium">Emojis</h3>
               <button
@@ -582,7 +567,7 @@ const ChatDetailPage = () => {
               {emojis.map((emoji) => (
                 <button
                   key={emoji}
-                  className="w-10 h-10 hover:bg-glass-border rounded-xl flex items-center justify-center text-xl transition-all duration-200 hover:scale-110 active:scale-95"
+                  className="w-10 h-10 hover:bg-glass-border rounded-xl flex items-center justify-center text-xl transition-all duration-200"
                   onClick={() => {
                     setNewMessage(prev => prev + emoji);
                     setShowEmojiPicker(false);
@@ -721,7 +706,7 @@ const ChatDetailPage = () => {
       {/* Message Actions Modal */}
       {showMessageActions && (
         <div className="fixed inset-0 bg-black/50 flex items-end z-50" onClick={() => setShowMessageActions(false)}>
-          <div className="w-full bg-bg-secondary rounded-t-3xl p-6 space-y-4 animate-slide-up">
+          <div className="w-full bg-bg-secondary rounded-t-3xl p-6 space-y-4">
             <div className="w-12 h-1 bg-glass-border rounded-full mx-auto mb-4"></div>
 
             {[
@@ -733,7 +718,7 @@ const ChatDetailPage = () => {
             ].map((action) => (
               <button
                 key={action.label}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 hover:scale-[1.02] ${action.danger
+                className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 ${action.danger
                   ? 'hover:bg-red-500/20 text-red-400'
                   : 'hover:bg-glass-bg text-text-primary'
                   }`}
@@ -753,7 +738,7 @@ const ChatDetailPage = () => {
       {/* Search Modal */}
       {showSearchModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-md bg-bg-secondary rounded-3xl p-6 animate-scale-up shadow-2xl">
+          <div className="w-full max-w-md bg-bg-secondary rounded-3xl p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-text-primary">Search Messages</h3>
               <button
@@ -810,7 +795,7 @@ const ChatDetailPage = () => {
       {/* Confirmation Modal */}
       {showConfirmModal && confirmAction && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-sm bg-bg-secondary rounded-3xl p-6 animate-scale-up shadow-2xl">
+          <div className="w-full max-w-sm bg-bg-secondary rounded-3xl p-6 shadow-2xl">
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i className="fas fa-exclamation-triangle text-2xl text-red-400"></i>
@@ -840,7 +825,7 @@ const ChatDetailPage = () => {
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className="bg-bg-secondary/90 backdrop-blur-xl border border-glass-border rounded-2xl p-4 shadow-2xl animate-bounce">
+          <div className="bg-bg-secondary/90 backdrop-blur-xl border border-glass-border rounded-2xl p-4 shadow-2xl">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
                 <i className="fas fa-check text-green-400"></i>

@@ -97,6 +97,12 @@ const DesktopSettingsPage = () => {
                     color: 'text-purple-400'
                 },
                 {
+                    icon: 'fas fa-headset',
+                    label: 'Support',
+                    action: () => navigate('/support'),
+                    color: 'text-green-400'
+                },
+                {
                     icon: 'fas fa-trash',
                     label: 'Clear Saved Profile',
                     action: clearProfile,

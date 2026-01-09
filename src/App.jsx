@@ -17,17 +17,22 @@ import ProfilePage from './pages/ProfilePage'
 import DesktopProfilePage from './pages/DesktopProfilePage.jsx'
 import PublicProfilePage from './pages/PublicProfilePage'
 import AddPage from './pages/AddPage'
+import DesktopAddPage from './pages/DesktopAddPage.jsx'
 import FiltersPage from './pages/FiltersPage'
 import OnboardingPage from './pages/OnboardingPage'
 import LoginPage from './pages/LoginPage'
 import ChatDetailPage from './pages/ChatDetailPage'
 import DesktopChatDetailPage from './pages/DesktopChatDetailPage.jsx'
 import StartupDetailPage from './pages/StartupDetailPage'
+import DesktopStartupDetailPage from './pages/DesktopStartupDetailPage.jsx'
 import SavedPage from './pages/SavedPage'
 import DesktopSavedPage from './pages/DesktopSavedPage.jsx'
 import ProfileEditPage from './pages/ProfileEditPage'
+import DesktopProfileEditPage from './pages/DesktopProfileEditPage.jsx'
 import SettingsPage from './pages/SettingsPage'
 import DesktopSettingsPage from './pages/DesktopSettingsPage.jsx'
+import DesktopSupportPage from './pages/DesktopSupportPage.jsx'
+import SupportPage from './pages/SupportPage.jsx'
 import ActivityDashboardPage from './pages/ActivityDashboardPage'
 import OAuthCallback from './components/OAuthCallback'
 import ResetPasswordPage from './pages/ResetPasswordPage'
@@ -92,16 +97,17 @@ function App() {
       <Route path="/legal" element={<LegalPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/home" element={isDesktop ? <DesktopHomePage /> : <HomePage />} />
-        <Route path="/startup/:id" element={<StartupDetailPage />} />
+        <Route path="/startup/:id" element={isDesktop ? <DesktopStartupDetailPage /> : <StartupDetailPage />} />
         <Route path="/saved" element={isDesktop ? <DesktopSavedPage /> : <SavedPage />} />
         <Route path="/notifications" element={isDesktop ? <DesktopNotificationsPage /> : <NotificationsPage />} />
         <Route path="/chat" element={isDesktop ? <DesktopChatPage /> : <ChatPage />} />
-        <Route path="/profile/edit" element={<ProfileEditPage />} />
+        <Route path="/profile/edit" element={isDesktop ? <DesktopProfileEditPage /> : <ProfileEditPage />} />
         <Route path="/profile/:id" element={<PublicProfilePage />} />
         <Route path="/profile" element={isDesktop ? <DesktopProfilePage /> : <ProfilePage />} />
         <Route path="/settings" element={isDesktop ? <DesktopSettingsPage /> : <SettingsPage />} />
+        <Route path="/support" element={isDesktop ? <DesktopSupportPage /> : <SupportPage />} />
         <Route path="/activity-dashboard" element={<ActivityDashboardPage />} />
-        <Route path="/add" element={<AddPage />} />
+        <Route path="/add" element={isDesktop ? <DesktopAddPage /> : <AddPage />} />
         <Route path="/filters" element={<FiltersPage />} />
         <Route path="/chat-detail/:chatId" element={isDesktop ? <DesktopChatDetailPage /> : <ChatDetailPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
