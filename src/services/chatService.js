@@ -317,10 +317,12 @@ export const chatService = {
         }
     },
 
-    // Subscribe to new messages in a chat
+    // Subscribe to new messages in a specific chat (realtime)
     subscribeToMessages(chatId, callback) {
+        console.log('Creating realtime subscription for chat:', chatId)
+        
         const channel = supabase
-            .channel(`chat:${chatId}`)
+            .channel(`chat-messages:${chatId}`)
             .on(
                 'postgres_changes',
                 {
@@ -330,13 +332,60 @@ export const chatService = {
                     filter: `chat_id=eq.${chatId}`
                 },
                 (payload) => {
+                    console.log('Realtime INSERT received for chat:', chatId, payload)
                     callback({
                         eventType: 'INSERT',
                         new: payload.new
                     })
                 }
             )
-            .subscribe()
+            .subscribe((status) => {
+                console.log('Realtime subscription status for chat', chatId, ':', status)
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Successfully subscribed to chat:', chatId)
+                }
+                if (status === 'CHANNEL_ERROR') {
+                    console.error('❌ Error subscribing to chat:', chatId)
+                }
+            })
+
+        return channel
+    },
+
+    // Subscribe to any new messages for the current user (used to refresh chat list in realtime)
+    subscribeToUserMessages(userId, callback) {
+        if (!userId) return null
+
+        console.log('Creating user-level realtime subscription for user:', userId)
+
+        const channel = supabase
+            .channel(`user-all-messages:${userId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages'
+                    // Note: All message inserts will be received, but RLS on the database
+                    // determines what data is actually accessible
+                },
+                (payload) => {
+                    console.log('Realtime INSERT received for user:', userId, payload)
+                    callback({
+                        eventType: 'INSERT',
+                        new: payload.new
+                    })
+                }
+            )
+            .subscribe((status) => {
+                console.log('User realtime subscription status:', status)
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Successfully subscribed to user messages:', userId)
+                }
+                if (status === 'CHANNEL_ERROR') {
+                    console.error('❌ Error subscribing to user messages:', userId)
+                }
+            })
 
         return channel
     },

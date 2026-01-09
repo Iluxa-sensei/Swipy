@@ -261,6 +261,53 @@ const ChatDetailPage = () => {
     }
   };
 
+  // Realtime: subscribe to new messages in this chat
+  useEffect(() => {
+    if (!chatId) return;
+
+    console.log('Setting up realtime subscription for chat:', chatId);
+
+    const channel = chatService.subscribeToMessages(chatId, async (payload) => {
+      if (payload.eventType === 'INSERT') {
+        const newMsg = payload.new;
+        console.log('Realtime message received:', newMsg);
+        
+        // Don't add if it's from the current user (we already added it locally)
+        // or if it already exists in messages
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === newMsg.id)) {
+            console.log('Message already exists, skipping');
+            return prev;
+          }
+          
+          // Try to find the sender profile from participants
+          const senderProfile = participants.find(p => p.id === newMsg.sender_id);
+          const messageWithProfile = {
+            ...newMsg,
+            profiles: senderProfile || null
+          };
+          
+          console.log('Adding new realtime message to state');
+          return [...prev, messageWithProfile];
+        });
+
+        // Scroll to bottom after new message
+        setTimeout(() => {
+          if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      }
+    });
+
+    return () => {
+      console.log('Cleaning up realtime subscription for chat:', chatId);
+      if (channel && typeof channel.unsubscribe === 'function') {
+        channel.unsubscribe();
+      }
+    };
+  }, [chatId, participants]);
+
   // Show loading state
   if (loading) {
     return (

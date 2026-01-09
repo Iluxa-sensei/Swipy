@@ -100,25 +100,51 @@ const DesktopChatDetailPage = () => {
         loadChat()
     }, [chatId, user?.id])
 
-    // Subscribe to new messages
+    // Subscribe to new messages in realtime
     useEffect(() => {
         if (!chatId) return
 
+        console.log('Setting up realtime subscription for chat:', chatId)
+
         const channel = chatService.subscribeToMessages(chatId, (payload) => {
             if (payload.eventType === 'INSERT') {
-                const newMessage = payload.new
+                const newMsg = payload.new
+                console.log('Realtime message received:', newMsg)
+                
                 setMessages(prev => {
-                    // Avoid duplicates
-                    if (prev.some(m => m.id === newMessage.id)) return prev
-                    return [...prev, newMessage]
+                    // Avoid duplicates - check if message already exists
+                    if (prev.some(m => m.id === newMsg.id)) {
+                        console.log('Message already exists, skipping')
+                        return prev
+                    }
+                    
+                    // Find sender profile from participants
+                    const senderProfile = participants.find(p => p.id === newMsg.sender_id)
+                    const messageWithProfile = {
+                        ...newMsg,
+                        profiles: senderProfile || null
+                    }
+                    
+                    console.log('Adding new realtime message to state')
+                    return [...prev, messageWithProfile]
                 })
+
+                // Scroll to bottom after new message
+                setTimeout(() => {
+                    if (messagesEndRef.current) {
+                        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+                    }
+                }, 100)
             }
         })
 
         return () => {
-            channel?.unsubscribe()
+            console.log('Cleaning up realtime subscription for chat:', chatId)
+            if (channel && typeof channel.unsubscribe === 'function') {
+                channel.unsubscribe()
+            }
         }
-    }, [chatId])
+    }, [chatId, participants])
 
     // Scroll to last message
     useEffect(() => {

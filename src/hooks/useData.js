@@ -401,6 +401,24 @@ export const useChats = (userId) => {
         fetchChats()
     }, [fetchChats])
 
+    // Realtime subscription: refresh chats when new messages arrive
+    useEffect(() => {
+        if (!userId) return
+
+        const channel = chatService.subscribeToUserMessages(userId, (payload) => {
+            if (payload.eventType === 'INSERT') {
+                // A new message was created in one of the user's chats -> refresh list
+                fetchChats()
+            }
+        })
+
+        return () => {
+            if (channel && typeof channel.unsubscribe === 'function') {
+                channel.unsubscribe()
+            }
+        }
+    }, [userId, fetchChats])
+
     return {
         chats,
         loading,

@@ -22,6 +22,12 @@ const supabaseClient = createClient(supabaseUrl || 'https://placeholder.supabase
       httpOnly: false // Required for client-side access
     }
   },
+  // Realtime configuration for live chat updates
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
+  },
   // Security: Global request options
   global: {
     headers: {
