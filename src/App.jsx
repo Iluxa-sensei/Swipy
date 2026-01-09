@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { FiltersProvider } from './context/FiltersContext'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
+import { extractAndCleanAuthTokens } from './utils/authTokenCleaner.js'
 
 import { useDeviceType } from './hooks'
 import DesktopLayout from './layouts/DesktopLayout.jsx'
@@ -39,6 +40,20 @@ function App() {
   const navigate = useNavigate()
   const location = useLocation()
   const { isDesktop } = useDeviceType()
+
+  // Security: Extract and clean authentication tokens from URL, but skip OAuth callback route
+  // The OAuthCallback component handles cleaning after Supabase processes tokens
+  useEffect(() => {
+    // Don't clean on OAuth callback route - let OAuthCallback component handle it
+    if (location.pathname === '/auth/callback') {
+      return
+    }
+    
+    const tokens = extractAndCleanAuthTokens()
+    if (tokens) {
+      console.log('Security: Authentication tokens detected and cleaned from URL')
+    }
+  }, [location.pathname, location.search, location.hash])
 
   // Synchronize currentScreen with current route
   useEffect(() => {

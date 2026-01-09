@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../services/supabaseClient.js'
 import { profileService } from '../services/profileService.js'
+import { cleanAuthTokensFromUrl } from '../utils/authTokenCleaner.js'
 
 const OAuthCallback = () => {
     const navigate = useNavigate()
@@ -12,13 +13,25 @@ const OAuthCallback = () => {
     useEffect(() => {
         const handleOAuthCallback = async () => {
             try {
-                // Get the session from the URL hash
+                // Security: Let Supabase process tokens from URL first, then clean after a brief delay
+                // Supabase needs to read tokens from URL hash to establish session
+                // The delay ensures Supabase has fully processed and stored the session
                 const { data, error } = await supabase.auth.getSession()
-
+                
+                // Clean URL after Supabase has processed the tokens
+                // Small delay ensures Supabase has fully stored the session before we clean the URL
+                setTimeout(() => {
+                    cleanAuthTokensFromUrl()
+                }, 50)
+                
                 if (error) {
                     console.error('OAuth callback error:', error)
                     setError(error.message)
                     setLoading(false)
+                    // Navigate away from callback URL even on error
+                    setTimeout(() => {
+                        navigate('/login', { replace: true })
+                    }, 3000)
                     return
                 }
 
@@ -50,6 +63,14 @@ const OAuthCallback = () => {
                 console.error('Unexpected error during OAuth callback:', err)
                 setError('An unexpected error occurred during authentication')
                 setLoading(false)
+                
+                // Clean URL even on unexpected error
+                cleanAuthTokensFromUrl()
+                
+                // Navigate away from callback URL after error
+                setTimeout(() => {
+                    navigate('/login', { replace: true })
+                }, 3000)
             }
         }
 

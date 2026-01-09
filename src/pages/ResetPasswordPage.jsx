@@ -18,8 +18,29 @@ const ResetPasswordPage = () => {
     const type = searchParams.get('type')
 
     React.useEffect(() => {
+        // Security: Clear sensitive tokens from URL after processing
+        // Supabase password reset tokens are typically in the hash, but we also check query params
+        if (window.location.hash) {
+            // Process hash first (Supabase handles this), then clear it
+            const hash = window.location.hash
+            // Clear hash immediately after component mounts
+            window.history.replaceState(null, '', window.location.pathname + (window.location.search || ''))
+        }
+        
+        // Clear token from query params if present (after extracting it)
         if (token && type === 'recovery') {
             setIsResetMode(true)
+            // Remove token from URL for security (keep type if needed)
+            if (window.location.search.includes('token=')) {
+                const newSearch = new URLSearchParams(window.location.search)
+                newSearch.delete('token')
+                const cleanSearch = newSearch.toString()
+                window.history.replaceState(
+                    null,
+                    '',
+                    window.location.pathname + (cleanSearch ? `?${cleanSearch}` : '')
+                )
+            }
         }
     }, [token, type])
 
