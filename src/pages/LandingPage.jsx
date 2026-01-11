@@ -42,7 +42,7 @@ const LandingPage = () => {
                     runId: 'initial-check',
                     hypothesisId
                 })
-            }).catch(() => {});
+            }).catch(() => { });
         };
 
         // Ждем немного, чтобы все стили применились
@@ -107,25 +107,72 @@ const LandingPage = () => {
                     const faqHeight = faqRef.current.getBoundingClientRect().height
 
                     // Start sliding only when CTA section is significantly in viewport
-                    // Wait until CTA top is closer to middle of viewport before starting
                     const ctaTop = ctaRect.top
-                    const triggerPoint = windowHeight * 0.6 // Start when CTA is 60% down viewport
+                    const triggerPoint = windowHeight * 0.8 // Start earlier (80% down viewport)
 
-                    let progress = 0
-                    // Start sliding only when CTA top passes the trigger point
-                    if (ctaTop < triggerPoint) {
-                        // Calculate progress based on how far CTA has scrolled past trigger
-                        const scrollPast = triggerPoint - ctaTop
-                        const slideDistance = faqHeight + windowHeight * 0.6
-                        progress = Math.min(1, Math.max(0, scrollPast / slideDistance))
+                    // #region agent log
+                    fetch('http://127.0.0.1:7242/ingest/70e91777-b172-47d5-aaa0-2af0bf264088', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            location: 'LandingPage.jsx:70',
+                            message: 'Scroll Info',
+                            data: {
+                                scrollY: window.scrollY,
+                                scrollHeight: document.documentElement.scrollHeight,
+                                windowHeight: window.innerHeight,
+                                faqTop: faqRef.current.getBoundingClientRect().top,
+                                faqHeight: faqRef.current.offsetHeight,
+                                ctaTop: ctaRect.top,
+                                ctaHeight: ctaRef.current.offsetHeight
+                            },
+                            timestamp: Date.now(),
+                            sessionId: 'debug-scroll-logic',
+                            hypothesisId: '1'
+                        })
+                    }).catch(() => { });
+                    // #endregion
+
+                    // Start sliding only when we are near the bottom of the page
+                    const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight
+                    const currentScroll = window.scrollY
+                    const revealDistance = 450 // Reduced from 550 to prevent the FAQ from sliding too high
+
+                    // The point where the FAQ should start sliding up
+                    const startRevealAt = scrollableHeight - revealDistance
+
+                    let scrollDistance = 0
+                    if (currentScroll > startRevealAt) {
+                        scrollDistance = Math.min(currentScroll - startRevealAt, revealDistance)
                     }
 
-                    // Apply transform: FAQ slides up (negative Y) to reveal footer below
-                    const maxSlide = -(faqHeight + 100)
-                    setFaqTransform(progress * maxSlide)
+                    // Apply 1:1 transform: FAQ moves up exactly as much as user scrolls
+                    const finalTransform = -scrollDistance
+                    setFaqTransform(finalTransform)
 
-                    // Show footer when FAQ starts sliding
-                    setFooterVisible(progress > 0.15)
+                    // #region agent log
+                    if (scrollDistance > revealDistance * 0.9) {
+                        fetch('http://127.0.0.1:7242/ingest/70e91777-b172-47d5-aaa0-2af0bf264088', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                location: 'LandingPage.jsx:155',
+                                message: 'FAQ Slide Position',
+                                data: {
+                                    scrollDistance,
+                                    revealDistance,
+                                    finalTransform,
+                                    faqBottom: faqRef.current?.getBoundingClientRect().bottom
+                                },
+                                timestamp: Date.now(),
+                                sessionId: 'debug-faq-height-final'
+                            })
+                        }).catch(() => { });
+                    }
+                    // #endregion
+
+                    // Show footer when we've started revealing
+                    setFooterVisible(scrollDistance > 50)
                 }
             })
         }
@@ -198,20 +245,24 @@ const LandingPage = () => {
                 
                 /* Override global styles for landing page to enable scrolling */
                 html.landing-page-active {
+                    overflow-x: hidden !important;
                     overflow-y: auto !important;
                     height: auto !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
                 }
 
                 body.landing-page-active {
                     overflow: visible !important;
-                    overflow-x: hidden !important;
-                    overflow-y: visible !important;
                     position: relative !important;
                     height: auto !important;
                     min-height: 100vh !important;
                     width: 100% !important;
                     top: unset !important;
                     left: unset !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    -webkit-overflow-scrolling: touch;
                 }
                 
                 body.landing-page-active #root {
@@ -647,6 +698,14 @@ const LandingPage = () => {
                     .scroller-item {
                         height: 1.3em !important;
                         line-height: 1.3em !important;
+                    }
+                @media (max-width: 768px) {
+                    .footer-grid {
+                        grid-template-columns: 1fr 1fr !important;
+                        gap: 24px !important;
+                    }
+                    .footer-grid-item-full {
+                        grid-column: 1 / -1 !important;
                     }
                 }
             `}</style>
@@ -1281,7 +1340,11 @@ const LandingPage = () => {
                         willChange: 'transform',
                         background: '#0a0a0a',
                         borderBottomLeftRadius: '100px',
-                        borderBottomRightRadius: '100px'
+                        borderBottomRightRadius: '100px',
+                        minHeight: '100vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center'
                     }}
                 >
                     <div style={{
@@ -1421,325 +1484,339 @@ const LandingPage = () => {
                     </div>
                 </section>
 
-                {/* CTA Section - Behind FAQ */}
-                <section
-                    ref={ctaRef}
+                {/* Reveal Area - Fixed behind FAQ at the bottom */}
+                <div
                     style={{
-                        padding: '40px 24px',
-                        width: '100%',
-                        textAlign: 'center',
+                        position: 'fixed',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        zIndex: 1,
+                        visibility: footerVisible ? 'visible' : 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
                         background: 'linear-gradient(180deg, #0f172a 0%, #0a0a0a 100%)',
-                        position: 'relative',
-                        zIndex: 0,
-                        marginTop: '-400px',
-                        paddingTop: '130px'
                     }}
                 >
-                    <h2 style={{
-                        fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-                        fontWeight: '700',
-                        letterSpacing: '-0.02em',
-                        marginBottom: '40px',
-                        marginTop: '40px',
-                        color: '#ffffff'
-                    }}>
-                        Ready to Find Your Next Startup?
-                    </h2>
-                    <button
-                        onClick={() => navigate('/login')}
+                    {/* CTA Section */}
+                    <section
+                        ref={ctaRef}
                         style={{
-                            background: '#4880ff',
-                            color: '#ffffff',
-                            padding: '16px 40px',
-                            borderRadius: '12px',
-                            fontSize: '1rem',
-                            fontWeight: '600',
-                            border: 'none',
-                            cursor: 'pointer',
-                            transition: 'filter 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.filter = 'brightness(1.15)'
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.filter = 'brightness(1)'
+                            padding: '350px 24px 40px', // Reduced bottom padding from 100px to 40px
+                            width: '100%',
+                            textAlign: 'center',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center'
                         }}
                     >
-                        Get Started Free
-                    </button>
-                </section>
+                        <h2 style={{
+                            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+                            fontWeight: '700',
+                            letterSpacing: '-0.02em',
+                            marginBottom: '40px',
+                            color: '#ffffff'
+                        }}>
+                            Ready to Find Your Next Startup?
+                        </h2>
+                        <button
+                            onClick={() => navigate('/login')}
+                            style={{
+                                background: '#4880ff',
+                                color: '#ffffff',
+                                padding: '16px 40px',
+                                borderRadius: '12px',
+                                fontSize: '1rem',
+                                fontWeight: '600',
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'filter 0.3s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.filter = 'brightness(1.15)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.filter = 'brightness(1)'
+                            }}
+                        >
+                            Get Started Free
+                        </button>
+                    </section>
 
-                {/* Footer */}
-                <footer
-                    ref={footerRef}
-                    style={{
-                        padding: '40px 24px 40px',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                        maxWidth: '1200px',
-                        margin: '0 auto',
-                        opacity: footerVisible ? 1 : 0,
-                        transform: footerVisible ? 'translateY(0)' : 'translateY(30px)',
-                        transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
-                        overflow: 'visible'
-                    }}
-                >
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                        gap: '48px',
-                        marginBottom: '48px',
-                        paddingTop: '1px',
-                        padding: '0 20px',
-                        overflow: 'visible'
-                    }}>
-                        <div>
-                            <div style={{ marginBottom: '24px' }}>
-                                <img
-                                    src="/Vector.png"
-                                    alt="Swipy"
-                                    style={{
-                                        height: '32px',
-                                        width: '32px',
-                                        borderRadius: '8px',
-                                        objectFit: 'contain'
-                                    }}
-                                />
-                            </div>
-                            <p style={{
-                                color: 'rgba(255, 255, 255, 0.6)',
-                                fontSize: '0.875rem',
-                                lineHeight: '1.6',
-                                fontWeight: '400'
-                            }}>
-                                Tinder for Startups. Discover, connect, and invest in innovative startups.
-                            </p>
-                        </div>
-                        <div>
-                            <h4 style={{
-                                fontWeight: '600',
-                                marginBottom: '16px',
-                                color: '#ffffff',
-                                fontSize: '0.95rem',
-                                letterSpacing: '0.05em',
-                                textTransform: 'uppercase'
-                            }}>
-                                Product
-                            </h4>
-                            <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <li>
-                                    <a
-                                        href="#features"
-                                        onClick={(e) => handleAnchorClick(e, '#features')}
-                                        style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
-                                        className="hover:text-white transition-colors"
-                                    >
-                                        Features
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#how-it-works"
-                                        onClick={(e) => handleAnchorClick(e, '#how-it-works')}
-                                        style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
-                                        className="hover:text-white transition-colors"
-                                    >
-                                        How It Works
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 style={{
-                                fontWeight: '600',
-                                marginBottom: '16px',
-                                color: '#ffffff',
-                                fontSize: '0.95rem',
-                                letterSpacing: '0.05em',
-                                textTransform: 'uppercase'
-                            }}>
-                                Legal
-                            </h4>
-                            <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <li>
-                                    <a
-                                        href="/legal?tab=privacy"
-                                        onClick={(e) => {
-                                            e.preventDefault()
-                                            navigate('/legal?tab=privacy')
+                    {/* Footer */}
+                    <footer
+                        ref={footerRef}
+                        style={{
+                            padding: '20px 24px 40px',
+                            borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                            maxWidth: '1200px',
+                            width: '100%',
+                            margin: '0 auto',
+                            background: 'transparent',
+                        }}
+                    >
+                        <div className="footer-grid" style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                            gap: '48px',
+                            marginBottom: '48px',
+                            paddingTop: '1px',
+                            padding: '0 20px',
+                            overflow: 'visible'
+                        }}>
+                            <div className="footer-grid-item-full">
+                                <div style={{ marginBottom: '24px' }}>
+                                    <img
+                                        src="/Vector.png"
+                                        alt="Swipy"
+                                        style={{
+                                            height: '32px',
+                                            width: '32px',
+                                            borderRadius: '8px',
+                                            objectFit: 'contain'
                                         }}
-                                        style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
-                                        className="hover:text-white transition-colors"
-                                    >
-                                        Privacy
-                                    </a>
-                                </li>
-                                <li>
+                                    />
+                                </div>
+                                <p style={{
+                                    color: 'rgba(255, 255, 255, 0.6)',
+                                    fontSize: '0.875rem',
+                                    lineHeight: '1.6',
+                                    fontWeight: '400'
+                                }}>
+                                    Tinder for Startups. Discover, connect, and invest in innovative startups.
+                                </p>
+                            </div>
+                            <div>
+                                <h4 style={{
+                                    fontWeight: '600',
+                                    marginBottom: '16px',
+                                    color: '#ffffff',
+                                    fontSize: '0.95rem',
+                                    letterSpacing: '0.05em',
+                                    textTransform: 'uppercase'
+                                }}>
+                                    Product
+                                </h4>
+                                <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    <li>
+                                        <a
+                                            href="#features"
+                                            onClick={(e) => handleAnchorClick(e, '#features')}
+                                            style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
+                                            className="hover:text-white transition-colors"
+                                        >
+                                            Features
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href="#how-it-works"
+                                            onClick={(e) => handleAnchorClick(e, '#how-it-works')}
+                                            style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
+                                            className="hover:text-white transition-colors"
+                                        >
+                                            How It Works
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 style={{
+                                    fontWeight: '600',
+                                    marginBottom: '16px',
+                                    color: '#ffffff',
+                                    fontSize: '0.95rem',
+                                    letterSpacing: '0.05em',
+                                    textTransform: 'uppercase'
+                                }}>
+                                    Legal
+                                </h4>
+                                <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    <li>
+                                        <a
+                                            href="/legal?tab=privacy"
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                navigate('/legal?tab=privacy')
+                                            }}
+                                            style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
+                                            className="hover:text-white transition-colors"
+                                        >
+                                            Privacy
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href="/legal?tab=terms"
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                navigate('/legal?tab=terms')
+                                            }}
+                                            style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
+                                            className="hover:text-white transition-colors"
+                                        >
+                                            Terms
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div className="footer-grid-item-full" style={{ overflow: 'visible' }}>
+                                <h4 style={{
+                                    fontWeight: '600',
+                                    marginBottom: '16px',
+                                    color: '#ffffff',
+                                    fontSize: '0.95rem',
+                                    letterSpacing: '0.05em',
+                                    textTransform: 'uppercase'
+                                }}>
+                                    Follow Us
+                                </h4>
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '12px',
+                                    flexWrap: 'wrap',
+                                    padding: '20px',
+                                    margin: '-20px',
+                                    overflow: 'visible'
+                                }}>
                                     <a
-                                        href="/legal?tab=terms"
-                                        onClick={(e) => {
-                                            e.preventDefault()
-                                            navigate('/legal?tab=terms')
+                                        href="https://x.com/swipy"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            width: '48px',
+                                            height: '48px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            background: 'rgba(255, 255, 255, 0.05)',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            borderRadius: '12px',
+                                            color: 'rgba(255, 255, 255, 0.7)',
+                                            fontSize: '1.25rem',
+                                            textDecoration: 'none',
+                                            transition: 'all 0.3s ease',
+                                            backdropFilter: 'blur(10px)'
                                         }}
-                                        style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: '400' }}
-                                        className="hover:text-white transition-colors"
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(72, 128, 255, 0.15)'
+                                            e.currentTarget.style.borderColor = '#4880ff'
+                                            e.currentTarget.style.color = '#4880ff'
+                                            e.currentTarget.style.transform = 'translateY(-4px)'
+                                            e.currentTarget.style.boxShadow = '0 8px 20px rgba(72, 128, 255, 0.3)'
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
+                                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
+                                            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'
+                                            e.currentTarget.style.transform = 'translateY(0)'
+                                            e.currentTarget.style.boxShadow = 'none'
+                                        }}
+                                        title="X (Twitter)"
                                     >
-                                        Terms
+                                        <svg
+                                            viewBox="0 0 24 24"
+                                            width="20"
+                                            height="20"
+                                            fill="currentColor"
+                                            style={{ display: 'block' }}
+                                        >
+                                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                        </svg>
                                     </a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div style={{ overflow: 'visible' }}>
-                            <h4 style={{
-                                fontWeight: '600',
-                                marginBottom: '16px',
-                                color: '#ffffff',
-                                fontSize: '0.95rem',
-                                letterSpacing: '0.05em',
-                                textTransform: 'uppercase'
-                            }}>
-                                Follow Us
-                            </h4>
-                            <div style={{
-                                display: 'flex',
-                                gap: '12px',
-                                flexWrap: 'wrap',
-                                padding: '20px',
-                                margin: '-20px',
-                                overflow: 'visible'
-                            }}>
-                                <a
-                                    href="https://x.com/swipy"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                        width: '48px',
-                                        height: '48px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                                        borderRadius: '12px',
-                                        color: 'rgba(255, 255, 255, 0.7)',
-                                        fontSize: '1.25rem',
-                                        textDecoration: 'none',
-                                        transition: 'all 0.3s ease',
-                                        backdropFilter: 'blur(10px)'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = 'rgba(72, 128, 255, 0.15)'
-                                        e.currentTarget.style.borderColor = '#4880ff'
-                                        e.currentTarget.style.color = '#4880ff'
-                                        e.currentTarget.style.transform = 'translateY(-4px)'
-                                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(72, 128, 255, 0.3)'
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
-                                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
-                                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'
-                                        e.currentTarget.style.transform = 'translateY(0)'
-                                        e.currentTarget.style.boxShadow = 'none'
-                                    }}
-                                    title="X (Twitter)"
-                                >
-                                    <svg
-                                        viewBox="0 0 24 24"
-                                        width="20"
-                                        height="20"
-                                        fill="currentColor"
-                                        style={{ display: 'block' }}
+                                    <a
+                                        href="https://www.producthunt.com/posts/swipy"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            width: '48px',
+                                            height: '48px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            background: 'rgba(255, 255, 255, 0.05)',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            borderRadius: '12px',
+                                            color: 'rgba(255, 255, 255, 0.7)',
+                                            fontSize: '1.25rem',
+                                            textDecoration: 'none',
+                                            transition: 'all 0.3s ease',
+                                            backdropFilter: 'blur(10px)'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(72, 128, 255, 0.15)'
+                                            e.currentTarget.style.borderColor = '#4880ff'
+                                            e.currentTarget.style.color = '#4880ff'
+                                            e.currentTarget.style.transform = 'translateY(-4px)'
+                                            e.currentTarget.style.boxShadow = '0 8px 20px rgba(72, 128, 255, 0.3)'
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
+                                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
+                                            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'
+                                            e.currentTarget.style.transform = 'translateY(0)'
+                                            e.currentTarget.style.boxShadow = 'none'
+                                        }}
+                                        title="Product Hunt"
                                     >
-                                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                                    </svg>
-                                </a>
-                                <a
-                                    href="https://www.producthunt.com/posts/swipy"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                        width: '48px',
-                                        height: '48px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                                        borderRadius: '12px',
-                                        color: 'rgba(255, 255, 255, 0.7)',
-                                        fontSize: '1.25rem',
-                                        textDecoration: 'none',
-                                        transition: 'all 0.3s ease',
-                                        backdropFilter: 'blur(10px)'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = 'rgba(72, 128, 255, 0.15)'
-                                        e.currentTarget.style.borderColor = '#4880ff'
-                                        e.currentTarget.style.color = '#4880ff'
-                                        e.currentTarget.style.transform = 'translateY(-4px)'
-                                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(72, 128, 255, 0.3)'
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
-                                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
-                                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'
-                                        e.currentTarget.style.transform = 'translateY(0)'
-                                        e.currentTarget.style.boxShadow = 'none'
-                                    }}
-                                    title="Product Hunt"
-                                >
-                                    <i className="fab fa-product-hunt"></i>
-                                </a>
-                                <a
-                                    href="https://www.instagram.com/swipy"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                        width: '48px',
-                                        height: '48px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                                        borderRadius: '12px',
-                                        color: 'rgba(255, 255, 255, 0.7)',
-                                        fontSize: '1.25rem',
-                                        textDecoration: 'none',
-                                        transition: 'all 0.3s ease',
-                                        backdropFilter: 'blur(10px)'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = 'rgba(72, 128, 255, 0.15)'
-                                        e.currentTarget.style.borderColor = '#4880ff'
-                                        e.currentTarget.style.color = '#4880ff'
-                                        e.currentTarget.style.transform = 'translateY(-4px)'
-                                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(72, 128, 255, 0.3)'
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
-                                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
-                                        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'
-                                        e.currentTarget.style.transform = 'translateY(0)'
-                                        e.currentTarget.style.boxShadow = 'none'
-                                    }}
-                                    title="Instagram"
-                                >
-                                    <i className="fab fa-instagram"></i>
-                                </a>
+                                        <i className="fab fa-product-hunt"></i>
+                                    </a>
+                                    <a
+                                        href="https://www.instagram.com/swipy"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            width: '48px',
+                                            height: '48px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            background: 'rgba(255, 255, 255, 0.05)',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            borderRadius: '12px',
+                                            color: 'rgba(255, 255, 255, 0.7)',
+                                            fontSize: '1.25rem',
+                                            textDecoration: 'none',
+                                            transition: 'all 0.3s ease',
+                                            backdropFilter: 'blur(10px)'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(72, 128, 255, 0.15)'
+                                            e.currentTarget.style.borderColor = '#4880ff'
+                                            e.currentTarget.style.color = '#4880ff'
+                                            e.currentTarget.style.transform = 'translateY(-4px)'
+                                            e.currentTarget.style.boxShadow = '0 8px 20px rgba(72, 128, 255, 0.3)'
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
+                                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
+                                            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'
+                                            e.currentTarget.style.transform = 'translateY(0)'
+                                            e.currentTarget.style.boxShadow = 'none'
+                                        }}
+                                        title="Instagram"
+                                    >
+                                        <i className="fab fa-instagram"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div style={{
-                        paddingTop: '32px',
-                        textAlign: 'center',
-                        color: 'rgba(255, 255, 255, 0.6)',
-                        fontSize: '0.875rem',
-                        fontWeight: '400'
-                    }}>
-                        <p>&copy; {new Date().getFullYear()} Swipy. All rights reserved.</p>
-                    </div>
-                </footer>
+                        <div style={{
+                            paddingTop: '16px', // Reduced from 32px
+                            textAlign: 'center',
+                            color: 'rgba(255, 255, 255, 0.6)',
+                            fontSize: '0.875rem',
+                            fontWeight: '400'
+                        }}>
+                            <p>&copy; {new Date().getFullYear()} Swipy. All rights reserved.</p>
+                        </div>
+                    </footer>
+                </div>
             </div>
+
+            {/* Spacer to allow scrolling past sticky FAQ to reveal the content behind it */}
+            <div style={{ height: '450px', position: 'relative', zIndex: 0, background: 'transparent', pointerEvents: 'none' }}></div>
         </>
     )
 }
