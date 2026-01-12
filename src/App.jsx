@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import { FiltersProvider } from './context/FiltersContext'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { extractAndCleanAuthTokens } from './utils/authTokenCleaner.js'
@@ -138,6 +139,7 @@ function App() {
           {routes}
         </MobileLayout>
       )}
+      <Analytics />
     </FiltersProvider>
   )
 }
