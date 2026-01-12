@@ -139,16 +139,23 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
         }
     }
 
-    const handleResultClick = (type, id) => {
+    const handleResultClick = (type, item) => {
         if (type === 'startup') {
-            navigate(`/startup/${id}`)
+            if (item.owner_nickname && item.slug) {
+                navigate(`/${item.owner_nickname}/startup/${item.slug}`)
+            } else {
+                navigate(`/startup/${item.id}`)
+            }
         } else if (type === 'profile') {
             // Check if it's current user's profile
-            if (id === user?.id) {
+            if (item.id === user?.id) {
                 navigate('/profile')
+            } else if (item.username) {
+                // Navigate to public profile page using nickname
+                navigate(`/profile/${item.username}`)
             } else {
-                // Navigate to public profile page for other users
-                navigate(`/profile/${id}`)
+                // Fallback to ID
+                navigate(`/profile/${item.id}`)
             }
         }
         setSearchQuery('')

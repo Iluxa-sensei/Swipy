@@ -5,10 +5,11 @@ import { chatService, profileService } from '../services'
 import { formatMessageTime, formatDate } from '../utils/dateUtils'
 
 const DesktopChatDetailPage = () => {
-    const { chatId } = useParams()
+    const { chatId: initialChatId, nickname, startup_name } = useParams()
     const navigate = useNavigate()
     const { user } = useAuth()
 
+    const [chatId, setChatId] = useState(initialChatId)
     const [chat, setChat] = useState(null)
     const [messages, setMessages] = useState([])
     const [participants, setParticipants] = useState([])
@@ -19,6 +20,35 @@ const DesktopChatDetailPage = () => {
     const [isTyping, setIsTyping] = useState(false)
     const messagesEndRef = useRef(null)
     const messagesContainerRef = useRef(null)
+
+    // Initial ID resolution if nickname/startup_name is used
+    useEffect(() => {
+        const resolveChatId = async () => {
+            if (initialChatId) {
+                setChatId(initialChatId)
+                return
+            }
+
+            if (nickname && user?.id) {
+                setLoading(true)
+                try {
+                    const resolvedId = await chatService.getChatByPrettyParams(user.id, nickname, startup_name)
+                    if (resolvedId) {
+                        setChatId(resolvedId)
+                    } else {
+                        setError('Could not find or create this chat.')
+                        setLoading(false)
+                    }
+                } catch (err) {
+                    console.error('Error resolving chat ID:', err)
+                    setError('Failed to load chat details.')
+                    setLoading(false)
+                }
+            }
+        }
+
+        resolveChatId()
+    }, [initialChatId, nickname, startup_name, user?.id])
 
     // Load chat data
     useEffect(() => {
@@ -90,7 +120,6 @@ const DesktopChatDetailPage = () => {
                 }
             } catch (err) {
                 console.error('Error loading chat:', err)
-                console.error('ChatId:', chatId, 'UserId:', user?.id)
                 setError(err.message)
             } finally {
                 setLoading(false)

@@ -17,7 +17,9 @@ const STARTUP_FIELDS = `
   industry,
   stage,
   owner_id,
-  description
+  description,
+  slug,
+  profiles!startups_owner_id_fkey(username)
 `
 
 export const searchService = {

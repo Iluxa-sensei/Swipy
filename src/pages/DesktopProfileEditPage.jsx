@@ -275,6 +275,16 @@ const DesktopProfileEditPage = () => {
     const saveProfile = async () => {
         setSaving(true)
         try {
+            // Check username uniqueness if it was changed
+            if (profile.username !== existingProfile?.username) {
+                const isAvailable = await profileService.isUsernameAvailable(profile.username, user.id)
+                if (!isAvailable) {
+                    alert('This username is already taken. Please choose another one.')
+                    setSaving(false)
+                    return
+                }
+            }
+
             // Upload avatar if selected
             let avatarUrl = existingProfile?.avatar_url || null
             if (avatarFile) {
@@ -942,7 +952,13 @@ const PortfolioTab = ({ startups, setStartups, userId, navigate }) => {
                                     <div className="flex space-x-3 ml-6">
                                         <button
                                             className="text-blue-400 hover:text-blue-300 p-2 hover:bg-blue-500/20 rounded-xl transition-all duration-300"
-                                            onClick={() => navigate(`/startup/${startup.id}`)}
+                                            onClick={() => {
+                                                if (profile.username && startup.slug) {
+                                                    navigate(`/${profile.username}/startup/${startup.slug}`)
+                                                } else {
+                                                    navigate(`/startup/${startup.id}`)
+                                                }
+                                            }}
                                         >
                                             <i className="fas fa-eye text-lg"></i>
                                         </button>

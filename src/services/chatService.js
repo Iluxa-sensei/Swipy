@@ -52,7 +52,7 @@ export const chatService = {
             if (startupIds.length > 0) {
                 const { data: startupsData, error: startupsError } = await supabase
                     .from('startups')
-                    .select('id, name, logo_url, logo, gradient, owner_id')
+                    .select('id, name, logo_url, logo, gradient, owner_id, slug, profiles!startups_owner_id_fkey(username)')
                     .in('id', startupIds)
 
                 if (!startupsError && startupsData) {
@@ -102,11 +102,13 @@ export const chatService = {
                         startup_name: startup?.name || 'Unknown Startup',
                         startup_logo: startup?.logo_url || startup?.logo || null,
                         startup_gradient: startup?.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700',
+                        startup_slug: startup?.slug || null,
                         last_message_body: lastMessage?.body || null,
                         last_message_at: lastMessage?.created_at || chat.created_at,
                         last_message_sender_id: lastMessage?.sender_id || null,
                         unread_count: unreadCount,
-                        chat_type: 'startup'
+                        chat_type: 'startup',
+                        other_participant: userMap[chat.other_user_id] || null
                     }
                 } else {
                     // User chat
@@ -117,6 +119,7 @@ export const chatService = {
                         startup_name: null,
                         startup_logo: null,
                         startup_gradient: null,
+                        startup_slug: null,
                         last_message_body: lastMessage?.body || null,
                         last_message_at: lastMessage?.created_at || chat.created_at,
                         last_message_sender_id: lastMessage?.sender_id || null,
@@ -124,7 +127,8 @@ export const chatService = {
                         chat_type: 'user',
                         other_participant_id: chat.other_user_id,
                         other_participant_name: otherUser?.full_name || otherUser?.username || 'Unknown User',
-                        other_participant_avatar: otherUser?.avatar_url || null
+                        other_participant_avatar: otherUser?.avatar_url || null,
+                        other_participant: otherUser || null
                     }
                 }
             })
@@ -447,7 +451,9 @@ export const chatService = {
                             logo_url,
                             logo,
                             gradient,
-                            owner_id
+                            owner_id,
+                            slug,
+                            profiles!startups_owner_id_fkey(username)
                         )
                     `)
                     .eq('id', chatId)
@@ -507,6 +513,51 @@ export const chatService = {
         } catch (error) {
             console.error('Error marking chat as read:', error)
             throw error
+        }
+    },
+
+    // Get chat by nickname and optional startup slug
+    async getChatByPrettyParams(currentUserId, nickname, startupSlug = null) {
+        try {
+            // Remove @ if present
+            const cleanNickname = nickname.startsWith('@') ? nickname.substring(1) : nickname
+
+            // 1. Find the target user by nickname
+            const { data: targetUser, error: userError } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('username', cleanNickname)
+                .single()
+
+            if (userError || !targetUser) {
+                console.error('Target user not found:', cleanNickname)
+                return null
+            }
+
+            if (startupSlug) {
+                // 2. Find the startup by slug
+                // Note: The startup could be owned by the target user or the current user
+                const { data: startup, error: startupError } = await supabase
+                    .from('startups')
+                    .select('id')
+                    .eq('slug', startupSlug)
+                    .or(`owner_id.eq.${targetUser.id},owner_id.eq.${currentUserId}`)
+                    .single()
+
+                if (startupError || !startup) {
+                    console.error('Startup not found for slug:', startupSlug)
+                    return null
+                }
+
+                // 3. Use RPC to get or create the chat for this startup
+                return await this.getOrCreateStartupChat(startup.id)
+            } else {
+                // 2. Use RPC to get or create the direct chat between users
+                return await this.getOrCreateUserChat(currentUserId, targetUser.id)
+            }
+        } catch (error) {
+            console.error('Error in getChatByPrettyParams:', error)
+            return null
         }
     },
 

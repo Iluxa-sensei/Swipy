@@ -153,7 +153,7 @@ const DesktopProfilePage = () => {
                             const shareData = {
                                 title: `${userProfile.name} — ${userProfile.title}`,
                                 text: userProfile.bio || `Check out ${userProfile.name}'s profile on Swipy`,
-                                url: window.location.origin + `/profile/${user?.id}`
+                                url: window.location.origin + `/profile/${profile?.username || user?.id}`
                             }
                             try {
                                 if (navigator.share) {
@@ -451,7 +451,13 @@ const DesktopProfilePage = () => {
                                             <div className="flex gap-2">
                                                 <button
                                                     className="btn-primary flex-1 py-2.5 rounded-xl text-sm"
-                                                    onClick={() => navigate(`/startup/${startup.id}`)}
+                                                    onClick={() => {
+                                                        if (startup.profiles?.username && startup.slug) {
+                                                            navigate(`/${startup.profiles.username}/startup/${startup.slug}`)
+                                                        } else {
+                                                            navigate(`/startup/${startup.id}`)
+                                                        }
+                                                    }}
                                                 >
                                                     View Details
                                                 </button>

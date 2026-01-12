@@ -297,6 +297,7 @@ export const startupService = {
           *,
           profiles!startups_owner_id_fkey (
             full_name,
+            username,
             avatar_url
           )
         `)
@@ -307,6 +308,41 @@ export const startupService = {
             return data
         } catch (error) {
             console.error('Error fetching startup:', error)
+            return null
+        }
+    },
+
+    // Get startup by slug and owner's username
+    async getStartupBySlug(ownerUsername, startupSlug) {
+        try {
+            // First find the owner by username
+            const { data: ownerData, error: ownerError } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('username', ownerUsername.startsWith('@') ? ownerUsername.substring(1) : ownerUsername)
+                .single()
+
+            if (ownerError || !ownerData) throw new Error('Owner not found')
+
+            // Then find the startup by owner_id and slug
+            const { data, error } = await supabase
+                .from('startups')
+                .select(`
+                    *,
+                    profiles!startups_owner_id_fkey (
+                        full_name,
+                        username,
+                        avatar_url
+                    )
+                `)
+                .eq('owner_id', ownerData.id)
+                .eq('slug', startupSlug)
+                .single()
+
+            if (error) throw error
+            return data
+        } catch (error) {
+            console.error('Error fetching startup by slug:', error)
             return null
         }
     },

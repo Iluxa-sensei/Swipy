@@ -16,48 +16,6 @@ const LandingPage = () => {
     const scrollHandlerRef = useRef(null)
     const isLogoAnimating = useRef(false)
 
-    // #region agent log
-    useEffect(() => {
-        const logStyle = (element, label, hypothesisId) => {
-            if (!element) return;
-            const style = window.getComputedStyle(element);
-            fetch('http://127.0.0.1:7242/ingest/70e91777-b172-47d5-aaa0-2af0bf264088', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    location: 'LandingPage.jsx:runtime',
-                    message: `Computed style for ${label}`,
-                    data: {
-                        overflow: style.overflow,
-                        overflowY: style.overflowY,
-                        height: style.height,
-                        minHeight: style.minHeight,
-                        display: style.display,
-                        position: style.position,
-                        className: element.className,
-                        tagName: element.tagName
-                    },
-                    timestamp: Date.now(),
-                    sessionId: 'debug-session',
-                    runId: 'initial-check',
-                    hypothesisId
-                })
-            }).catch(() => { });
-        };
-
-        // Ждем немного, чтобы все стили применились
-        const timer = setTimeout(() => {
-            logStyle(document.documentElement, 'HTML', 'H1');
-            logStyle(document.body, 'BODY', 'H1');
-            logStyle(document.getElementById('root'), 'ROOT', 'H1');
-            logStyle(heroRef.current, 'HERO_SECTION', 'H3');
-            logStyle(heroRef.current?.parentElement, 'HERO_PARENT', 'H2');
-        }, 1000);
-
-        return () => clearTimeout(timer);
-    }, []);
-    // #endregion
-
     // Load fonts
     useEffect(() => {
         const link = document.createElement('link')
@@ -70,6 +28,7 @@ const LandingPage = () => {
             }
         }
     }, [])
+
 
     // Enable scrolling for landing page
     useEffect(() => {
@@ -102,80 +61,28 @@ const LandingPage = () => {
             rafId = requestAnimationFrame(() => {
                 rafId = null
                 if (faqRef.current && ctaRef.current) {
-                    const ctaRect = ctaRef.current.getBoundingClientRect()
                     const windowHeight = window.innerHeight
-                    const faqHeight = faqRef.current.getBoundingClientRect().height
-
-                    // Start sliding only when CTA section is significantly in viewport
-                    const ctaTop = ctaRect.top
-                    const triggerPoint = windowHeight * 0.8 // Start earlier (80% down viewport)
-
-                    // #region agent log
-                    fetch('http://127.0.0.1:7242/ingest/70e91777-b172-47d5-aaa0-2af0bf264088', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            location: 'LandingPage.jsx:70',
-                            message: 'Scroll Info',
-                            data: {
-                                scrollY: window.scrollY,
-                                scrollHeight: document.documentElement.scrollHeight,
-                                windowHeight: window.innerHeight,
-                                faqTop: faqRef.current.getBoundingClientRect().top,
-                                faqHeight: faqRef.current.offsetHeight,
-                                ctaTop: ctaRect.top,
-                                ctaHeight: ctaRef.current.offsetHeight
-                            },
-                            timestamp: Date.now(),
-                            sessionId: 'debug-scroll-logic',
-                            hypothesisId: '1'
-                        })
-                    }).catch(() => { });
-                    // #endregion
-
-                    // Start sliding only when we are near the bottom of the page
-                    const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight
+                    const scrollableHeight = document.documentElement.scrollHeight - windowHeight
                     const currentScroll = window.scrollY
-                    const revealDistance = 450 // Reduced from 550 to prevent the FAQ from sliding too high
 
-                    // The point where the FAQ should start sliding up
-                    const startRevealAt = scrollableHeight - revealDistance
+                    // The distance from the bottom of the scrollable area where the FAQ should start moving
+                    const revealDistance = 150; // Reduced from 700 as requested
 
-                    let scrollDistance = 0
-                    if (currentScroll > startRevealAt) {
-                        scrollDistance = Math.min(currentScroll - startRevealAt, revealDistance)
+                    let scrollDistance = 0;
+                    if (currentScroll > (scrollableHeight - revealDistance)) {
+                        scrollDistance = currentScroll - (scrollableHeight - revealDistance);
                     }
 
-                    // Apply 1:1 transform: FAQ moves up exactly as much as user scrolls
-                    const finalTransform = -scrollDistance
-                    setFaqTransform(finalTransform)
-
-                    // #region agent log
-                    if (scrollDistance > revealDistance * 0.9) {
-                        fetch('http://127.0.0.1:7242/ingest/70e91777-b172-47d5-aaa0-2af0bf264088', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                location: 'LandingPage.jsx:155',
-                                message: 'FAQ Slide Position',
-                                data: {
-                                    scrollDistance,
-                                    revealDistance,
-                                    finalTransform,
-                                    faqBottom: faqRef.current?.getBoundingClientRect().bottom
-                                },
-                                timestamp: Date.now(),
-                                sessionId: 'debug-faq-height-final'
-                            })
-                        }).catch(() => { });
-                    }
-                    // #endregion
+                    // Apply 1:1 transform: FAQ moves up exactly as much as user scrolls, capped at maxReveal
+                    const maxReveal = 400; // Reduced from 700 as requested
+                    const finalTransform = -Math.min(scrollDistance, maxReveal);
+                    setFaqTransform(finalTransform);
 
                     // Show footer when we've started revealing
-                    setFooterVisible(scrollDistance > 50)
+                    setFooterVisible(scrollDistance > 50);
                 }
-            })
-        }
+            });
+        };
 
         // Use passive listener for better scroll performance
         window.addEventListener('scroll', scrollHandlerRef.current, { passive: true })
@@ -272,6 +179,27 @@ const LandingPage = () => {
                     min-height: 100vh !important;
                     width: 100% !important;
                 }
+
+                /* Deep override to prevent any div from creating a second scrollbar */
+                body.landing-page-active p,
+                body.landing-page-active span,
+                body.landing-page-active div,
+                body.landing-page-active h1,
+                body.landing-page-active h2,
+                body.landing-page-active h3,
+                body.landing-page-active h4,
+                body.landing-page-active h5,
+                body.landing-page-active h6,
+                body.landing-page-active section,
+                body.landing-page-active main {
+                    overflow: visible !important;
+                }
+
+                /* Exception for the scroller animation which needs overflow: hidden */
+                body.landing-page-active .scroller-container,
+                body.landing-page-active .scroller-container * {
+                    overflow: hidden !important;
+                }
                 
                 * {
                     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -302,9 +230,11 @@ const LandingPage = () => {
                 @media (max-width: 768px) {
                     .scroller-container {
                         min-width: 180px !important;
-                        margin-left: 8px !important;
-                        padding: 0 15px !important;
+                        margin-left: 12px !important;
+                        margin-right: 0 !important;
+                        padding: 0 8px !important;
                         vertical-align: -0.25em !important;
+                        text-align: left !important;
                     }
                 }
                 
@@ -315,6 +245,12 @@ const LandingPage = () => {
                     width: 100%;
                 }
                 
+                @media (max-width: 768px) {
+                    .scroller-content {
+                        text-align: left !important;
+                    }
+                }
+                
                 .scroller-item {
                     height: 1.4em;
                     line-height: 1.4em;
@@ -322,6 +258,14 @@ const LandingPage = () => {
                     white-space: nowrap;
                     padding-left: 1px; /* Extra space for italic slant */
                     padding-right: 2px; /* Extra space to prevent letter clipping */
+                }
+                
+                @media (max-width: 768px) {
+                    .scroller-item {
+                        padding-left: 2px !important;
+                        padding-right: 2px !important;
+                        text-align: left !important;
+                    }
                 }
 
                 @keyframes scrollUpInfinity {
@@ -424,6 +368,17 @@ const LandingPage = () => {
                     animation: pulse 3s ease-in-out infinite;
                 }
 
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
                 /* Desktop mockup alignment */
                 @media (min-width: 1469px) {
                     .laptop-mockup-features {
@@ -487,6 +442,7 @@ const LandingPage = () => {
                         flex-wrap: wrap !important;
                         justify-content: center !important;
                         align-items: center !important;
+                        transform: translateX(20px) !important;
                     }
                     
                     .device-mockup-container {
@@ -553,6 +509,7 @@ const LandingPage = () => {
                         padding: 12px 14px !important;
                         gap: 10px !important;
                         border-radius: 12px !important;
+                        align-items: center !important;
                     }
 
                     .features-mockup-container > div:last-child > div > div:first-child {
@@ -565,13 +522,12 @@ const LandingPage = () => {
 
                     .features-mockup-container > div:last-child > div h3 {
                         font-size: 0.8125rem !important;
-                        margin-bottom: 4px !important;
+                        margin-bottom: 0 !important;
                         line-height: 1.3 !important;
                     }
 
                     .features-mockup-container > div:last-child > div p {
-                        font-size: 0.6875rem !important;
-                        line-height: 1.4 !important;
+                        display: none !important;
                     }
 
                     /* Features section padding on mobile */
@@ -647,6 +603,7 @@ const LandingPage = () => {
                         padding: 10px 12px !important;
                         gap: 8px !important;
                         border-radius: 10px !important;
+                        align-items: center !important;
                     }
 
                     .features-mockup-container > div:last-child > div > div:first-child {
@@ -659,13 +616,12 @@ const LandingPage = () => {
 
                     .features-mockup-container > div:last-child > div h3 {
                         font-size: 0.75rem !important;
-                        margin-bottom: 3px !important;
+                        margin-bottom: 0 !important;
                         line-height: 1.2 !important;
                     }
 
                     .features-mockup-container > div:last-child > div p {
-                        font-size: 0.625rem !important;
-                        line-height: 1.3 !important;
+                        display: none !important;
                     }
 
                     .landing-navbar > div > button {
@@ -676,15 +632,22 @@ const LandingPage = () => {
                     /* Hero title optimization for very small screens */
                     h1 {
                         font-size: clamp(1.75rem, 5.5vw, 5rem) !important;
+                        transform: translateX(15px) !important;
                     }
 
                     .scroller-container {
                         min-width: 150px !important;
-                        margin-left: 6px !important;
-                        padding: 0 5px !important;
+                        margin-left: 10px !important;
+                        margin-right: 0 !important;
+                        padding: 0 6px !important;
                         height: 1.3em !important;
                         line-height: 1.3em !important;
                         vertical-align: -0.22em !important;
+                        text-align: left !important;
+                    }
+                    
+                    .scroller-content {
+                        text-align: left !important;
                     }
 
                     @keyframes scrollUpInfinity {
@@ -698,14 +661,29 @@ const LandingPage = () => {
                     .scroller-item {
                         height: 1.3em !important;
                         line-height: 1.3em !important;
+                        padding-left: 2px !important;
+                        padding-right: 2px !important;
+                        text-align: left !important;
                     }
-                @media (max-width: 768px) {
+
+                    /* Footer mobile optimization */
                     .footer-grid {
                         grid-template-columns: 1fr 1fr !important;
-                        gap: 24px !important;
+                        gap: 32px 24px !important;
                     }
-                    .footer-grid-item-full {
-                        grid-column: 1 / -1 !important;
+                    .footer-grid > div:first-child { 
+                        grid-column: 1 / -1;
+                        order: 1;
+                    }
+                    .footer-grid > div:nth-child(2) { order: 2; } /* Product */
+                    .footer-grid > div:nth-child(3) { order: 3; } /* Legal */
+                    .footer-grid > div:last-child { 
+                        grid-column: 1 / -1;
+                        order: 4;
+                    }
+
+                    .footer-info-section {
+                        display: none !important;
                     }
                 }
             `}</style>
@@ -1330,9 +1308,9 @@ const LandingPage = () => {
                     id="faq"
                     className="fade-in-up"
                     style={{
-                        padding: '60px 24px 30px',
+                        padding: '40px 24px 20px',
                         width: '100%',
-                        margin: '5px auto 0',
+                        margin: '0 auto',
                         position: 'sticky',
                         top: 0,
                         zIndex: 2,
@@ -1341,7 +1319,7 @@ const LandingPage = () => {
                         background: '#0a0a0a',
                         borderBottomLeftRadius: '100px',
                         borderBottomRightRadius: '100px',
-                        minHeight: '100vh',
+                        minHeight: '80vh',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center'
@@ -1349,8 +1327,9 @@ const LandingPage = () => {
                 >
                     <div style={{
                         textAlign: 'center',
-                        marginBottom: '40px',
-                        maxWidth: '1000px',
+                        marginBottom: '30px',
+                        maxWidth: '1200px',
+                        width: '100%',
                         marginLeft: 'auto',
                         marginRight: 'auto',
                         paddingLeft: '24px',
@@ -1371,7 +1350,8 @@ const LandingPage = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '16px',
-                        maxWidth: '1000px',
+                        maxWidth: '1200px',
+                        width: '100%',
                         marginLeft: 'auto',
                         marginRight: 'auto',
                         paddingLeft: '24px',
@@ -1425,7 +1405,7 @@ const LandingPage = () => {
                                     onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
                                     style={{
                                         width: '100%',
-                                        padding: '28px 32px',
+                                        padding: '20px 32px',
                                         background: 'transparent',
                                         border: 'none',
                                         textAlign: 'left',
@@ -1461,24 +1441,24 @@ const LandingPage = () => {
                                         }}
                                     ></i>
                                 </button>
-                                <div
-                                    style={{
-                                        maxHeight: openFaqIndex === index ? '500px' : '0',
-                                        overflow: 'hidden',
-                                        transition: 'max-height 0.3s ease, padding 0.3s ease',
-                                        padding: openFaqIndex === index ? '0 32px 28px 32px' : '0 32px',
-                                    }}
-                                >
-                                    <p style={{
-                                        color: 'rgba(255, 255, 255, 0.7)',
-                                        fontSize: 'clamp(0.9rem, 1.8vw, 1rem)',
-                                        lineHeight: '1.7',
-                                        margin: 0,
-                                        fontWeight: '400'
-                                    }}>
-                                        {faq.answer}
-                                    </p>
-                                </div>
+                                {openFaqIndex === index && (
+                                    <div
+                                        style={{
+                                            padding: '0 32px 28px 32px',
+                                            animation: 'fadeIn 0.3s ease-in'
+                                        }}
+                                    >
+                                        <p style={{
+                                            color: 'rgba(255, 255, 255, 0.7)',
+                                            fontSize: 'clamp(0.9rem, 1.8vw, 1rem)',
+                                            lineHeight: '1.7',
+                                            margin: 0,
+                                            fontWeight: '400'
+                                        }}>
+                                            {faq.answer}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -1502,7 +1482,7 @@ const LandingPage = () => {
                     <section
                         ref={ctaRef}
                         style={{
-                            padding: '350px 24px 40px', // Reduced bottom padding from 100px to 40px
+                            padding: '100px 24px 40px',
                             width: '100%',
                             textAlign: 'center',
                             display: 'flex',
@@ -1548,7 +1528,7 @@ const LandingPage = () => {
                     <footer
                         ref={footerRef}
                         style={{
-                            padding: '20px 24px 40px',
+                            padding: '20px 24px 20px',
                             borderTop: '1px solid rgba(255, 255, 255, 0.05)',
                             maxWidth: '1200px',
                             width: '100%',
@@ -1558,15 +1538,15 @@ const LandingPage = () => {
                     >
                         <div className="footer-grid" style={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                            gridTemplateColumns: '2fr 1fr 1fr 1.5fr',
                             gap: '48px',
-                            marginBottom: '48px',
+                            marginBottom: '24px',
                             paddingTop: '1px',
                             padding: '0 20px',
                             overflow: 'visible'
                         }}>
-                            <div className="footer-grid-item-full">
-                                <div style={{ marginBottom: '24px' }}>
+                            <div className="footer-info-section">
+                                <div className="footer-logo" style={{ marginBottom: '24px' }}>
                                     <img
                                         src="/Vector.png"
                                         alt="Swipy"
@@ -1578,7 +1558,7 @@ const LandingPage = () => {
                                         }}
                                     />
                                 </div>
-                                <p style={{
+                                <p className="footer-description" style={{
                                     color: 'rgba(255, 255, 255, 0.6)',
                                     fontSize: '0.875rem',
                                     lineHeight: '1.6',
@@ -1587,6 +1567,7 @@ const LandingPage = () => {
                                     Tinder for Startups. Discover, connect, and invest in innovative startups.
                                 </p>
                             </div>
+
                             <div>
                                 <h4 style={{
                                     fontWeight: '600',
@@ -1621,6 +1602,7 @@ const LandingPage = () => {
                                     </li>
                                 </ul>
                             </div>
+
                             <div>
                                 <h4 style={{
                                     fontWeight: '600',
@@ -1661,7 +1643,8 @@ const LandingPage = () => {
                                     </li>
                                 </ul>
                             </div>
-                            <div className="footer-grid-item-full" style={{ overflow: 'visible' }}>
+
+                            <div style={{ overflow: 'visible' }}>
                                 <h4 style={{
                                     fontWeight: '600',
                                     marginBottom: '16px',
@@ -1681,7 +1664,7 @@ const LandingPage = () => {
                                     overflow: 'visible'
                                 }}>
                                     <a
-                                        href="https://x.com/swipy"
+                                        href="https://x.com/swipy_space"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         style={{
@@ -1726,7 +1709,7 @@ const LandingPage = () => {
                                         </svg>
                                     </a>
                                     <a
-                                        href="https://www.producthunt.com/posts/swipy"
+                                        href="https://www.producthunt.com/@swipy_space"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         style={{
@@ -1803,7 +1786,7 @@ const LandingPage = () => {
                             </div>
                         </div>
                         <div style={{
-                            paddingTop: '16px', // Reduced from 32px
+                            paddingTop: '16px',
                             textAlign: 'center',
                             color: 'rgba(255, 255, 255, 0.6)',
                             fontSize: '0.875rem',
@@ -1814,9 +1797,8 @@ const LandingPage = () => {
                     </footer>
                 </div>
             </div>
-
             {/* Spacer to allow scrolling past sticky FAQ to reveal the content behind it */}
-            <div style={{ height: '450px', position: 'relative', zIndex: 0, background: 'transparent', pointerEvents: 'none' }}></div>
+            <div style={{ height: '400px', position: 'relative', zIndex: 0, background: 'transparent', pointerEvents: 'none' }}></div>
         </>
     )
 }

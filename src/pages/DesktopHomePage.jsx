@@ -218,9 +218,14 @@ const DesktopHomePage = () => {
         if (!ensureAuth()) return
 
         try {
+            const startup = startups.find(s => s.id === startupId)
             const chatId = await chatService.getOrCreateStartupChat(startupId)
             if (chatId) {
+                if (startup?.owner_nickname && startup?.slug) {
+                    navigate(`/chat-detail/${startup.owner_nickname}/${startup.slug}`)
+                } else {
                 navigate(`/chat-detail/${chatId}`)
+                }
             }
         } catch (err) {
             console.error('Failed to open chat', err)
@@ -228,7 +233,12 @@ const DesktopHomePage = () => {
     }
 
     const handleDetails = (startupId) => {
+        const startup = startups.find(s => s.id === startupId)
+        if (startup && startup.owner_nickname && startup.slug) {
+            navigate(`/${startup.owner_nickname}/startup/${startup.slug}`)
+        } else {
         navigate(`/startup/${startupId}`)
+        }
     }
 
     const renderNewsState = () => {
@@ -286,19 +296,19 @@ const DesktopHomePage = () => {
                         >
                             {/* Image Section */}
                             <div className="relative h-48 overflow-hidden">
-                                {startup.image || startup.logo_url ? (
+                            {startup.image || startup.logo_url ? (
                                     <img 
                                         src={startup.image || startup.logo_url} 
                                         alt={startup.name}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                     />
-                                ) : (
+                            ) : (
                                     <div className={`w-full h-full ${startup.gradient || 'bg-gradient-primary'} flex items-center justify-center`}>
                                         <span className="text-white font-bold text-4xl">
                                             {startup.logo || startup.name?.[0]?.toUpperCase() || 'S'}
                                         </span>
-                                    </div>
-                                )}
+                                </div>
+                            )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
                                 
                                 {/* Like Button - Top Right */}
@@ -330,7 +340,7 @@ const DesktopHomePage = () => {
                                             {startup.funding_round}
                                         </span>
                                     )}
-                                </div>
+                            </div>
                             </div>
 
                             {/* Content Section */}
@@ -370,34 +380,34 @@ const DesktopHomePage = () => {
                                         <div className="flex items-center gap-1.5 text-sm text-text-secondary">
                                             <i className="fas fa-comments text-accent-primary"></i>
                                             <span className="font-medium">{startup.chat_count ?? 0}</span>
-                                        </div>
-                                    </div>
+                                </div>
+                            </div>
                                     <div className="flex gap-2">
-                                        <button
-                                            type="button"
+                                <button
+                                    type="button"
                                             className="btn-secondary py-2 px-4 rounded-xl text-sm"
                                             onClick={(e) => {
                                                 e.stopPropagation()
                                                 handleChat(startup.id)
                                             }}
-                                        >
+                                >
                                             <i className="fas fa-comment mr-1.5"></i>
-                                            Chat
-                                        </button>
-                                        <button
-                                            type="button"
+                                    Chat
+                                </button>
+                                <button
+                                    type="button"
                                             className="btn-primary py-2 px-4 rounded-xl text-sm"
                                             onClick={(e) => {
                                                 e.stopPropagation()
                                                 handleDetails(startup.id)
                                             }}
-                                        >
+                                >
                                             View
-                                        </button>
+                                </button>
                                     </div>
-                                </div>
                             </div>
-                        </article>
+                        </div>
+                    </article>
                     )
                 })}
             </div>

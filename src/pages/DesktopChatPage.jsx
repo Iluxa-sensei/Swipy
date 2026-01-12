@@ -203,7 +203,23 @@ const DesktopChatPage = () => {
 
             // Navigate to chat
             console.log('Navigating to chat:', chatId)
+            if (type === 'startup') {
+                const { data: startup } = await supabase.from('startups').select('slug, profiles!startups_owner_id_fkey(username)').eq('id', id).single()
+                if (startup?.slug && startup?.profiles?.username) {
+                    navigate(`/chat-detail/${startup.profiles.username}/${startup.slug}`)
+                } else {
+                    navigate(`/chat-detail/${chatId}`)
+                }
+            } else if (type === 'profile') {
+                const { data: profile } = await supabase.from('profiles').select('username').eq('id', id).single()
+                if (profile?.username) {
+                    navigate(`/chat-detail/${profile.username}`)
+                } else {
+                    navigate(`/chat-detail/${chatId}`)
+                }
+            } else {
             navigate(`/chat-detail/${chatId}`)
+            }
         } catch (err) {
             console.error('Error creating chat:', err)
             const errorMessage = err?.message || 'Unknown error occurred'
@@ -299,8 +315,10 @@ const DesktopChatPage = () => {
                 avatar: avatar,
                 gradient: 'bg-gradient-to-br from-purple-300 to-purple-700',
                 startupId: null,
+                startup_slug: null,
                 chatType: 'user',
-                otherParticipantId: chat.other_participant_id
+                otherParticipantId: chat.other_participant_id,
+                otherParticipant: profile
             }
         } else {
             const avatarUrl = chat.startup_logo
@@ -317,7 +335,9 @@ const DesktopChatPage = () => {
                 avatar: avatar,
                 gradient: chat.startup_gradient || 'bg-gradient-to-br from-blue-300 to-blue-700',
                 startupId: chat.startup_id,
-                chatType: 'startup'
+                startup_slug: chat.startup_slug,
+                chatType: 'startup',
+                otherParticipant: chat.other_participant
             }
         }
     })
@@ -353,8 +373,16 @@ const DesktopChatPage = () => {
         return filtered
     })()
 
-    const openChat = (chatId) => {
-        navigate(`/chat-detail/${chatId}`)
+    const openChat = (chat) => {
+        if (chat.otherParticipant?.username) {
+            if (chat.chatType === 'startup' && chat.startup_slug) {
+                navigate(`/chat-detail/${chat.otherParticipant.username}/${chat.startup_slug}`)
+            } else {
+                navigate(`/chat-detail/${chat.otherParticipant.username}`)
+            }
+        } else {
+            navigate(`/chat-detail/${chat.id}`)
+        }
     }
 
     if (loading) {
@@ -607,7 +635,7 @@ const DesktopChatPage = () => {
                         <div
                             key={chat.id}
                             className="desktop-card cursor-pointer group"
-                            onClick={() => openChat(chat.id)}
+                            onClick={() => openChat(chat)}
                         >
                             <div className="flex items-center gap-4">
                                 <div className={`w-16 h-16 ${chat.gradient} rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg overflow-hidden relative`}>

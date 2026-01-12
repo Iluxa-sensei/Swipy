@@ -25,7 +25,7 @@ export const profileServiceEnhanced = {
                 supabase.from('education').select('*').eq('user_id', userId).order('end_date', { ascending: false }),
                 supabase.from('portfolio_projects').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
                 supabase.from('achievements').select('*').eq('user_id', userId).order('date_earned', { ascending: false }),
-                supabase.from('startups').select('*').eq('owner_id', userId).order('created_at', { ascending: false })
+                supabase.from('startups').select('*, profiles!startups_owner_id_fkey(username)').eq('owner_id', userId).order('created_at', { ascending: false })
             ])
 
             return {
@@ -262,7 +262,7 @@ export const profileServiceEnhanced = {
         try {
             const { data, error } = await supabase
                 .from('startups')
-                .select('*')
+                .select('*, profiles!startups_owner_id_fkey(username)')
                 .eq('owner_id', userId)
                 .order('created_at', { ascending: false })
 

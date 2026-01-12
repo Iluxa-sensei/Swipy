@@ -21,10 +21,9 @@ const HomePageFixed = () => {
     // State management
     const [currentCardIndex, setCurrentCardIndex] = useState(0)
     const [isAnimating, setIsAnimating] = useState(false)
-    const [isFlipped, setIsFlipped] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
     const [startPos, setStartPos] = useState({ x: 0, y: 0 })
-    const [currentPos, setCurrentPos] = useState({ x: 0, y: 0 })
+    const [offset, setOffset] = useState({ x: 0, y: 0 })
     const [showTutorial, setShowTutorial] = useState(false)
 
     // Search state
@@ -135,14 +134,20 @@ const HomePageFixed = () => {
         }
     }
 
-    const handleResultClick = (type, id) => {
+    const handleResultClick = (type, item) => {
         if (type === 'startup') {
-            navigate(`/startup/${id}`)
-        } else if (type === 'profile') {
-            if (id === user?.id) {
-                navigate('/profile')
+            if (item.owner_nickname && item.slug) {
+                navigate(`/${item.owner_nickname}/startup/${item.slug}`)
             } else {
-                navigate(`/profile/${id}`)
+                navigate(`/startup/${item.id}`)
+            }
+        } else if (type === 'profile') {
+            if (item.id === user?.id) {
+                navigate('/profile')
+            } else if (item.username) {
+                navigate(`/profile/${item.username}`)
+            } else {
+                navigate(`/profile/${item.id}`)
             }
         }
         setSearchQuery('')
@@ -164,7 +169,6 @@ const HomePageFixed = () => {
     }, [currentCardIndex, displayStartups.length])
 
     useEffect(() => {
-        setIsFlipped(false)
         resetCardStyles()
     }, [currentCardIndex])
 
@@ -203,23 +207,13 @@ const HomePageFixed = () => {
 
     // Function to reset card styles
     const resetCardStyles = () => {
-        if (cardRef.current) {
-            cardRef.current.style.transition = ''
-            cardRef.current.style.transform = 'translateY(0px)'
-            cardRef.current.style.opacity = ''
-            cardRef.current.style.boxShadow = ''
-        }
+        setOffset({ x: 0, y: 0 })
     }
 
     // Function for swipe right (like)
     const handleLike = async () => {
-        if (!cardRef.current || isAnimating) return
         setIsAnimating(true)
-
-        cardRef.current.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
-        cardRef.current.style.transform = 'translateX(1000px) rotate(30deg) scale(0.8)'
-        cardRef.current.style.opacity = '0'
-        cardRef.current.style.boxShadow = ''
+        setOffset({ x: 1000, y: 0 })
 
         setTimeout(async () => {
             try {
@@ -237,19 +231,14 @@ const HomePageFixed = () => {
 
             setCurrentCardIndex(prev => prev + 1)
             setIsAnimating(false)
-            resetCardStyles()
+            setOffset({ x: 0, y: 0 })
         }, 400)
     }
 
     // Function for swipe left (pass)
     const handlePass = async () => {
-        if (!cardRef.current || isAnimating) return
         setIsAnimating(true)
-
-        cardRef.current.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
-        cardRef.current.style.transform = 'translateX(-1000px) rotate(-30deg) scale(0.8)'
-        cardRef.current.style.opacity = '0'
-        cardRef.current.style.boxShadow = ''
+        setOffset({ x: -1000, y: 0 })
 
         setTimeout(async () => {
             try {
@@ -267,26 +256,8 @@ const HomePageFixed = () => {
 
             setCurrentCardIndex(prev => prev + 1)
             setIsAnimating(false)
-            resetCardStyles()
+            setOffset({ x: 0, y: 0 })
         }, 400)
-    }
-
-    // Function to handle double tap
-    const handleCardClick = (e) => {
-        e.stopPropagation()
-        e.preventDefault()
-
-        if (isDragging) return
-
-        const currentTime = Date.now()
-        const timeSinceLastTap = currentTime - lastTapRef.current
-
-        if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-            setIsFlipped(prev => !prev)
-            lastTapRef.current = 0
-        } else {
-            lastTapRef.current = currentTime
-        }
     }
 
     // Show loading state
@@ -439,7 +410,7 @@ const HomePageFixed = () => {
     }
 
     return (
-        <div className="screen active">
+        <div className="screen active flex flex-col overflow-hidden">
             {/* Mobile Search Bar */}
             <div className="mobile-search-container" ref={searchContainerRef}>
                 <div className="mobile-search-bar">
@@ -571,31 +542,34 @@ const HomePageFixed = () => {
                 </button>
             </div>
 
-            <div className="swipe-container">
-                <div className="card-stack">
+            <div className="swipe-container flex-1 w-full flex items-start justify-center overflow-hidden px-2 pt-2">
+                <div className="card-stack relative w-full max-w-[480px] aspect-[3/6] max-h-full">
                     {/* Back card (next) */}
                     {currentCardIndex + 1 < displayStartups.length && (
                         <div
                             className="startup-card-container"
                             style={{
-                                opacity: 0.15,
-                                scale: '0.92',
+                                opacity: 0.1,
+                                scale: '0.96',
                                 zIndex: 1,
-                                transition: 'all 0.4s ease-out'
+                                transition: 'all 0.4s ease-out',
+                                borderRadius: '32px'
                             }}
                         >
-                            <div className="startup-card">
-                                <div className="card-image">
-                                    <div className={`${displayStartups[currentCardIndex + 1].gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'} w-full h-full relative overflow-hidden`}>
+                            <div className="startup-card overflow-hidden rounded-[32px] border border-glass-border bg-glass-bg h-full">
+                                <div className="card-image h-[35%]">
+                                    <div className={`${displayStartups[currentCardIndex + 1].gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'} w-full h-full relative`}>
                                         <div className="company-logo">
-                                            <span className="text-white font-bold text-xl">{displayStartups[currentCardIndex + 1].logo || 'S'}</span>
+                                            <span className="text-white font-bold text-2xl">{displayStartups[currentCardIndex + 1].logo || displayStartups[currentCardIndex + 1].name?.[0] || 'S'}</span>
                                         </div>
-                                        <div className="gradient-overlay opacity-70"></div>
                                     </div>
                                 </div>
-                                <div className="card-content">
-                                    <div className="card-header">
-                                        <h3 className="card-title">{displayStartups[currentCardIndex + 1].name}</h3>
+                                <div className="card-content p-6">
+                                    <h3 className="text-xl font-bold text-text-primary mb-1">{displayStartups[currentCardIndex + 1].name}</h3>
+                                    <div className="flex items-center gap-2 text-text-secondary text-xs">
+                                        <span>{displayStartups[currentCardIndex + 1].location || 'Remote'}</span>
+                                        <span>•</span>
+                                        <span>{displayStartups[currentCardIndex + 1].industry || 'Technology'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -608,327 +582,117 @@ const HomePageFixed = () => {
                         className={`startup-card-container ${isDragging ? 'isDragging' : ''}`}
                         style={{
                             cursor: isDragging ? 'grabbing' : 'grab',
-                            transition: isDragging ? 'none' : 'all 0.3s ease',
+                            transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                             zIndex: 10,
-                            perspective: '1000px',
-                            position: 'relative'
+                            position: 'relative',
+                            touchAction: 'none',
+                            borderRadius: '32px',
+                            transform: `translateX(${offset.x}px) translateY(${offset.y}px) rotate(${offset.x * 0.1}deg) scale(${isDragging ? 1.02 : 1})`,
+                            boxShadow: offset.x > 40 ? `0 0 50px rgba(34, 197, 94, ${Math.min(0.6, Math.abs(offset.x) / 300)})` :
+                                offset.x < -40 ? `0 0 50px rgba(239, 68, 68, ${Math.min(0.6, Math.abs(offset.x) / 300)})` :
+                                    offset.y > 60 ? `0 0 50px rgba(59, 130, 246, ${Math.min(0.6, Math.abs(offset.y) / 300)})` :
+                                        '0 20px 50px rgba(0,0,0,0.5)'
                         }}
                         onPointerDown={(e) => {
                             e.currentTarget.setPointerCapture(e.pointerId)
                             setStartPos({ x: e.clientX, y: e.clientY })
-                            setCurrentPos({ x: e.clientX, y: e.clientY })
+                            setOffset({ x: 0, y: 0 })
                             setIsDragging(false)
-                            if (cardRef.current) {
-                                cardRef.current.style.transition = 'none'
-                            }
                         }}
                         onPointerMove={(e) => {
+                            if (!isDragging) {
+                                const deltaX = e.clientX - startPos.x
+                                const deltaY = e.clientY - startPos.y
+                                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+                                if (distance > 5) {
+                                    setIsDragging(true)
+                                }
+                                return
+                            }
+
                             const deltaX = e.clientX - startPos.x
                             const deltaY = e.clientY - startPos.y
-                            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-
-                            if (!isDragging && distance > 10) {
-                                setIsDragging(true)
-                            }
-
-                            if (isDragging && cardRef.current) {
-                                const rotation = deltaX * 0.15
-                                const scale = Math.max(0.8, 1 - Math.abs(deltaX) / 1000)
-
-                                const cardContainer = cardRef.current
-                                cardContainer.style.transform = `translateX(${deltaX}px) translateY(${deltaY}px) rotate(${rotation}deg) scale(${scale})`
-
-                                if (deltaX > 50) {
-                                    cardContainer.style.boxShadow = `0 0 30px rgba(34, 197, 94, ${Math.min(0.6, Math.abs(deltaX) / 200)})`
-                                    cardContainer.style.borderRadius = '24px'
-                                } else if (deltaX < -50) {
-                                    cardContainer.style.boxShadow = `0 0 30px rgba(239, 68, 68, ${Math.min(0.6, Math.abs(deltaX) / 200)})`
-                                    cardContainer.style.borderRadius = '24px'
-                                } else {
-                                    cardContainer.style.boxShadow = ''
-                                    cardContainer.style.borderRadius = '24px'
-                                }
-
-                                setCurrentPos({ x: e.clientX, y: e.clientY })
-                            }
+                            setOffset({ x: deltaX, y: deltaY })
                         }}
-                        onClick={handleCardClick}
                         onPointerUp={(e) => {
-                            const deltaX = currentPos.x - startPos.x
-                            const deltaY = currentPos.y - startPos.y
+                            if (!isDragging) return
+                            setIsDragging(false)
+                            
+                            const deltaX = offset.x
+                            const deltaY = offset.y
 
-                            if (isDragging && cardRef.current) {
-                                setIsDragging(false)
-                                const cardContainer = cardRef.current
-
-                                if (Math.abs(deltaX) > 80) {
-                                    if (deltaX > 0) {
-                                        handleLike()
-                                    } else {
-                                        handlePass()
-                                    }
-                                } else if (Math.abs(deltaY) > 100) {
-                                    if (deltaY > 0) {
-                                        cardContainer.style.transition = 'all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
-                                        cardContainer.style.transform = 'translateY(100vh) rotate(10deg) scale(0.8)'
-                                        cardContainer.style.opacity = '0'
-                                        cardContainer.style.boxShadow = '0 0 30px rgba(59, 130, 246, 0.5)'
-                                        cardContainer.style.borderRadius = '24px'
-                                        setTimeout(() => {
-                                            navigate(`/startup/${currentStartup.id}`)
-                                        }, 400)
-                                    } else {
-                                        cardContainer.style.transition = 'all 0.3s ease'
-                                        cardContainer.style.transform = 'translateY(0px) rotate(0deg)'
-                                        cardContainer.style.boxShadow = 'none'
-                                        cardContainer.style.borderRadius = '24px'
-                                    }
+                            if (deltaX > 100) {
+                                handleLike()
+                            } else if (deltaX < -100) {
+                                handlePass()
+                            } else if (deltaY > 120) {
+                                // Down for details
+                                if (currentStartup.owner_nickname && currentStartup.slug) {
+                                    navigate(`/${currentStartup.owner_nickname}/startup/${currentStartup.slug}`)
                                 } else {
-                                    cardContainer.style.transition = 'all 0.3s ease'
-                                    cardContainer.style.transform = 'translateY(0px) rotate(0deg)'
-                                    cardContainer.style.boxShadow = 'none'
-                                    cardContainer.style.borderRadius = '24px'
+                                    navigate(`/startup/${currentStartup.id}`)
                                 }
+                            } else {
+                                // Reset
+                                setOffset({ x: 0, y: 0 })
                             }
                         }}
                     >
-                        {/* Flip Container */}
-                        <div className={`flip-container ${isFlipped ? 'flipped' : ''}`}>
-                            {/* Front Side */}
-                            <div className="flip-front startup-card">
-                                <div className="card-image">
-                                    <div className={`${currentStartup.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'} w-full h-full relative overflow-hidden`}>
-                                        <div className="company-logo">
-                                            <span className="text-white font-bold text-xl">{currentStartup.logo || 'S'}</span>
-                                        </div>
-                                        <div className="gradient-overlay"></div>
-                                        <div className="card-badges">
-                                            <span
-                                                className="badge funding"
-                                                style={{
-                                                    backgroundColor: getGradientColor(currentStartup.gradient),
-                                                    color: 'white'
-                                                }}
-                                            >
-                                                {currentStartup.funding || currentStartup.funding_round || 'Seed'}
-                                            </span>
-                                            <span
-                                                className="badge stage"
-                                                style={{
-                                                    backgroundColor: getGradientColor(currentStartup.gradient),
-                                                    color: 'white'
-                                                }}
-                                            >
-                                                {currentStartup.stage || 'Early Stage'}
-                                            </span>
-                                        </div>
+                        <div className="startup-card h-full w-full rounded-[32px] overflow-hidden border border-glass-border bg-glass-bg shadow-2xl relative flex flex-col">
+                            {/* Image Section - Reduced height */}
+                            <div className="relative h-[35%] w-full overflow-hidden">
+                                <div className={`${currentStartup.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'} w-full h-full relative`}>
+                                    <div className="company-logo">
+                                        {currentStartup.logo_url ? (
+                                            <img src={currentStartup.logo_url} alt={currentStartup.name} className="w-16 h-16 object-contain rounded-2xl shadow-xl bg-white/10 p-2" />
+                                        ) : (
+                                            <span className="text-white font-bold text-4xl drop-shadow-lg">{currentStartup.logo || currentStartup.name?.[0] || 'S'}</span>
+                                        )}
+                                    </div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                                    
+                                    {/* Badges on image */}
+                                    <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
+                                        <span className="px-2 py-0.5 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-[10px] font-semibold text-white uppercase tracking-wider">
+                                            {currentStartup.funding || currentStartup.funding_round || 'Seed'}
+                                        </span>
+                                        <span className="px-2 py-0.5 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-[10px] font-semibold text-white uppercase tracking-wider">
+                                            {currentStartup.stage || 'Early Stage'}
+                                        </span>
                                     </div>
                                 </div>
-
-                                <div className="card-content">
-                                    <div className="card-header">
-                                        <h3 className="card-title">{currentStartup.name}</h3>
-                                        <div className="card-meta">
-                                            <span className="card-category">{currentStartup.category || currentStartup.industry || 'Technology'}</span>
-                                            <span className="card-location">{currentStartup.location || 'Remote'}</span>
-                                            <span className="card-team-size flex items-center gap-1">
-                                                <i className="fas fa-users text-xs"></i>
-                                                {currentStartup.teamSize || currentStartup.team_size || '5-10'}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <p className="card-description">{currentStartup.description}</p>
-                                </div>
-
                             </div>
 
-                            {/* Back Side */}
-                            <div className="flip-back startup-card bg-bg-primary border border-glass-border">
-                                {/* Header */}
-                                <div className="p-4 border-b border-glass-border">
-                                    <div className="flex items-center gap-4">
-                                        <div
-                                            className="w-12 h-12 rounded-xl flex items-center justify-center"
-                                            style={{
-                                                backgroundColor: `${getGradientColor(currentStartup.gradient)}20`,
-                                            }}
-                                        >
-                                            <span
-                                                className="font-bold text-lg"
-                                                style={{ color: getGradientColor(currentStartup.gradient) }}
-                                            >
-                                                {currentStartup.logo || 'S'}
-                                            </span>
+                            {/* Content Section - Increased About space */}
+                            <div className="p-6 flex-1 flex flex-col bg-glass-bg backdrop-blur-xl overflow-hidden">
+                                <div className="flex flex-col mb-4 px-1">
+                                    <h3 className="text-3xl font-black text-text-primary tracking-tight truncate mb-2">{currentStartup.name}</h3>
+                                    <div className="flex items-center gap-4 text-text-secondary text-sm font-semibold">
+                                        <div className="flex items-center gap-1.5">
+                                            <i className="fas fa-location-dot text-accent-primary text-xs"></i>
+                                            <span>{currentStartup.location || 'Remote'}</span>
                                         </div>
-                                        <div className="flex-1">
-                                            <h3 className="text-xl font-bold text-text-primary mb-1">{currentStartup.name}</h3>
-                                            <div className="flex items-center gap-3 text-sm text-text-secondary">
-                                                <span className="flex items-center gap-1">
-                                                    <i
-                                                        className="fas fa-tag"
-                                                        style={{ color: getGradientColor(currentStartup.gradient) }}
-                                                    ></i>
-                                                    {currentStartup.category || currentStartup.industry || 'Technology'}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <i
-                                                        className="fas fa-chart-line"
-                                                        style={{ color: getGradientColor(currentStartup.gradient) }}
-                                                    ></i>
-                                                    {currentStartup.stage || 'Early Stage'}
-                                                </span>
-                                            </div>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-white/10"></div>
+                                        <div className="flex items-center gap-1.5">
+                                            <i className="fas fa-users text-accent-primary text-xs"></i>
+                                            <span>{currentStartup.teamSize || currentStartup.team_size || '5-10'} employees</span>
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Content */}
-                                <div className="flex-1 p-4 space-y-3 overflow-y-auto">
-                                    {/* About */}
-                                    <div className="bg-black/30 border border-white/20 rounded-xl p-4">
-                                        <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
-                                            <i
-                                                className="fas fa-info-circle"
-                                                style={{ color: getGradientColor(currentStartup.gradient) }}
-                                            ></i>
-                                            About
-                                        </h4>
-                                        <p className="text-text-secondary text-sm leading-relaxed">{currentStartup.description}</p>
-                                    </div>
-
-                                    {/* Stats Grid */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="bg-black/30 border border-white/20 rounded-xl p-4 text-center">
-                                            <div
-                                                className="font-bold text-lg"
-                                                style={{ color: getGradientColor(currentStartup.gradient) }}
-                                            >
-                                                {currentStartup.funding || currentStartup.funding_round || 'Seed'}
-                                            </div>
-                                            <div className="text-text-secondary text-xs mt-1">Funding</div>
-                                        </div>
-                                        <div className="bg-black/30 border border-white/20 rounded-xl p-4 text-center">
-                                            <div
-                                                className="font-bold text-lg flex items-center justify-center gap-2"
-                                                style={{ color: getGradientColor(currentStartup.gradient) }}
-                                            >
-                                                <i className="fas fa-users text-sm"></i>
-                                                {currentStartup.teamSize || currentStartup.team_size || '5-10'}
-                                            </div>
-                                            <div className="text-text-secondary text-xs mt-1">Team Size</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Investment Required */}
-                                    {currentStartup.investment_required && (
-                                        <div className="bg-black/30 border border-white/20 rounded-xl p-4">
-                                            <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
-                                                <i
-                                                    className="fas fa-dollar-sign"
-                                                    style={{ color: getGradientColor(currentStartup.gradient) }}
-                                                ></i>
-                                                Investment Required
-                                            </h4>
-                                            <div className="text-center space-y-2">
-                                                <div
-                                                    className="px-4 py-2 rounded-lg text-lg font-bold"
-                                                    style={{
-                                                        backgroundColor: `${getGradientColor(currentStartup.gradient)}20`,
-                                                        color: getGradientColor(currentStartup.gradient),
-                                                        border: `1px solid ${getGradientColor(currentStartup.gradient)}30`
-                                                    }}
-                                                >
-                                                    ${currentStartup.investment_required}
-                                                </div>
-                                                {currentStartup.investment_percentage && (
-                                                    <div className="text-sm text-white/80">
-                                                        for {currentStartup.investment_percentage}% of company
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* EBITDA */}
-                                    {currentStartup.ebitda && (
-                                        <div className="bg-black/30 border border-white/20 rounded-xl p-4">
-                                            <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
-                                                <i
-                                                    className="fas fa-chart-line"
-                                                    style={{ color: getGradientColor(currentStartup.gradient) }}
-                                                ></i>
-                                                EBITDA
-                                            </h4>
-                                            <div className="text-center">
-                                                <span
-                                                    className="px-4 py-2 rounded-lg text-lg font-bold"
-                                                    style={{
-                                                        backgroundColor: `${getGradientColor(currentStartup.gradient)}20`,
-                                                        color: getGradientColor(currentStartup.gradient),
-                                                        border: `1px solid ${getGradientColor(currentStartup.gradient)}30`
-                                                    }}
-                                                >
-                                                    ${currentStartup.ebitda}/month
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Location & Contact */}
-                                    {(currentStartup.location || currentStartup.website) && (
-                                        <div className="bg-black/30 border border-white/20 rounded-xl p-4">
-                                            <h4 className="text-text-primary font-semibold mb-3 flex items-center gap-2">
-                                                <i
-                                                    className="fas fa-map-marker-alt"
-                                                    style={{ color: getGradientColor(currentStartup.gradient) }}
-                                                ></i>
-                                                Details
-                                            </h4>
-                                            <div className="space-y-2">
-                                                {currentStartup.location && (
-                                                    <div className="flex items-center gap-3 text-sm text-text-secondary">
-                                                        <i
-                                                            className="fas fa-map-marker-alt w-4"
-                                                            style={{ color: getGradientColor(currentStartup.gradient) }}
-                                                        ></i>
-                                                        <span>{currentStartup.location}</span>
-                                                    </div>
-                                                )}
-                                                {currentStartup.website && (
-                                                    <div className="flex items-center gap-3 text-sm text-text-secondary">
-                                                        <i
-                                                            className="fas fa-globe w-4"
-                                                            style={{ color: getGradientColor(currentStartup.gradient) }}
-                                                        ></i>
-                                                        <span className="truncate">{currentStartup.website}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Footer */}
-                                <div className="p-4 border-t border-glass-border">
-                                    <button
-                                        className="w-full text-text-secondary hover:text-blue-700 transition-colors duration-200 text-sm flex items-center justify-center gap-2"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            e.preventDefault()
-                                            setIsFlipped(false)
-                                        }}
-                                    >
-                                        <i className="fas fa-undo"></i>
-                                        Tap to flip back
-                                    </button>
+                                
+                                <div className="flex-1 overflow-y-auto px-1 custom-scrollbar">
+                                    <p className="text-text-secondary text-lg leading-relaxed">
+                                        {currentStartup.description}
+                                    </p>
                                 </div>
                             </div>
+
+                            {/* Pull indicator */}
+                            <div className="h-1.5 w-12 bg-white/10 rounded-full mx-auto my-3 flex-shrink-0"></div>
                         </div>
                     </div>
                 </div>
             </div>
-
 
             {/* Tutorial Modal */}
             {showTutorial && (

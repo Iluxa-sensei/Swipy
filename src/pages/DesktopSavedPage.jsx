@@ -113,7 +113,13 @@ const DesktopSavedPage = () => {
                 ) : (
                     <div className="desktop-grid desktop-grid-3">
                         {list.map((s) => (
-                            <div key={s.id} className="desktop-card cursor-pointer group" onClick={() => navigate(`/startup/${s.id}`)}>
+                            <div key={s.id} className="desktop-card cursor-pointer group" onClick={() => {
+                                if (s.profiles?.username && s.slug) {
+                                    navigate(`/${s.profiles.username}/startup/${s.slug}`)
+                                } else {
+                                    navigate(`/startup/${s.id}`)
+                                }
+                            }}>
                                 <div className="flex flex-col gap-4">
                                     <div className={`w-full h-32 ${s.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'} rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg`}>
                                         {s.logo || s.name?.substring(0, 2).toUpperCase() || 'ST'}
@@ -140,7 +146,11 @@ const DesktopSavedPage = () => {
                                         className="btn-secondary w-full mt-auto"
                                         onClick={(e) => {
                                             e.stopPropagation()
-                                            navigate(`/startup/${s.id}`)
+                                            if (s.profiles?.username && s.slug) {
+                                                navigate(`/${s.profiles.username}/startup/${s.slug}`)
+                                            } else {
+                                                navigate(`/startup/${s.id}`)
+                                            }
                                         }}
                                     >
                                         View Details

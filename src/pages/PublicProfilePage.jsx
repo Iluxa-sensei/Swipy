@@ -5,7 +5,7 @@ import { profileService } from '../services'
 import { supabase } from '../services/supabaseClient'
 
 const PublicProfilePage = () => {
-  const { id } = useParams()
+  const { id, nickname } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
   const [profile, setProfile] = useState(null)
@@ -14,12 +14,12 @@ const PublicProfilePage = () => {
   const [error, setError] = useState(null)
   const [loadingStartups, setLoadingStartups] = useState(false)
 
-  const isOwnProfile = user?.id === id
+  const isOwnProfile = user?.id === profile?.id
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (!id) {
-        setError('Invalid profile ID')
+      if (!id && !nickname) {
+        setError('Invalid profile reference')
         setLoading(false)
         return
       }
@@ -29,7 +29,12 @@ const PublicProfilePage = () => {
         setError(null)
 
         // Fetch profile data
-        const profileData = await profileService.getProfile(id)
+        let profileData
+        if (nickname) {
+          profileData = await profileService.getProfileByUsername(nickname)
+        } else {
+          profileData = await profileService.getProfile(id)
+        }
         
         if (!profileData) {
           setError('Profile not found')
@@ -45,8 +50,8 @@ const PublicProfilePage = () => {
           try {
             const { data: startupsData, error: startupsError } = await supabase
               .from('startups')
-              .select('*')
-              .eq('owner_id', id)
+              .select('*, profiles!startups_owner_id_fkey(username)')
+              .eq('owner_id', profileData.id)
               .order('created_at', { ascending: false })
 
             if (startupsError) throw startupsError
@@ -66,7 +71,7 @@ const PublicProfilePage = () => {
     }
 
     loadProfile()
-  }, [id])
+  }, [id, nickname])
 
   // Redirect to own profile page if viewing own profile
   useEffect(() => {
@@ -178,21 +183,32 @@ const PublicProfilePage = () => {
           <h2 className="text-3xl font-bold text-text-primary mb-2">{userProfile.name}</h2>
           <p className="text-accent-primary text-lg font-semibold mb-3">@{userProfile.username}</p>
 
-          {/* Professional Info */}
-          <div className="flex items-center justify-center gap-6 text-sm text-text-secondary mb-4">
-            {userProfile.title && (
-              <span>
-                <i className="fas fa-briefcase mr-1"></i>
-                {userProfile.title.charAt(0).toUpperCase() + userProfile.title.slice(1)}
-              </span>
-            )}
-            {userProfile.location && (
-              <span>
-                <i className="fas fa-map-marker-alt mr-1"></i>
-                {userProfile.location}
-              </span>
-            )}
+          {/* Message Button */}
+          {!isOwnProfile && (
+            <div className="mt-6 flex justify-center">
+              <button
+                className="btn-primary px-8 py-3 rounded-2xl flex items-center gap-2 hover:scale-105 transition-all shadow-lg shadow-accent-primary/20"
+                onClick={async () => {
+                  if (!user?.id) {
+                    navigate('/login');
+                    return;
+                  }
+                  try {
+                    const chatId = await chatService.getOrCreateUserChat(user.id, profile.id);
+                    if (chatId) {
+                      navigate(`/chat-detail/${userProfile.username}`);
+                    }
+                  } catch (err) {
+                    console.error('Error starting chat:', err);
+                    alert('Failed to start conversation. Please try again.');
+                  }
+                }}
+              >
+                <i className="fas fa-comment"></i>
+                Message {userProfile.name.split(' ')[0]}
+              </button>
           </div>
+          )}
         </div>
 
         {/* Bio */}
@@ -256,7 +272,14 @@ const PublicProfilePage = () => {
                   <div
                     key={startup.id}
                     className="bg-bg-secondary/80 border border-glass-border rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-blue-400/20 cursor-pointer"
-                    onClick={() => navigate(`/startup/${startup.id}`)}
+                    onClick={() => {
+                        const ownerNickname = startup.profiles?.username || profile.username
+                        if (ownerNickname && startup.slug) {
+                            navigate(`/${ownerNickname}/startup/${startup.slug}`)
+                        } else {
+                            navigate(`/startup/${startup.id}`)
+                        }
+                    }}
                   >
                     <div className={`h-32 ${startup.gradient || 'bg-gradient-primary'} relative`}>
                       {startup.logo_url ? (

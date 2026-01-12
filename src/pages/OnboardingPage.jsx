@@ -99,12 +99,27 @@ const OnboardingPage = () => {
     }))
   }
 
-  const nextStep = () => {
+  const nextStep = async () => {
     // Validate current step before proceeding
     if (currentStep === 1) {
       if (!userData.full_name.trim() || !userData.username.trim()) {
         setError('Please enter your full name and username')
         return
+      }
+
+      // Check username uniqueness
+      try {
+        setLoading(true)
+        const isAvailable = await profileService.isUsernameAvailable(userData.username, user.id)
+        if (!isAvailable) {
+          setError('This username is already taken. Please choose another one.')
+          setLoading(false)
+          return
+        }
+      } catch (err) {
+        console.error('Error checking username:', err)
+      } finally {
+        setLoading(false)
       }
     } else if (currentStep === 2) {
       if (!userData.role) {

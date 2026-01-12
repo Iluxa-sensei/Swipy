@@ -49,6 +49,7 @@ const ChatPageImproved = () => {
             isFavorite: false,
             isPinned: false,
             startupId: chat.startup_id,
+            startup_slug: chat.startup_slug,
             isStartupChat: isStartupChat,
             otherParticipant: otherParticipant
         }
@@ -180,12 +181,24 @@ const ChatPageImproved = () => {
         return 0
     })
 
-    const openChat = (chatId) => {
-        navigate(`/chat-detail/${chatId}`)
+    const openChat = (chat) => {
+        if (chat.otherParticipant?.username) {
+            if (chat.isStartupChat && chat.startup_slug) {
+                navigate(`/chat-detail/${chat.otherParticipant.username}/${chat.startup_slug}`)
+            } else {
+                navigate(`/chat-detail/${chat.otherParticipant.username}`)
+            }
+        } else {
+            navigate(`/chat-detail/${chat.id}`)
+        }
     }
 
-    const openStartupDetail = (startupId) => {
-        navigate(`/startup/${startupId}`)
+    const openStartupDetail = (chat) => {
+        if (chat.otherParticipant?.username && chat.startup_slug) {
+            navigate(`/${chat.otherParticipant.username}/startup/${chat.startup_slug}`)
+        } else {
+            navigate(`/startup/${chat.startupId}`)
+        }
     }
 
     // Show empty state if no chats
@@ -332,7 +345,7 @@ const ChatPageImproved = () => {
                             <div
                                 key={chat.id}
                                 className="relative flex items-center gap-3 p-4 bg-bg-primary border-b border-glass-border/30 active:bg-bg-secondary"
-                                onClick={() => filter === 'archived' ? null : openChat(chat.id)}
+                                onClick={() => filter === 'archived' ? null : openChat(chat)}
                             >
                                 {/* Pinned indicator */}
                                 {chat.isPinned && (

@@ -465,7 +465,13 @@ const ProfilePage = () => {
                       <div className="flex gap-2">
                         <button
                           className="btn-secondary flex-1 hover:bg-accent-primary hover:text-white transition-all duration-200"
-                          onClick={() => navigate(`/startup/${startup.id}`)}
+                          onClick={() => {
+                            if (startup.profiles?.username && startup.slug) {
+                                navigate(`/${startup.profiles.username}/startup/${startup.slug}`)
+                            } else {
+                                navigate(`/startup/${startup.id}`)
+                            }
+                          }}
                         >
                           <i className="fas fa-eye"></i>
                           View Details
@@ -574,7 +580,7 @@ const ProfilePage = () => {
                   const shareData = {
                     title: `${userProfile.name} — ${userProfile.title}`,
                     text: userProfile.bio,
-                    url: window.location.origin
+                    url: window.location.origin + `/profile/${profile?.username || user?.id}`
                   }
                   try {
                     if (navigator.share) {

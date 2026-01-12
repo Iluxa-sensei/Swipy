@@ -97,11 +97,13 @@ function App() {
       <Route path="/legal" element={<LegalPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/home" element={isDesktop ? <DesktopHomePage /> : <HomePage />} />
+        <Route path="/:nickname/startup/:startup_name" element={isDesktop ? <DesktopStartupDetailPage /> : <StartupDetailPage />} />
         <Route path="/startup/:id" element={isDesktop ? <DesktopStartupDetailPage /> : <StartupDetailPage />} />
         <Route path="/saved" element={isDesktop ? <DesktopSavedPage /> : <SavedPage />} />
         <Route path="/notifications" element={isDesktop ? <DesktopNotificationsPage /> : <NotificationsPage />} />
         <Route path="/chat" element={isDesktop ? <DesktopChatPage /> : <ChatPage />} />
         <Route path="/profile/edit" element={isDesktop ? <DesktopProfileEditPage /> : <ProfileEditPage />} />
+        <Route path="/profile/:nickname" element={<PublicProfilePage />} />
         <Route path="/profile/:id" element={<PublicProfilePage />} />
         <Route path="/profile" element={isDesktop ? <DesktopProfilePage /> : <ProfilePage />} />
         <Route path="/settings" element={isDesktop ? <DesktopSettingsPage /> : <SettingsPage />} />
@@ -110,6 +112,8 @@ function App() {
         <Route path="/add" element={isDesktop ? <DesktopAddPage /> : <AddPage />} />
         <Route path="/filters" element={<FiltersPage />} />
         <Route path="/chat-detail/:chatId" element={isDesktop ? <DesktopChatDetailPage /> : <ChatDetailPage />} />
+        <Route path="/chat-detail/:nickname" element={isDesktop ? <DesktopChatDetailPage /> : <ChatDetailPage />} />
+        <Route path="/chat-detail/:nickname/:startup_name" element={isDesktop ? <DesktopChatDetailPage /> : <ChatDetailPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
       </Route>
     </Routes>

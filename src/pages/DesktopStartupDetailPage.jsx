@@ -5,7 +5,7 @@ import { chatService } from '../services'
 
 const DesktopStartupDetailPage = () => {
     const navigate = useNavigate()
-    const { id } = useParams()
+    const { id, nickname, startup_name } = useParams()
     const { user } = useAuth()
     const { startups, loading: startupsLoading, error: startupsError } = useStartups()
     const { likeStartup, removeSwipe, getSwipeStatus } = useSwipes(user?.id)
@@ -13,11 +13,41 @@ const DesktopStartupDetailPage = () => {
     const [isLiked, setIsLiked] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [isLiking, setIsLiking] = useState(false)
+    const [fetchedStartup, setFetchedStartup] = useState(null)
+    const [fetchingDetail, setFetchingDetail] = useState(false)
 
-    // Get startup by ID
+    // Get startup by ID or Slug
     const startup = useMemo(() => {
-        return startups.find(s => s.id === id) || null
-    }, [id, startups])
+        if (fetchedStartup) return fetchedStartup
+        if (id) return startups.find(s => s.id === id) || null
+        if (nickname && startup_name) {
+            return startups.find(s => 
+                s.slug === startup_name && 
+                s.profiles?.username === (nickname.startsWith('@') ? nickname.substring(1) : nickname)
+            ) || null
+        }
+        return null
+    }, [id, nickname, startup_name, startups, fetchedStartup])
+
+    // Fetch detail if not in list
+    useEffect(() => {
+        const fetchDetail = async () => {
+            if (!startup && !startupsLoading) {
+                if (id) {
+                    setFetchingDetail(true)
+                    const data = await startupService.getStartupById(id)
+                    setFetchedStartup(data)
+                    setFetchingDetail(false)
+                } else if (nickname && startup_name) {
+                    setFetchingDetail(true)
+                    const data = await startupService.getStartupBySlug(nickname, startup_name)
+                    setFetchedStartup(data)
+                    setFetchingDetail(false)
+                }
+            }
+        }
+        fetchDetail()
+    }, [id, nickname, startup_name, startup, startupsLoading])
 
     // Load swipe status
     useEffect(() => {
@@ -68,7 +98,13 @@ const DesktopStartupDetailPage = () => {
         try {
             setIsLoading(true)
             const chatId = await chatService.getOrCreateStartupChat(startup.id)
-            navigate(`/chat-detail/${chatId}`)
+            if (chatId) {
+                if (startup.profiles?.username && startup.slug) {
+                    navigate(`/chat-detail/${startup.profiles.username}/${startup.slug}`)
+                } else {
+                    navigate(`/chat-detail/${chatId}`)
+                }
+            }
         } catch (error) {
             console.error('Error opening chat:', error)
             alert('Failed to open chat. Please try again.')

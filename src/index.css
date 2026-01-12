@@ -468,14 +468,17 @@
   }
 
   .swipe-container {
-    @apply relative flex-1 w-full overflow-hidden flex items-center justify-center;
-    /* Убираем лишнее место под картой */
-    padding-bottom: 0;
+    @apply relative flex-1 w-full flex items-center justify-center;
+    /* Allow shadows to overflow */
+    overflow: visible !important;
+    padding: 20px;
+    box-sizing: border-box;
   }
 
   .card-stack {
     @apply relative w-full h-[600px] flex items-center justify-center;
     perspective: 1000px;
+    overflow: visible !important;
   }
 
   .notifications-content {
@@ -962,13 +965,13 @@
     transform: none !important;
   }
 
-  /* ПРЕДОТВРАЩАЕМ ЗАСТРЕВАНИЕ КАРТ */
+  /* ПРЕДОТВРАЩАЕМ ЗАСТРЕВАНИЕ КАРТ - Ослаблено для поддержки inline-стилей */
   .startup-card-container {
-    transform: translateY(0px) !important;
+    /* transform: translateY(0px) !important; -- УДАЛЕНО: мешает свайпу */
   }
 
   .startup-card-container:not(.isDragging) {
-    transition: all 0.3s ease !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
   }
 
   /* Появление новой карточки */

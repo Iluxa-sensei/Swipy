@@ -18,6 +18,51 @@ export const profileService = {
         }
     },
 
+    // Get profile by username (nickname)
+    async getProfileByUsername(username) {
+        try {
+            // Remove @ if present
+            const cleanUsername = username.startsWith('@') ? username.substring(1) : username
+            
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('username', cleanUsername)
+                .single()
+
+            if (error) throw error
+            return data
+        } catch (error) {
+            console.error('Error fetching profile by username:', error)
+            return null
+        }
+    },
+
+    // Check if username is available
+    async isUsernameAvailable(username, excludeUserId = null) {
+        try {
+            // Remove @ if present
+            const cleanUsername = username.startsWith('@') ? username.substring(1) : username
+            
+            let query = supabase
+                .from('profiles')
+                .select('id')
+                .eq('username', cleanUsername)
+            
+            if (excludeUserId) {
+                query = query.ne('id', excludeUserId)
+            }
+            
+            const { data, error } = await query
+            
+            if (error) throw error
+            return data.length === 0
+        } catch (error) {
+            console.error('Error checking username availability:', error)
+            return false
+        }
+    },
+
     // Create or update profile
     async upsertProfile(profileData) {
         try {

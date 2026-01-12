@@ -195,7 +195,13 @@ const SavedPage = () => {
                                         <div className="text-text-secondary text-sm">{s.industry || 'Startup'} • {s.stage || 'Early Stage'}</div>
                                     </div>
                                 </div>
-                                <button className="btn-secondary" onClick={() => navigate(`/startup/${s.id}`)}>
+                                <button className="btn-secondary" onClick={() => {
+                                    if (s.profiles?.username && s.slug) {
+                                        navigate(`/${s.profiles.username}/startup/${s.slug}`)
+                                    } else {
+                                        navigate(`/startup/${s.id}`)
+                                    }
+                                }}>
                                     <i className="fas fa-info-circle"></i>
                                     Details
                                 </button>

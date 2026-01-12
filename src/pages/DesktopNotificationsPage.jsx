@@ -9,6 +9,7 @@ const DesktopNotificationsPage = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [startupNames, setStartupNames] = useState({})
+    const [startupSlugs, setStartupSlugs] = useState({})
     const [userNames, setUserNames] = useState({})
     const navigate = useNavigate()
     const { user } = useAuth()
@@ -34,19 +35,25 @@ const DesktopNotificationsPage = () => {
                     }
                 })
 
-                // Load startup names
+                // Load startup names and slugs
                 if (startupIds.size > 0) {
                     const { data: startups, error: startupsError } = await supabase
                         .from('startups')
-                        .select('id, name')
+                        .select('id, name, slug, profiles!startups_owner_id_fkey(username)')
                         .in('id', Array.from(startupIds))
 
                     if (!startupsError && startups) {
                         const namesMap = {}
+                        const slugsMap = {}
                         startups.forEach(startup => {
                             namesMap[startup.id] = startup.name
+                            slugsMap[startup.id] = {
+                                slug: startup.slug,
+                                owner_nickname: startup.profiles?.username
+                            }
                         })
                         setStartupNames(namesMap)
+                        setStartupSlugs(slugsMap)
                     }
                 }
 
@@ -111,7 +118,12 @@ const DesktopNotificationsPage = () => {
         }
 
         if (notification.type === 'like' && notification.data?.startup_id) {
+            const startupInfo = startupSlugs[notification.data.startup_id]
+            if (startupInfo?.slug && startupInfo?.owner_nickname) {
+                navigate(`/${startupInfo.owner_nickname}/startup/${startupInfo.slug}`)
+            } else {
             navigate(`/startup/${notification.data.startup_id}`)
+            }
         } else if (notification.type === 'match' && notification.data?.matched_user_id) {
             navigate('/chat')
         }

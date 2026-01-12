@@ -512,7 +512,11 @@ const HomePageOptimized = () => {
                                         cardContainer.style.boxShadow = '0 0 30px rgba(59, 130, 246, 0.5)'
                                         cardContainer.style.borderRadius = '24px'
                                         setTimeout(() => {
-                                            navigate(`/startup/${currentStartup.id}`)
+                                            if (currentStartup.owner_nickname && currentStartup.slug) {
+                                                navigate(`/${currentStartup.owner_nickname}/startup/${currentStartup.slug}`)
+                                            } else {
+                                                navigate(`/startup/${currentStartup.id}`)
+                                            }
                                         }, 400)
                                     } else {
                                         cardContainer.style.transition = 'all 0.3s ease'
