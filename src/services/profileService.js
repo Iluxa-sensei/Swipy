@@ -50,13 +50,13 @@ export const profileService = {
                 .eq('username', cleanUsername)
             
             if (excludeUserId) {
-                query = query.ne('id', excludeUserId)
+                query = query.neq('id', excludeUserId)
             }
             
             const { data, error } = await query
             
             if (error) throw error
-            return data.length === 0
+            return (data || []).length === 0
         } catch (error) {
             console.error('Error checking username availability:', error)
             return false
