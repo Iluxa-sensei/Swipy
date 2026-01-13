@@ -26,28 +26,19 @@ const OnboardingPage = () => {
 
   // Check if user is authenticated and load existing profile
   useEffect(() => {
-    console.log('OnboardingPage useEffect - user:', user)
-    console.log('OnboardingPage useEffect - user.id:', user?.id)
-
     if (!user?.id) {
-      console.log('No user ID, redirecting to login')
       navigate('/login')
       return
     }
 
-    console.log('User authenticated, loading existing profile...')
-
     // Load existing profile data if available
     const loadExistingProfile = async () => {
       try {
-        console.log('Loading profile for user:', user.id)
         const existingProfile = await profileService.getProfile(user.id)
-        console.log('Existing profile loaded:', existingProfile)
 
         if (existingProfile) {
           // If user has already completed onboarding, redirect to home
           if (existingProfile.onboarding_completed) {
-            console.log('User has already completed onboarding, redirecting to home')
             navigate('/home', { replace: true })
             return
           }
@@ -157,7 +148,6 @@ const OnboardingPage = () => {
 
   const completeOnboarding = async () => {
     if (!user?.id) {
-      console.error('No user ID found')
       setError('User not authenticated')
       return
     }
@@ -165,9 +155,6 @@ const OnboardingPage = () => {
     try {
       setLoading(true)
       setError(null)
-
-      console.log('Starting onboarding completion for user:', user.id)
-      console.log('User data:', userData)
 
       // Prepare profile data for Supabase
       const profileData = {
@@ -187,16 +174,11 @@ const OnboardingPage = () => {
       console.log('Profile data to upsert:', profileData)
 
       // Use upsertProfile instead of updateProfile to create if doesn't exist
-      console.log('Calling profileService.upsertProfile...')
       const result = await profileService.upsertProfile(profileData)
 
-      console.log('Upsert result:', result)
-
       if (!result) {
-        throw new Error('Failed to create/update profile - no result returned')
+        throw new Error('Failed to create/update profile')
       }
-
-      console.log('Profile created/updated successfully:', result)
 
       // Navigate to home page
       navigate('/home')
@@ -327,9 +309,9 @@ const OnboardingPage = () => {
                 <button
                   key={role.value}
                   onClick={() => handleInputChange('role', role.value)}
-                  className={`w-full p-6 text-left border-2 rounded-2xl transition-all duration-200 hover:scale-[1.02] ${userData.role === role.value
+                  className={`w-full p-6 text-left border-2 rounded-2xl ${userData.role === role.value
                     ? 'border-accent-primary bg-accent-primary/10'
-                    : 'border-glass-border bg-glass-bg hover:border-accent-primary/50'
+                    : 'border-glass-border bg-glass-bg'
                     }`}
                 >
                   <div className="flex items-center gap-4">
@@ -369,9 +351,9 @@ const OnboardingPage = () => {
                     <button
                       key={interest}
                       onClick={() => handleInterestToggle(interest)}
-                      className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${userData.interests.includes(interest)
+                      className={`p-3 rounded-2xl border ${userData.interests.includes(interest)
                         ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
-                        : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
+                        : 'bg-glass-bg border-glass-border text-text-primary'
                         }`}
                     >
                       {interest}
@@ -464,9 +446,9 @@ const OnboardingPage = () => {
           <button
             onClick={prevStep}
             disabled={currentStep === 1}
-            className={`px-6 py-3 rounded-2xl font-medium transition-all duration-200 ${currentStep === 1
+            className={`px-6 py-3 rounded-2xl font-medium ${currentStep === 1
               ? 'bg-glass-bg text-text-secondary cursor-not-allowed'
-              : 'bg-glass-bg text-text-primary hover:bg-glass-border hover:scale-105'
+              : 'bg-glass-bg text-text-primary'
               }`}
           >
             <i className="fas fa-arrow-left mr-2"></i>
@@ -481,7 +463,7 @@ const OnboardingPage = () => {
                 (currentStep === 2 && !userData.role) ||
                 (currentStep === 3 && (userData.interests.length === 0 || !userData.locationContinent))
               }
-              className="px-8 py-3 bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white rounded-2xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-8 py-3 bg-gradient-to-r from-blue-300 to-blue-700 text-white rounded-2xl font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
               <i className="fas fa-arrow-right ml-2"></i>
@@ -490,7 +472,7 @@ const OnboardingPage = () => {
             <button
               onClick={completeOnboarding}
               disabled={loading}
-              className="px-8 py-3 bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white rounded-2xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-8 py-3 bg-gradient-to-r from-green-400 to-green-600 text-white rounded-2xl font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-check'} mr-2`}></i>
               {loading ? 'Setting up...' : 'Get Started'}
