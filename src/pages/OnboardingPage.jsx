@@ -107,12 +107,17 @@ const OnboardingPage = () => {
         return
       }
 
+      if (userData.username.trim().length < 3) {
+        setError('Username must be at least 3 characters long')
+        return
+      }
+
       // Check username uniqueness
       try {
         setLoading(true)
-        const isAvailable = await profileService.isUsernameAvailable(userData.username, user.id)
+        const isAvailable = await profileService.isUsernameAvailable(userData.username, user?.id)
         if (!isAvailable) {
-          setError('This username is already taken. Please choose another one.')
+          setError('This username is already taken or invalid. Please choose another one.')
           setLoading(false)
           return
         }

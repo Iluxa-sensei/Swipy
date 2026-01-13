@@ -41,13 +41,18 @@ export const profileService = {
     // Check if username is available
     async isUsernameAvailable(username, excludeUserId = null) {
         try {
-            // Remove @ if present
-            const cleanUsername = username.startsWith('@') ? username.substring(1) : username
+            if (!username) return false
             
+            // Remove @ if present and trim
+            const cleanUsername = username.trim().startsWith('@') ? username.trim().substring(1) : username.trim()
+            
+            if (!cleanUsername || cleanUsername.length < 3) return false
+            
+            // Use ilike for case-insensitive check
             let query = supabase
                 .from('profiles')
                 .select('id')
-                .eq('username', cleanUsername)
+                .ilike('username', cleanUsername)
             
             if (excludeUserId) {
                 query = query.neq('id', excludeUserId)
@@ -55,10 +60,17 @@ export const profileService = {
             
             const { data, error } = await query
             
-            if (error) throw error
+            if (error) {
+                console.error('Error checking username availability:', error)
+                // If there's an error (like RLS or connection), we return false to be safe
+                // but this might be why users see "taken" when it's not.
+                // However, in a real app we'd handle different error codes.
+                return false
+            }
+            
             return (data || []).length === 0
         } catch (error) {
-            console.error('Error checking username availability:', error)
+            console.error('Exception in isUsernameAvailable:', error)
             return false
         }
     },

@@ -277,9 +277,15 @@ const DesktopProfileEditPage = () => {
         try {
             // Check username uniqueness if it was changed
             if (profile.username !== existingProfile?.username) {
-                const isAvailable = await profileService.isUsernameAvailable(profile.username, user.id)
+                if (profile.username.trim().length < 3) {
+                    alert('Username must be at least 3 characters long')
+                    setSaving(false)
+                    return
+                }
+
+                const isAvailable = await profileService.isUsernameAvailable(profile.username, user?.id)
                 if (!isAvailable) {
-                    alert('This username is already taken. Please choose another one.')
+                    alert('This username is already taken or invalid. Please choose another one.')
                     setSaving(false)
                     return
                 }
