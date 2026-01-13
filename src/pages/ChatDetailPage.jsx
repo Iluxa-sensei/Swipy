@@ -35,14 +35,45 @@ const ChatDetailPage = () => {
   // Emoji list for picker
   const emojis = ['👍', '👎', '❤️', '🔥', '💯', '😎', '🙌', '👏', '💪', '🚀', '🎉', '✨'];
 
+  // Helper function to check if string is a valid UUID
+  const isValidUUID = (str) => {
+    if (!str) return false;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  };
+
   // Initial ID resolution if nickname/startup_name is used
   useEffect(() => {
     const resolveChatId = async () => {
-      if (initialChatId) {
+      // If initialChatId is not a valid UUID, treat it as nickname
+      if (initialChatId && !isValidUUID(initialChatId)) {
+        // This looks like a nickname or slug, handle it as nickname
+        if (user?.id) {
+          setLoading(true);
+          try {
+            const resolvedId = await chatService.getChatByPrettyParams(user.id, initialChatId, startup_name);
+            if (resolvedId) {
+              setChatId(resolvedId);
+            } else {
+              setError('Could not find or create this chat.');
+              setLoading(false);
+            }
+          } catch (err) {
+            console.error('Error resolving chat ID:', err);
+            setError('Failed to load chat details.');
+            setLoading(false);
+          }
+        }
+        return;
+      }
+
+      // If it's a valid UUID, use it directly
+      if (initialChatId && isValidUUID(initialChatId)) {
         setChatId(initialChatId);
         return;
       }
 
+      // If we have nickname, use it
       if (nickname && user?.id) {
         setLoading(true);
         try {
