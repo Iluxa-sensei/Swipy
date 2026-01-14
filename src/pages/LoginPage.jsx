@@ -187,6 +187,16 @@ const LoginPage = () => {
   const desktopContent = (
     <>
       <div className="w-full max-w-md mx-auto">
+        {/* Back Button */}
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="inline-flex items-center text-sm text-text-secondary hover:text-text-primary mb-6 transition-colors"
+        >
+          <i className="fa-solid fa-arrow-left mr-2" />
+          Back
+        </button>
+        
         {/* Logo and Welcome */}
         <div className="text-center mb-8">
           <h1 className="text-5xl font-black mb-5 text-white" style={{ paddingBottom: '8px', lineHeight: '1.2' }}>
@@ -401,6 +411,16 @@ const LoginPage = () => {
   const mobileContent = (
     <>
       <div className="flex-1 overflow-y-auto p-6 md:p-10 lg:p-12">
+        {/* Back Button */}
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="inline-flex items-center text-sm text-text-secondary hover:text-text-primary mb-6 transition-colors"
+        >
+          <i className="fa-solid fa-arrow-left mr-2" />
+          Back
+        </button>
+        
         {/* Logo and Welcome */}
         <div className="text-center mb-10 md:mb-12">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 text-white">
