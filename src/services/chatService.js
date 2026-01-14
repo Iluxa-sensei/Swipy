@@ -399,6 +399,13 @@ export const chatService = {
         try {
             console.log('Fetching chat info for chatId:', chatId)
 
+            // Validate that chatId is a valid UUID
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+            if (!uuidRegex.test(chatId)) {
+                console.error('Invalid chatId format (not a UUID):', chatId)
+                return null
+            }
+
             // First try RPC function (bypasses RLS, more reliable for newly created chats)
             try {
                 const { data: rpcData, error: rpcError } = await supabase

@@ -100,6 +100,12 @@ const ChatDetailPage = () => {
     const loadChat = async () => {
       if (!chatId || !user?.id) return;
 
+      // Don't try to load if chatId is not a valid UUID (still resolving)
+      if (!isValidUUID(chatId)) {
+        console.log('ChatId is not a valid UUID yet, waiting for resolution:', chatId);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
