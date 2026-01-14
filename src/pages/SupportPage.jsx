@@ -6,7 +6,7 @@ const SupportPage = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
     const { profile } = useProfile(user?.id)
-    
+
     const [formData, setFormData] = useState({
         subject: '',
         message: ''
@@ -47,29 +47,29 @@ Timestamp: ${new Date().toISOString()}
 
             // Create mailto link
             const mailtoLink = `mailto:support@swipy.space?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(emailBody)}`
-            
+
             // Simulate sending delay for better UX
             await new Promise(resolve => setTimeout(resolve, 800))
-            
+
             // Open email client
             window.location.href = mailtoLink
-            
+
             // Show success animation
             setShowSuccess(true)
-            
+
             // Reset form after showing success
             setFormData({
                 subject: '',
                 message: ''
             })
-            
+
             // Hide success after 5 seconds
             setTimeout(() => {
                 setShowSuccess(false)
             }, 5000)
         } catch (error) {
             console.error('Error submitting support request:', error)
-            alert('Failed to open email client. Please send an email manually to support@swipy.space')
+            alert('Failed. Please send an email manually to support@swipy.space')
         } finally {
             setIsSubmitting(false)
         }
@@ -95,7 +95,7 @@ Timestamp: ${new Date().toISOString()}
                                 <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-3xl animate-bounce">
                                     <i className="fas fa-check"></i>
                                 </div>
-                                
+
                                 {/* Success Message */}
                                 <h3 className="text-xl font-bold text-text-primary mb-3">
                                     Thank You!
@@ -103,7 +103,7 @@ Timestamp: ${new Date().toISOString()}
                                 <p className="text-text-secondary text-base leading-relaxed mb-4">
                                     We'll contact you soon
                                 </p>
-                                
+
                                 {/* Email Info */}
                                 <p className="text-xs text-text-secondary opacity-75">
                                     Your email client should open automatically. If it doesn't, please send an email to <span className="text-accent-primary">support@swipy.space</span>
