@@ -116,13 +116,11 @@
       position: relative;
       overflow-x: hidden;
       overflow-y: auto;
-      height: auto;
       min-height: 100vh;
     }
 
     #root {
       position: relative;
-      height: auto;
       min-height: 100vh;
       width: 100%;
       overflow: visible;
@@ -255,7 +253,6 @@
       inset: auto !important;
       width: 100% !important;
       max-width: 100% !important;
-      height: auto;
       min-height: auto;
       margin: 0 !important;
       padding: 0 !important;
