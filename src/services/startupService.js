@@ -312,34 +312,112 @@ export const startupService = {
         }
     },
 
-    // Get startup by slug and owner's username
+    // Get startup by slug and owner's username (or UUID)
     async getStartupBySlug(ownerUsername, startupSlug) {
         try {
-            // First find the owner by username
-            const { data: ownerData, error: ownerError } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('username', ownerUsername.startsWith('@') ? ownerUsername.substring(1) : ownerUsername)
-                .single()
+            // Clean the username (remove @ prefix if present)
+            const cleanUsername = ownerUsername.startsWith('@') ? ownerUsername.substring(1) : ownerUsername
+            
+            // Check if ownerUsername is a UUID (user hasn't set their username)
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+            const isUUID = uuidRegex.test(cleanUsername)
+            
+            console.log('getStartupBySlug called with:', { ownerUsername: cleanUsername, startupSlug, isUUID })
+            
+            let ownerId = null
+            
+            if (isUUID) {
+                // If it's a UUID, use it directly as the owner ID
+                console.log('Owner identifier is a UUID, using as owner_id directly')
+                ownerId = cleanUsername
+            } else {
+                // Look up owner by username (case-insensitive)
+                const { data: ownerData, error: ownerError } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .ilike('username', cleanUsername)
+                    .single()
 
-            if (ownerError || !ownerData) throw new Error('Owner not found')
+                if (ownerError || !ownerData) {
+                    console.warn('Owner not found by username, trying slug-only lookup:', cleanUsername, ownerError)
+                    // Fallback: try to find startup by slug alone (without profiles relation)
+                    const { data: startupBySlug, error: slugError } = await supabase
+                        .from('startups')
+                        .select('*')
+                        .eq('slug', startupSlug)
+                        .single()
+                    
+                    if (!slugError && startupBySlug) {
+                        // Fetch owner profile separately
+                        if (startupBySlug.owner_id) {
+                            const { data: owner } = await supabase
+                                .from('profiles')
+                                .select('full_name, username, avatar_url')
+                                .eq('id', startupBySlug.owner_id)
+                                .single()
+                            if (owner) {
+                                startupBySlug.profiles = owner
+                            }
+                        }
+                        console.log('Found startup by slug alone:', startupBySlug.name)
+                        return startupBySlug
+                    }
+                    
+                    throw new Error(`Owner not found: ${cleanUsername}`)
+                }
+                ownerId = ownerData.id
+            }
 
-            // Then find the startup by owner_id and slug
+            // Find the startup by owner_id and slug (without profiles relation to avoid schema cache error)
             const { data, error } = await supabase
                 .from('startups')
-                .select(`
-                    *,
-                    profiles!startups_owner_id_fkey (
-                        full_name,
-                        username,
-                        avatar_url
-                    )
-                `)
-                .eq('owner_id', ownerData.id)
+                .select('*')
+                .eq('owner_id', ownerId)
                 .eq('slug', startupSlug)
                 .single()
 
-            if (error) throw error
+            if (error) {
+                console.error('Error finding startup by owner_id and slug:', error)
+                
+                // Fallback: try to find startup by slug alone
+                const { data: startupBySlug, error: slugError } = await supabase
+                    .from('startups')
+                    .select('*')
+                    .eq('slug', startupSlug)
+                    .single()
+                
+                if (!slugError && startupBySlug) {
+                    // Fetch owner profile separately
+                    if (startupBySlug.owner_id) {
+                        const { data: owner } = await supabase
+                            .from('profiles')
+                            .select('full_name, username, avatar_url')
+                            .eq('id', startupBySlug.owner_id)
+                            .single()
+                        if (owner) {
+                            startupBySlug.profiles = owner
+                        }
+                    }
+                    console.log('Found startup by slug alone (fallback):', startupBySlug.name)
+                    return startupBySlug
+                }
+                
+                throw error
+            }
+            
+            // Fetch owner profile separately
+            if (data && data.owner_id) {
+                const { data: owner } = await supabase
+                    .from('profiles')
+                    .select('full_name, username, avatar_url')
+                    .eq('id', data.owner_id)
+                    .single()
+                if (owner) {
+                    data.profiles = owner
+                }
+            }
+            
+            console.log('Found startup:', data?.name)
             return data
         } catch (error) {
             console.error('Error fetching startup by slug:', error)

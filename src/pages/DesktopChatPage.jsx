@@ -274,7 +274,7 @@ const DesktopChatPage = () => {
             // Only use logo URL if it's actually a URL, otherwise use fallback letter
             const avatar = isImageUrl(avatarUrl) ? avatarUrl : (chat.startup_name?.charAt(0)?.toUpperCase() || 'S')
 
-            return {
+            const mappedChat = {
                 id: chat.chat_id,
                 name: chat.startup_name || 'Unknown Startup',
                 lastMessage: chat.last_message_body || 'No messages yet',
@@ -285,9 +285,11 @@ const DesktopChatPage = () => {
                 gradient: chat.startup_gradient || 'bg-gradient-to-br from-blue-300 to-blue-700',
                 startupId: chat.startup_id,
                 startup_slug: chat.startup_slug,
+                startup_owner_username: chat.startup_owner_username, // Add owner username for navigation
                 chatType: 'startup',
                 otherParticipant: chat.other_participant
             }
+            return mappedChat
         }
     })
 
@@ -322,15 +324,60 @@ const DesktopChatPage = () => {
         return filtered
     })()
 
-    const openChat = (chat) => {
-        if (chat.otherParticipant?.username) {
-            if (chat.chatType === 'startup' && chat.startup_slug) {
-                navigate(`/chat-detail/${chat.otherParticipant.username}/${chat.startup_slug}`)
-            } else {
-                navigate(`/chat-detail/${chat.otherParticipant.username}`)
+    const openChat = async (chat) => {
+        // For startup chats, always use the startup slug URL format
+        if (chat.chatType === 'startup') {
+            let startupSlug = chat.startup_slug
+            // Use startup_owner_username first, then fallback to other sources
+            let ownerUsername = chat.startup_owner_username || chat.otherParticipant?.username
+            
+            // If slug or owner username is missing but we have startupId, fetch it
+            if ((!startupSlug || !ownerUsername) && chat.startupId) {
+                try {
+                    console.log('Fetching startup data for navigation, startupId:', chat.startupId)
+                    const { data: startup, error } = await supabase
+                        .from('startups')
+                        .select('slug, owner_id, profiles!startups_owner_id_fkey(username)')
+                        .eq('id', chat.startupId)
+                        .single()
+                    
+                    if (!error && startup) {
+                        startupSlug = startupSlug || startup.slug
+                        // Get owner username from startup if not available
+                        if (!ownerUsername && startup.profiles?.username) {
+                            ownerUsername = startup.profiles.username
+                        } else if (!ownerUsername && startup.owner_id) {
+                            // Fetch owner profile
+                            const { data: owner } = await supabase
+                                .from('profiles')
+                                .select('username')
+                                .eq('id', startup.owner_id)
+                                .single()
+                            if (owner) ownerUsername = owner.username
+                        }
+                    } else if (error) {
+                        console.error('Error fetching startup for navigation:', error)
+                    }
+                } catch (err) {
+                    console.error('Error fetching startup slug for navigation:', err)
+                }
             }
-        } else {
-            navigate(`/chat-detail/${chat.id}`)
+            
+            // Navigate to startup chat if we have both slug and owner username
+            if (startupSlug && ownerUsername) {
+                navigate(`/chat-detail/${ownerUsername}/${startupSlug}`)
+                return
+            } else {
+                console.warn('Missing startup slug or owner username, falling back to chat ID navigation', { startupSlug, ownerUsername, chatId: chat.id })
+            }
+        }
+        
+        // For user chats or if startup info is missing, use chatId
+        if (chat.chat_id || chat.id) {
+            navigate(`/chat-detail/${chat.chat_id || chat.id}`)
+        } else if (chat.otherParticipant?.username) {
+            // Fallback to nickname-based navigation for user chats
+            navigate(`/chat-detail/${chat.otherParticipant.username}`)
         }
     }
 

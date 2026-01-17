@@ -19,10 +19,25 @@ const StartupDetailPage = () => {
         if (fetchedStartup) return fetchedStartup
         if (id) return startups.find(s => s.id === id) || null
         if (nickname && startup_name) {
-            return startups.find(s => 
-                s.slug === startup_name && 
-                s.profiles?.username === (nickname.startsWith('@') ? nickname.substring(1) : nickname)
-            ) || null
+            const normalizedNickname = nickname.startsWith('@') ? nickname.substring(1) : nickname
+            
+            // Check if nickname is a UUID (user hasn't set username)
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+            const isUUID = uuidRegex.test(normalizedNickname)
+            
+            return startups.find(s => {
+                if (s.slug !== startup_name) return false
+                
+                if (isUUID) {
+                    // If nickname is a UUID, match against owner_id
+                    return s.owner_id === normalizedNickname
+                }
+                
+                // Check owner_nickname, profiles.username, and owner_id (case-insensitive)
+                return s.owner_nickname?.toLowerCase() === normalizedNickname.toLowerCase() || 
+                       s.profiles?.username?.toLowerCase() === normalizedNickname.toLowerCase() ||
+                       s.owner_id === normalizedNickname
+            }) || null
         }
         return null
     }, [id, nickname, startup_name, startups, fetchedStartup])
@@ -83,11 +98,8 @@ const StartupDetailPage = () => {
             // Create or get existing chat for this startup
             const chatId = await chatService.getOrCreateStartupChat(startup.id)
             if (chatId) {
-                if (startup.profiles?.username && startup.slug) {
-                    navigate(`/chat-detail/${startup.profiles.username}/${startup.slug}`)
-                } else {
-                    navigate(`/chat-detail/${chatId}`)
-                }
+                // Navigate directly using chatId - the chat is associated with the startup, not the owner
+                navigate(`/chat-detail/${chatId}`)
             }
         } catch (error) {
             console.error('Error opening chat:', error)

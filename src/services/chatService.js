@@ -44,19 +44,74 @@ export const chatService = {
             })
 
             // Get startup info for startup chats
+            // Validate UUIDs and remove duplicates
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
             const startupIds = userChats
                 .filter(c => c.context_startup_id)
                 .map(c => c.context_startup_id)
+                .filter(id => id && uuidRegex.test(id)) // Validate UUID format
+                .filter((id, index, self) => self.indexOf(id) === index) // Remove duplicates
 
             let startups = []
             if (startupIds.length > 0) {
-                const { data: startupsData, error: startupsError } = await supabase
-                    .from('startups')
-                    .select('id, name, logo_url, logo, gradient, owner_id, slug, profiles!startups_owner_id_fkey(username)')
-                    .in('id', startupIds)
+                console.log('Fetching startup info for chat startups:', startupIds)
+                
+                try {
+                    // Fetch startups without profiles relation (to avoid schema cache error)
+                    const { data: startupsData, error: startupsError } = await supabase
+                        .from('startups')
+                        .select('id, name, logo_url, logo, gradient, owner_id, slug')
+                        .in('id', startupIds)
 
-                if (!startupsError && startupsData) {
-                    startups = startupsData
+                    if (startupsError) {
+                        console.error('Error fetching startup info for chats:', startupsError)
+                        // If batch query fails, try fetching individually
+                        console.log('Batch query failed, fetching startups individually...')
+                        for (const startupId of startupIds) {
+                            try {
+                                const { data: singleStartup, error: singleError } = await supabase
+                                    .from('startups')
+                                    .select('id, name, logo_url, logo, gradient, owner_id, slug')
+                                    .eq('id', startupId)
+                                    .single()
+                                
+                                if (!singleError && singleStartup) {
+                                    startups.push(singleStartup)
+                                }
+                            } catch (err) {
+                                console.error('Error fetching individual startup:', startupId, err)
+                            }
+                        }
+                    } else if (startupsData) {
+                        startups = startupsData
+                        console.log('Fetched startup info:', startups.length, 'startups found')
+                    } else {
+                        console.warn('No startup data returned for startup IDs:', startupIds)
+                    }
+                    
+                    // Fetch owner usernames separately
+                    if (startups.length > 0) {
+                        const ownerIds = [...new Set(startups.map(s => s.owner_id).filter(Boolean))]
+                        if (ownerIds.length > 0) {
+                            const { data: owners, error: ownersError } = await supabase
+                                .from('profiles')
+                                .select('id, username')
+                                .in('id', ownerIds)
+                            
+                            if (!ownersError && owners) {
+                                const ownerMap = {}
+                                owners.forEach(o => { ownerMap[o.id] = o.username })
+                                // Attach usernames to startups
+                                startups.forEach(s => {
+                                    if (s.owner_id && ownerMap[s.owner_id]) {
+                                        s.profiles = { username: ownerMap[s.owner_id] }
+                                    }
+                                })
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error('Exception in startup fetch:', err)
                 }
             }
 
@@ -64,6 +119,42 @@ export const chatService = {
             startups.forEach(s => {
                 startupMap[s.id] = s
             })
+            
+            // Check for missing startups and try to fetch them individually
+            const missingStartupIds = startupIds.filter(id => !startupMap[id])
+            if (missingStartupIds.length > 0) {
+                console.warn('Some startups not found in batch query, fetching individually:', missingStartupIds)
+                // Try fetching missing startups one by one (in case of RLS issues or deleted startups)
+                for (const missingId of missingStartupIds) {
+                    try {
+                        const { data: singleStartup, error: singleError } = await supabase
+                            .from('startups')
+                            .select('id, name, logo_url, logo, gradient, owner_id, slug')
+                            .eq('id', missingId)
+                            .single()
+                        
+                        if (!singleError && singleStartup) {
+                            // Fetch owner username separately
+                            if (singleStartup.owner_id) {
+                                const { data: owner } = await supabase
+                                    .from('profiles')
+                                    .select('username')
+                                    .eq('id', singleStartup.owner_id)
+                                    .single()
+                                if (owner) {
+                                    singleStartup.profiles = { username: owner.username }
+                                }
+                            }
+                            startupMap[missingId] = singleStartup
+                            console.log('Successfully fetched missing startup:', singleStartup.name)
+                        } else if (singleError) {
+                            console.error('Error fetching missing startup:', missingId, singleError)
+                        }
+                    } catch (err) {
+                        console.error('Exception fetching missing startup:', missingId, err)
+                    }
+                }
+            }
 
             // Get other participants info
             const otherUserIds = userChats
@@ -96,13 +187,21 @@ export const chatService = {
                 if (chat.context_startup_id) {
                     // Startup chat
                     const startup = startupMap[chat.context_startup_id]
-                    return {
+                    
+                    // Get owner username from profiles relation
+                    const ownerUsername = startup?.profiles?.username || null
+                    
+                    // If startup is still not found after retry, it may have been deleted
+                    // but we keep the chat_id and context_startup_id for reference
+                    const chatObj = {
                         chat_id: chat.chat_id,
-                        startup_id: startup?.id || null,
-                        startup_name: startup?.name || 'Unknown Startup',
+                        startup_id: startup?.id || chat.context_startup_id, // Keep the ID even if startup not found
+                        startup_name: startup?.name || null, // null instead of 'Unknown Startup' to know if fetch failed
                         startup_logo: startup?.logo_url || startup?.logo || null,
                         startup_gradient: startup?.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700',
                         startup_slug: startup?.slug || null,
+                        startup_owner_id: startup?.owner_id || null,
+                        startup_owner_username: ownerUsername, // Store owner username for navigation
                         last_message_body: lastMessage?.body || null,
                         last_message_at: lastMessage?.created_at || chat.created_at,
                         last_message_sender_id: lastMessage?.sender_id || null,
@@ -110,6 +209,7 @@ export const chatService = {
                         chat_type: 'startup',
                         other_participant: userMap[chat.other_user_id] || null
                     }
+                    return chatObj
                 } else {
                     // User chat
                     const otherUser = userMap[chat.other_user_id]

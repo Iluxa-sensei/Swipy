@@ -218,27 +218,51 @@ const DesktopHomePage = () => {
         if (!ensureAuth()) return
 
         try {
-            const startup = startups.find(s => s.id === startupId)
             const chatId = await chatService.getOrCreateStartupChat(startupId)
             if (chatId) {
-                if (startup?.owner_nickname && startup?.slug) {
-                    navigate(`/chat-detail/${startup.owner_nickname}/${startup.slug}`)
-                } else {
+                // Navigate directly using chatId - the chat is associated with the startup, not the owner
                 navigate(`/chat-detail/${chatId}`)
-                }
             }
         } catch (err) {
             console.error('Failed to open chat', err)
         }
     }
 
-    const handleDetails = (startupId) => {
+    const handleDetails = async (startupId) => {
+        // Helper to check if string is a UUID (meaning user hasn't set a proper username)
+        const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
+        
         const startup = startups.find(s => s.id === startupId)
-        if (startup && startup.owner_nickname && startup.slug) {
-            navigate(`/${startup.owner_nickname}/startup/${startup.slug}`)
-        } else {
-        navigate(`/startup/${startupId}`)
+        // Try to get owner nickname and slug from startup data
+        if (startup && startup.slug) {
+            // Check for owner_nickname (from SQL function)
+            // Only use if it's a proper username, not a UUID
+            if (startup.owner_nickname && !isUUID(startup.owner_nickname)) {
+                navigate(`/${startup.owner_nickname}/startup/${startup.slug}`)
+                return
+            }
+            // Check for profiles.username (from relation)
+            if (startup.profiles?.username && !isUUID(startup.profiles.username)) {
+                navigate(`/${startup.profiles.username}/startup/${startup.slug}`)
+                return
+            }
         }
+        // Fallback: fetch startup details to get slug and owner info
+        try {
+            const startupData = await startupService.getStartupById(startupId)
+            if (startupData && startupData.slug) {
+                const ownerUsername = startupData.profiles?.username
+                // Only use username-based URL if owner has a proper username (not UUID)
+                if (ownerUsername && !isUUID(ownerUsername)) {
+                    navigate(`/${ownerUsername}/startup/${startupData.slug}`)
+                    return
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching startup details:', error)
+        }
+        // Final fallback: use ID-based route (works for users without usernames)
+        navigate(`/startup/${startupId}`)
     }
 
     const renderNewsState = () => {
