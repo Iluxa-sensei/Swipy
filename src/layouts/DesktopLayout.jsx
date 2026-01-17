@@ -140,11 +140,18 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
     }
 
     const handleResultClick = (type, item) => {
+        if (!item) {
+            console.error('Invalid item:', item)
+            return
+        }
+
         if (type === 'startup') {
             if (item.owner_nickname && item.slug) {
                 navigate(`/${item.owner_nickname}/startup/${item.slug}`)
-            } else {
+            } else if (item.id) {
                 navigate(`/startup/${item.id}`)
+            } else {
+                console.error('Startup ID is missing:', item)
             }
         } else if (type === 'profile') {
             // Check if it's current user's profile
@@ -153,9 +160,11 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
             } else if (item.username) {
                 // Navigate to public profile page using nickname
                 navigate(`/profile/${item.username}`)
-            } else {
+            } else if (item.id) {
                 // Fallback to ID
                 navigate(`/profile/${item.id}`)
+            } else {
+                console.error('Profile ID and username are missing:', item)
             }
         }
         setSearchQuery('')
@@ -338,7 +347,7 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                                                             <div
                                                                 key={profile.id}
                                                                 className="search-result-item"
-                                                                onClick={() => handleResultClick('profile', profile.id)}
+                                                                onClick={() => handleResultClick('profile', profile)}
                                                             >
                                                                 <div className="search-result-avatar">
                                                                     {profile.avatar_url ? (

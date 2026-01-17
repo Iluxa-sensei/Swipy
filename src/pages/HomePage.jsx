@@ -410,7 +410,7 @@ const HomePageFixed = () => {
     }
 
     return (
-        <div className="screen active flex flex-col overflow-hidden">
+        <div className="screen active flex flex-col">
             {/* Mobile Search Bar */}
             <div className="mobile-search-container" ref={searchContainerRef}>
                 <div className="mobile-search-bar">
@@ -464,7 +464,7 @@ const HomePageFixed = () => {
                                             <div
                                                 key={startup.id}
                                                 className="mobile-search-result-item"
-                                                onClick={() => handleResultClick('startup', startup.id)}
+                                                onClick={() => handleResultClick('startup', startup)}
                                             >
                                                 <div className="mobile-search-result-avatar">
                                                     {startup.logo_url ? (
@@ -497,7 +497,7 @@ const HomePageFixed = () => {
                                             <div
                                                 key={profile.id}
                                                 className="mobile-search-result-item"
-                                                onClick={() => handleResultClick('profile', profile.id)}
+                                                onClick={() => handleResultClick('profile', profile)}
                                             >
                                                 <div className="mobile-search-result-avatar">
                                                     {profile.avatar_url ? (

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth, useChats, useStartups } from '../hooks'
 import { formatMessageTime } from '../utils/dateUtils'
-import { searchService, chatService, startupService } from '../services'
+import { searchService, chatService, startupService, supabase } from '../services'
 
 const DesktopChatPage = () => {
     const navigate = useNavigate()
@@ -76,9 +76,16 @@ const DesktopChatPage = () => {
                     profiles = await searchService.searchProfiles(searchTerm, 5)
                     console.log('Chat search: User results:', profiles)
                 } else {
-                    console.log('Chat search: Searching for startups with term:', searchTerm)
-                    startups = await searchService.searchStartups(searchTerm, 5)
+                    // Search both startups and profiles when not using @ prefix
+                    console.log('Chat search: Searching for startups and profiles with term:', searchTerm)
+                    const [startupsResult, profilesResult] = await Promise.all([
+                        searchService.searchStartups(searchTerm, 5),
+                        searchService.searchProfiles(searchTerm, 5)
+                    ])
+                    startups = startupsResult
+                    profiles = profilesResult
                     console.log('Chat search: Startup results:', startups)
+                    console.log('Chat search: Profile results:', profiles)
                 }
 
                 setSearchResults({ startups, profiles })
@@ -114,116 +121,58 @@ const DesktopChatPage = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
-    const handleSearchResultClick = async (type, id, name) => {
-        if (!user?.id) {
-            alert('Please sign in to start a chat')
-            return
-        }
-
-        if (!id) {
+    const handleSearchResultClick = async (type, item) => {
+        if (!item || !item.id) {
+            console.error('Invalid selection:', item)
             alert('Invalid selection')
             return
         }
 
-        try {
-            let chatId
+        // Clear search immediately
+        setSearchQuery('')
+        setShowSearchResults(false)
 
-            if (type === 'startup') {
-                // Create or get chat with startup
-                console.log('Creating chat with startup:', id)
-                chatId = await chatService.getOrCreateStartupChat(id)
-                console.log('Startup chat ID:', chatId)
-            } else if (type === 'profile') {
-                // Create or get chat with user
-                if (id === user.id) {
-                    alert('Cannot create chat with yourself')
-                    return
-                }
-                console.log('Creating chat with user:', id)
-                chatId = await chatService.getOrCreateUserChat(user.id, id)
-                console.log('User chat ID:', chatId)
-            } else {
-                throw new Error('Invalid chat type')
-            }
-
-            if (!chatId) {
-                throw new Error('Chat ID was not returned')
-            }
-
-            console.log('Chat created successfully, ID:', chatId)
-
-            // Clear search immediately
-            setSearchQuery('')
-            setShowSearchResults(false)
-
-            // Verify chat exists before navigating - with multiple retries
-            // Note: After RPC creates chat, there might be a small delay before RLS policies allow access
-            let chatExists = false
-            let retries = 0
-            const maxRetries = 10
-            let lastError = null
-
-            while (!chatExists && retries < maxRetries) {
-                // Increase delay with each retry (exponential backoff)
-                await new Promise(resolve => setTimeout(resolve, 300 * (retries + 1)))
-
-                try {
-                    const chatInfo = await chatService.getChatInfo(chatId)
-                    if (chatInfo && chatInfo.participants && chatInfo.participants.length > 0) {
-                        chatExists = true
-                        console.log('✅ Chat verified and accessible, exists:', chatInfo)
-                        break
-                    } else {
-                        console.log(`⏳ Chat not ready yet, retry ${retries + 1}/${maxRetries} for chatId:`, chatId)
-                    }
-                } catch (verifyError) {
-                    console.error('❌ Error verifying chat:', verifyError)
-                    lastError = verifyError
-                }
-
-                retries++
-            }
-
-            if (!chatExists) {
-                console.error('❌ Chat was not found/accessible after', maxRetries, 'retries. ChatId:', chatId)
-                console.error('Last error:', lastError)
-
-                // Try to navigate anyway - sometimes RLS policies work even if getChatInfo fails
-                console.log('⚠️ Attempting navigation despite verification failure - chat might still be accessible')
-                // Still navigate - the chat page will handle the error better
-            }
-
-            // Refresh chats list
+        // Navigate to profile or startup page
+        if (type === 'startup') {
+            // Try to get startup details to find owner username and slug
             try {
-                await refetch()
-                console.log('Chats list refreshed')
-            } catch (refetchError) {
-                console.error('Error refreshing chats:', refetchError)
-            }
-
-            // Navigate to chat
-            console.log('Navigating to chat:', chatId)
-            if (type === 'startup') {
-                const { data: startup } = await supabase.from('startups').select('slug, profiles!startups_owner_id_fkey(username)').eq('id', id).single()
+                const { data: startup } = await supabase
+                    .from('startups')
+                    .select('slug, profiles!startups_owner_id_fkey(username)')
+                    .eq('id', item.id)
+                    .single()
+                
                 if (startup?.slug && startup?.profiles?.username) {
-                    navigate(`/chat-detail/${startup.profiles.username}/${startup.slug}`)
+                    navigate(`/${startup.profiles.username}/startup/${startup.slug}`)
+                } else if (item.id) {
+                    navigate(`/startup/${item.id}`)
                 } else {
-                    navigate(`/chat-detail/${chatId}`)
+                    console.error('Startup ID is missing')
+                    alert('Unable to open startup')
                 }
-            } else if (type === 'profile') {
-                const { data: profile } = await supabase.from('profiles').select('username').eq('id', id).single()
-                if (profile?.username) {
-                    navigate(`/chat-detail/${profile.username}`)
+            } catch (error) {
+                console.error('Error fetching startup details:', error)
+                // Fallback to ID-based navigation
+                if (item.id) {
+                    navigate(`/startup/${item.id}`)
                 } else {
-                    navigate(`/chat-detail/${chatId}`)
+                    alert('Unable to open startup')
                 }
-            } else {
-            navigate(`/chat-detail/${chatId}`)
             }
-        } catch (err) {
-            console.error('Error creating chat:', err)
-            const errorMessage = err?.message || 'Unknown error occurred'
-            alert(`Failed to create chat: ${errorMessage}. Please try again.`)
+        } else if (type === 'profile') {
+            // Check if it's current user's profile
+            if (item.id === user?.id) {
+                navigate('/profile')
+            } else if (item.username) {
+                // Navigate to public profile page using username
+                navigate(`/profile/${item.username}`)
+            } else if (item.id) {
+                // Fallback to ID
+                navigate(`/profile/${item.id}`)
+            } else {
+                console.error('Profile ID and username are missing:', item)
+                alert('Unable to open profile')
+            }
         }
     }
 
@@ -486,7 +435,7 @@ const DesktopChatPage = () => {
                                         <div
                                             key={startup.id}
                                             className="search-result-item"
-                                            onClick={() => handleSearchResultClick('startup', startup.id, startup.name)}
+                                            onClick={() => handleSearchResultClick('startup', startup)}
                                         >
                                             <div className="search-result-avatar">
                                                 {startup.logo_url ? (
@@ -519,7 +468,7 @@ const DesktopChatPage = () => {
                                         <div
                                             key={profile.id}
                                             className="search-result-item"
-                                            onClick={() => handleSearchResultClick('profile', profile.id, profile.full_name || profile.username)}
+                                            onClick={() => handleSearchResultClick('profile', profile)}
                                         >
                                             <div className="search-result-avatar">
                                                 {profile.avatar_url ? (

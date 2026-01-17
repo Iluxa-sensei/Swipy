@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth, useStartups, useSwipes } from '../hooks'
-import { chatService } from '../services'
+import { chatService, startupService } from '../services'
 
 const DesktopStartupDetailPage = () => {
     const navigate = useNavigate()
@@ -33,15 +33,24 @@ const DesktopStartupDetailPage = () => {
     useEffect(() => {
         const fetchDetail = async () => {
             if (!startup && !startupsLoading) {
-                if (id) {
-                    setFetchingDetail(true)
-                    const data = await startupService.getStartupById(id)
-                    setFetchedStartup(data)
-                    setFetchingDetail(false)
-                } else if (nickname && startup_name) {
-                    setFetchingDetail(true)
-                    const data = await startupService.getStartupBySlug(nickname, startup_name)
-                    setFetchedStartup(data)
+                try {
+                    if (id) {
+                        setFetchingDetail(true)
+                        const data = await startupService.getStartupById(id)
+                        if (data) {
+                            setFetchedStartup(data)
+                        }
+                    } else if (nickname && startup_name) {
+                        setFetchingDetail(true)
+                        const normalizedNickname = nickname.startsWith('@') ? nickname.substring(1) : nickname
+                        const data = await startupService.getStartupBySlug(normalizedNickname, startup_name)
+                        if (data) {
+                            setFetchedStartup(data)
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching startup detail:', error)
+                } finally {
                     setFetchingDetail(false)
                 }
             }
@@ -149,6 +158,24 @@ const DesktopStartupDetailPage = () => {
                             >
                                 Retry
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    // Show loading state while fetching detail
+    if (fetchingDetail) {
+        return (
+            <div className="desktop-page">
+                <div className="desktop-page-section">
+                    <div className="flex items-center justify-center py-20">
+                        <div className="text-center">
+                            <div className="w-16 h-16 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                                <i className="fas fa-spinner fa-spin text-2xl text-white"></i>
+                            </div>
+                            <div className="text-text-secondary">Loading startup...</div>
                         </div>
                     </div>
                 </div>

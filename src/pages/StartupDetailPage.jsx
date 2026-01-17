@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth, useStartups, useSwipes } from '../hooks'
-import { chatService } from '../services'
+import { chatService, startupService } from '../services'
 
 const StartupDetailPage = () => {
     const navigate = useNavigate()
@@ -31,15 +31,24 @@ const StartupDetailPage = () => {
     useEffect(() => {
         const fetchDetail = async () => {
             if (!startup && !startupsLoading) {
-                if (id) {
-                    setFetchingDetail(true)
-                    const data = await startupService.getStartupById(id)
-                    setFetchedStartup(data)
-                    setFetchingDetail(false)
-                } else if (nickname && startup_name) {
-                    setFetchingDetail(true)
-                    const data = await startupService.getStartupBySlug(nickname, startup_name)
-                    setFetchedStartup(data)
+                try {
+                    if (id) {
+                        setFetchingDetail(true)
+                        const data = await startupService.getStartupById(id)
+                        if (data) {
+                            setFetchedStartup(data)
+                        }
+                    } else if (nickname && startup_name) {
+                        setFetchingDetail(true)
+                        const normalizedNickname = nickname.startsWith('@') ? nickname.substring(1) : nickname
+                        const data = await startupService.getStartupBySlug(normalizedNickname, startup_name)
+                        if (data) {
+                            setFetchedStartup(data)
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching startup detail:', error)
+                } finally {
                     setFetchingDetail(false)
                 }
             }
@@ -136,6 +145,30 @@ const StartupDetailPage = () => {
                         >
                             Retry
                         </button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    // Show loading state while fetching detail
+    if (fetchingDetail) {
+        return (
+            <div className="screen active">
+                <div className="header">
+                    <button className="header-btn" onClick={() => navigate(-1)}>
+                        <i className="fas fa-arrow-left"></i>
+                    </button>
+                    <h1>Loading...</h1>
+                    <div className="w-10"></div>
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
+                            <i className="fas fa-spinner fa-spin text-3xl text-white"></i>
+                        </div>
+                        <h2 className="text-2xl font-bold text-text-primary mb-4">Loading Startup</h2>
+                        <p className="text-text-secondary">Please wait...</p>
                     </div>
                 </div>
             </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks'
-import { profileService } from '../services'
+import { profileService, chatService } from '../services'
 import { supabase } from '../services/supabaseClient'
 
 const PublicProfilePage = () => {
@@ -18,7 +18,11 @@ const PublicProfilePage = () => {
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (!id && !nickname) {
+      // Check if nickname is "undefined" string or actually undefined
+      const validNickname = nickname && nickname !== 'undefined' ? nickname : null
+      const validId = id && id !== 'undefined' ? id : null
+
+      if (!validId && !validNickname) {
         setError('Invalid profile reference')
         setLoading(false)
         return
@@ -30,10 +34,10 @@ const PublicProfilePage = () => {
 
         // Fetch profile data
         let profileData
-        if (nickname) {
-          profileData = await profileService.getProfileByUsername(nickname)
-        } else {
-          profileData = await profileService.getProfile(id)
+        if (validNickname) {
+          profileData = await profileService.getProfileByUsername(validNickname)
+        } else if (validId) {
+          profileData = await profileService.getProfile(validId)
         }
         
         if (!profileData) {
