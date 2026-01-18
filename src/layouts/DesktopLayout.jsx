@@ -139,15 +139,20 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
         }
     }
 
-    const handleResultClick = (type, item) => {
+    const handleResultClick = async (type, item) => {
         if (!item) {
             console.error('Invalid item:', item)
             return
         }
 
         if (type === 'startup') {
-            if (item.owner_nickname && item.slug) {
-                navigate(`/${item.owner_nickname}/startup/${item.slug}`)
+            // Helper to check if string is a UUID
+            const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
+            
+            // Check for profiles.username first (from search results), then owner_nickname, then fetch
+            const ownerUsername = item.profiles?.username || item.owner_nickname
+            if (ownerUsername && !isUUID(ownerUsername) && item.slug) {
+                navigate(`/${ownerUsername}/startup/${item.slug}`)
             } else if (item.id) {
                 navigate(`/startup/${item.id}`)
             } else {
@@ -314,7 +319,7 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                                                             <div
                                                                 key={startup.id}
                                                                 className="search-result-item"
-                                                                onClick={() => handleResultClick('startup', startup.id)}
+                                                                onClick={() => handleResultClick('startup', startup)}
                                                             >
                                                                 <div className="search-result-avatar">
                                                                     {startup.logo_url ? (

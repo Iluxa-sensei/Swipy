@@ -134,11 +134,16 @@ const HomePageFixed = () => {
         }
     }
 
-    const handleResultClick = (type, item) => {
+    const handleResultClick = async (type, item) => {
         if (type === 'startup') {
-            if (item.owner_nickname && item.slug) {
-                navigate(`/${item.owner_nickname}/startup/${item.slug}`)
-            } else {
+            // Helper to check if string is a UUID
+            const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
+            
+            // Check for profiles.username first (from search results), then owner_nickname, then fetch
+            const ownerUsername = item.profiles?.username || item.owner_nickname
+            if (ownerUsername && !isUUID(ownerUsername) && item.slug) {
+                navigate(`/${ownerUsername}/startup/${item.slug}`)
+            } else if (item.id) {
                 navigate(`/startup/${item.id}`)
             }
         } else if (type === 'profile') {

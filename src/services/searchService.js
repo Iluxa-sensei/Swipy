@@ -18,8 +18,7 @@ const STARTUP_FIELDS = `
   stage,
   owner_id,
   description,
-  slug,
-  profiles!startups_owner_id_fkey(username)
+  slug
 `
 
 export const searchService = {
@@ -172,7 +171,7 @@ export const searchService = {
             const normalized = query.trim().toLowerCase()
             console.log('searchStartups: searching for', normalized)
 
-            // Get all matching startups
+            // Get all matching startups (without profiles relation to avoid schema cache error)
             const { data, error } = await supabase
                 .from('startups')
                 .select(STARTUP_FIELDS)
@@ -255,6 +254,28 @@ export const searchService = {
                 .filter(item => item.score >= 100)
                 .slice(0, limit)
                 .map(item => item.startup)
+
+            // Fetch owner usernames separately if needed
+            if (filtered.length > 0) {
+                const ownerIds = [...new Set(filtered.map(s => s.owner_id).filter(Boolean))]
+                if (ownerIds.length > 0) {
+                    const { data: owners, error: ownersError } = await supabase
+                        .from('profiles')
+                        .select('id, username')
+                        .in('id', ownerIds)
+                    
+                    if (!ownersError && owners) {
+                        const ownerMap = {}
+                        owners.forEach(o => { ownerMap[o.id] = o.username })
+                        // Attach usernames to startups
+                        filtered.forEach(s => {
+                            if (s.owner_id && ownerMap[s.owner_id]) {
+                                s.profiles = { username: ownerMap[s.owner_id] }
+                            }
+                        })
+                    }
+                }
+            }
 
             console.log('searchStartups: found', filtered.length, 'startups')
             return filtered
