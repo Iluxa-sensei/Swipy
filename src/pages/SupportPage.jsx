@@ -69,7 +69,7 @@ Timestamp: ${new Date().toISOString()}
             }, 5000)
         } catch (error) {
             console.error('Error submitting support request:', error)
-            alert('Failed. Please send an email manually to support@swipy.space')
+            alert('Failed process. Please send an email manually to support@swipy.space')
         } finally {
             setIsSubmitting(false)
         }
