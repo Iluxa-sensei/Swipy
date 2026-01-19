@@ -14,7 +14,6 @@ const HomePageFixed = () => {
         hasMore,
         loadMore,
         refetch: refetchStartups,
-        removeStartupFromList
     } = useStartupsLazy()
     const { likeStartup, passStartup, loading: swipesLoading } = useSwipes(user?.id)
 
@@ -225,10 +224,8 @@ const HomePageFixed = () => {
                 if (user?.id && currentStartup?.id) {
                     console.log('Liking startup:', currentStartup.id, currentStartup.name)
                     await likeStartup(currentStartup.id)
-                    console.log('Liked startup successfully, removing from list')
-                    // Remove the startup from current list to prevent duplicates
-                    removeStartupFromList(currentStartup.id)
-                    console.log('Removed startup from list')
+                    console.log('Liked startup successfully')
+                    // Keep startup in list - don't remove after swipe
                 }
             } catch (error) {
                 console.error('Error liking startup:', error)
@@ -250,10 +247,8 @@ const HomePageFixed = () => {
                 if (user?.id && currentStartup?.id) {
                     console.log('Passing startup:', currentStartup.id, currentStartup.name)
                     await passStartup(currentStartup.id)
-                    console.log('Passed startup successfully, removing from list')
-                    // Remove the startup from current list to prevent duplicates
-                    removeStartupFromList(currentStartup.id)
-                    console.log('Removed startup from list')
+                    console.log('Passed startup successfully')
+                    // Keep startup in list - don't remove after swipe
                 }
             } catch (error) {
                 console.error('Error passing startup:', error)

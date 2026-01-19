@@ -137,6 +137,7 @@ export const startupService = {
     },
 
     // Get lightweight startups for faster initial loading
+    // NOTE: This now returns ALL startups (not excluding swiped ones) to match user requirement
     async getStartupsLightweight(offset = 0, limit = 5, filters = {}) {
         try {
             // Validate and sanitize input parameters for security
@@ -150,19 +151,59 @@ export const startupService = {
                 filters: sanitizedFilters
             })
 
-            // Use lightweight SQL function for better performance
+            // Build query directly (not using RPC that excludes swiped startups)
+            // This returns ALL startups to match the count display
+            let query = supabase
+                .from('startups')
+                .select('id, name, description, industry, stage, funding_round, team_size, location, gradient, logo, created_at, slug, owner_id')
+                .order('created_at', { ascending: false })
+                .range(validatedOffset, validatedOffset + validatedLimit - 1)
+
+            // Apply filters if provided
+            if (sanitizedFilters.industries && sanitizedFilters.industries.length > 0) {
+                query = query.in('industry', sanitizedFilters.industries)
+            }
+            if (sanitizedFilters.stages && sanitizedFilters.stages.length > 0) {
+                query = query.in('stage', sanitizedFilters.stages)
+            }
+            if (sanitizedFilters.locations && sanitizedFilters.locations.length > 0) {
+                query = query.in('location', sanitizedFilters.locations)
+            }
+            if (sanitizedFilters.teamSize) {
+                query = query.eq('team_size', sanitizedFilters.teamSize)
+            }
+            if (sanitizedFilters.funding) {
+                query = query.eq('funding_round', sanitizedFilters.funding)
+            }
+
             const rpcStartTime = performance.now()
-            const { data, error } = await supabase.rpc('get_startups_lightweight_fast', {
-                p_limit: validatedLimit,
-                p_offset: validatedOffset,
-                p_industry: sanitizedFilters.industries && sanitizedFilters.industries.length > 0 ? sanitizedFilters.industries : null,
-                p_stage: sanitizedFilters.stages && sanitizedFilters.stages.length > 0 ? sanitizedFilters.stages : null,
-                p_location: sanitizedFilters.locations && sanitizedFilters.locations.length > 0 ? sanitizedFilters.locations : null,
-                p_team_size: sanitizedFilters.teamSize || null,
-                p_funding_round: sanitizedFilters.funding || null
-            })
+            // Fetch owner usernames separately to avoid schema cache issues
+            const { data: rawData, error } = await query
+            
+            // If we got data, fetch owner usernames
+            let data = rawData
+            if (rawData && rawData.length > 0) {
+                const ownerIds = [...new Set(rawData.map(s => s.owner_id).filter(Boolean))]
+                if (ownerIds.length > 0) {
+                    const { data: ownerProfiles } = await supabase
+                        .from('profiles')
+                        .select('id,username')
+                        .in('id', ownerIds)
+                    
+                    const ownerMap = {}
+                    if (ownerProfiles) {
+                        ownerProfiles.forEach(p => { ownerMap[p.id] = p.username })
+                    }
+                    
+                    // Attach owner_nickname to each startup
+                    data = rawData.map(startup => ({
+                        ...startup,
+                        owner_nickname: ownerMap[startup.owner_id] || null
+                    }))
+                }
+            }
             const rpcEndTime = performance.now()
-            console.log(`startupService.getStartupsLightweight: RPC call took ${(rpcEndTime - rpcStartTime).toFixed(2)}ms`)
+            console.log(`startupService.getStartupsLightweight: Query call took ${(rpcEndTime - rpcStartTime).toFixed(2)}ms`)
 
             if (error) {
                 console.error('startupService.getStartupsLightweight: Supabase error:', error)
@@ -460,7 +501,7 @@ export const startupService = {
         try {
             // Получаем все метрики параллельно для скорости
             const [startupsCount, usersCount, chatsCount] = await Promise.all([
-                // Количество стартапов
+                // Количество стартапов (all startups in database)
                 supabase
                     .from('startups')
                     .select('*', { count: 'exact', head: true }),

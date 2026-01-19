@@ -36,6 +36,7 @@ const AddPage = () => {
       locationCountry: '', // Add country
       locationCity: '', // Add city
       website: '',
+      pitchDeckUrl: '',
       investmentRequired: '', // Replace positions with investmentRequired
       investmentPercentage: '', // percentage of company
       ebitda: '', // EBITDA in USD/month
@@ -474,6 +475,27 @@ const AddPage = () => {
             </div>
           </div>
 
+          {/* Pitch Deck URL Field */}
+          <div className="form-group">
+            <label className="block text-text-primary font-medium mb-2">
+              Pitch Deck URL
+              <span className="ml-2 text-sm text-text-secondary font-normal">(Optional)</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i className="fas fa-file-pdf text-text-secondary"></i>
+              </div>
+              <input
+                type="url"
+                className="w-full pl-12 pr-4 py-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300"
+                placeholder="https://drive.google.com/... or https://docs.google.com/..."
+                value={formData.startup.pitchDeckUrl}
+                onChange={(e) => handleInputChange('startup', 'pitchDeckUrl', e.target.value)}
+                pattern="https?://.+"
+              />
+            </div>
+          </div>
+
           <div className="form-group">
             <label className="block text-text-primary font-medium mb-2">Card Gradient</label>
             <div className="grid grid-cols-5 gap-3">
@@ -580,6 +602,7 @@ const AddPage = () => {
                   name: formData.startup.name,
                   description: formData.startup.description,
                   website: formData.startup.website,
+                  pitch_deck_url: formData.startup.pitchDeckUrl || null,
                   logo_url: formData.startup.image,
                   industry: formData.startup.category,
                   stage: formData.startup.stage,

@@ -13,7 +13,6 @@ const HomePageOptimized = () => {
         hasMore,
         loadMore,
         refetch: refetchStartups,
-        removeStartupFromList
     } = useStartupsLazy()
 
     const {
@@ -158,9 +157,7 @@ const HomePageOptimized = () => {
                 [currentStartup.id]: 'liked'
             }))
 
-            // Remove from current list to prevent duplicates
-            removeStartupFromList(currentStartup.id)
-
+            // Keep startup in list - don't remove after swipe
             console.log('Liked startup successfully:', currentStartup.name)
         } catch (error) {
             console.error('Error liking startup:', error)
@@ -174,7 +171,7 @@ const HomePageOptimized = () => {
             setIsAnimating(false)
             resetCardStyles()
         }, 400)
-    }, [currentStartup, isAnimating, likeStartup, removeStartupFromList])
+    }, [currentStartup, isAnimating, likeStartup])
 
     // Optimized pass function with better error handling
     const handlePass = useCallback(async () => {
@@ -204,9 +201,7 @@ const HomePageOptimized = () => {
                 [currentStartup.id]: 'passed'
             }))
 
-            // Remove from current list to prevent duplicates
-            removeStartupFromList(currentStartup.id)
-
+            // Keep startup in list - don't remove after swipe
             console.log('Passed startup successfully:', currentStartup.name)
         } catch (error) {
             console.error('Error passing startup:', error)
@@ -219,7 +214,7 @@ const HomePageOptimized = () => {
             setIsAnimating(false)
             resetCardStyles()
         }, 400)
-    }, [currentStartup, isAnimating, passStartup, removeStartupFromList])
+    }, [currentStartup, isAnimating, passStartup])
 
     // Function to handle double tap
     const handleCardClick = (e) => {

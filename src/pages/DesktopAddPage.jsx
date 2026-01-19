@@ -41,6 +41,7 @@ const DesktopAddPage = () => {
       locationCountry: '',
       locationCity: '',
       website: '',
+      pitchDeckUrl: '',
       investmentRequired: '',
       investmentPercentage: '',
       ebitda: '',
@@ -185,6 +186,7 @@ const DesktopAddPage = () => {
         name: formData.startup.name,
         description: formData.startup.description,
         website: formData.startup.website,
+        pitch_deck_url: formData.startup.pitchDeckUrl || null,
         logo_url: formData.startup.image,
         industry: formData.startup.category,
         stage: formData.startup.stage,
@@ -414,6 +416,49 @@ const DesktopAddPage = () => {
                     placeholder="https://yourstartup.com"
                     value={formData.startup.website}
                     onChange={(e) => handleInputChange('startup', 'website', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group col-span-2">
+                <label className="block text-text-primary font-medium mb-2">
+                  Pitch Deck URL
+                  <span className="ml-2 text-sm text-text-secondary font-normal">(Optional)</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i className="fas fa-file-pdf text-text-secondary"></i>
+                  </div>
+                  <input
+                    type="url"
+                    className="w-full pl-12 pr-4 py-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary"
+                    placeholder="https://drive.google.com/... or https://docs.google.com/..."
+                    value={formData.startup.pitchDeckUrl}
+                    onChange={(e) => handleInputChange('startup', 'pitchDeckUrl', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group col-span-2">
+                <label className="block text-text-primary font-medium mb-2">Team Size</label>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-text-secondary text-sm">1</span>
+                    <span className="text-text-primary font-medium">
+                      {formData.startup.teamSize === '100' ? '100+' : (formData.startup.teamSize || '1')}
+                    </span>
+                    <span className="text-text-secondary text-sm">100+</span>
+                  </div>
+                  <input
+                    type="range"
+                    className="w-full h-2 bg-glass-bg border border-glass-border rounded-lg appearance-none cursor-pointer slider"
+                    min="1"
+                    max="100"
+                    value={formData.startup.teamSize || '1'}
+                    onChange={(e) => handleInputChange('startup', 'teamSize', e.target.value)}
+                    style={{
+                      background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${((formData.startup.teamSize || 1) - 1) / 99 * 100}%, #374151 ${((formData.startup.teamSize || 1) - 1) / 99 * 100}%, #374151 100%)`
+                    }}
                   />
                 </div>
               </div>
