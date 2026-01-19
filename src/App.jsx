@@ -17,6 +17,7 @@ import DesktopChatPage from './pages/DesktopChatPage.jsx'
 import ProfilePage from './pages/ProfilePage'
 import DesktopProfilePage from './pages/DesktopProfilePage.jsx'
 import PublicProfilePage from './pages/PublicProfilePage'
+import DesktopPublicProfilePage from './pages/DesktopPublicProfilePage'
 import AddPage from './pages/AddPage'
 import DesktopAddPage from './pages/DesktopAddPage.jsx'
 import FiltersPage from './pages/FiltersPage'
@@ -104,8 +105,8 @@ function App() {
         <Route path="/notifications" element={isDesktop ? <DesktopNotificationsPage /> : <NotificationsPage />} />
         <Route path="/chat" element={isDesktop ? <DesktopChatPage /> : <ChatPage />} />
         <Route path="/profile/edit" element={isDesktop ? <DesktopProfileEditPage /> : <ProfileEditPage />} />
-        <Route path="/profile/:nickname" element={<PublicProfilePage />} />
-        <Route path="/profile/:id" element={<PublicProfilePage />} />
+        <Route path="/profile/:nickname" element={isDesktop ? <DesktopPublicProfilePage /> : <PublicProfilePage />} />
+        <Route path="/profile/:id" element={isDesktop ? <DesktopPublicProfilePage /> : <PublicProfilePage />} />
         <Route path="/profile" element={isDesktop ? <DesktopProfilePage /> : <ProfilePage />} />
         <Route path="/settings" element={isDesktop ? <DesktopSettingsPage /> : <SettingsPage />} />
         <Route path="/support" element={isDesktop ? <DesktopSupportPage /> : <SupportPage />} />
