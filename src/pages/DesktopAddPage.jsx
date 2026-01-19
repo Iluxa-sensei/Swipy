@@ -440,26 +440,79 @@ const DesktopAddPage = () => {
               </div>
 
               <div className="form-group col-span-2">
-                <label className="block text-text-primary font-medium mb-2">Team Size</label>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-text-secondary text-sm">1</span>
-                    <span className="text-text-primary font-medium">
-                      {formData.startup.teamSize === '100' ? '100+' : (formData.startup.teamSize || '1')}
-                    </span>
-                    <span className="text-text-secondary text-sm">100+</span>
+                <label className="block text-text-primary font-medium mb-3">Team Size</label>
+                <div className="space-y-4">
+                  {/* Preset buttons for common team sizes */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { label: '1', value: '1' },
+                      { label: '2-5', value: '3' },
+                      { label: '6-10', value: '8' },
+                      { label: '11-20', value: '15' },
+                      { label: '21-50', value: '35' },
+                      { label: '51-100', value: '75' },
+                      { label: '100+', value: '100' }
+                    ].map((preset) => {
+                      const currentValue = parseInt(formData.startup.teamSize || '1')
+                      let isSelected = false
+                      
+                      if (preset.value === '1') {
+                        isSelected = currentValue === 1
+                      } else if (preset.value === '100') {
+                        isSelected = currentValue >= 100
+                      } else if (preset.value === '3') {
+                        isSelected = currentValue >= 2 && currentValue <= 5
+                      } else if (preset.value === '8') {
+                        isSelected = currentValue >= 6 && currentValue <= 10
+                      } else if (preset.value === '15') {
+                        isSelected = currentValue >= 11 && currentValue <= 20
+                      } else if (preset.value === '35') {
+                        isSelected = currentValue >= 21 && currentValue <= 50
+                      } else if (preset.value === '75') {
+                        isSelected = currentValue >= 51 && currentValue <= 99
+                      }
+                      
+                      return (
+                        <button
+                          key={preset.value}
+                          type="button"
+                          onClick={() => handleInputChange('startup', 'teamSize', preset.value)}
+                          className={`px-4 py-2.5 rounded-xl border transition-all duration-200 text-sm font-medium ${
+                            isSelected
+                              ? 'bg-accent-primary/20 border-accent-primary text-accent-primary shadow-lg shadow-accent-primary/20'
+                              : 'bg-glass-bg border-glass-border text-text-primary hover:border-accent-primary/50 hover:bg-glass-border'
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      )
+                    })}
                   </div>
-                  <input
-                    type="range"
-                    className="w-full h-2 bg-glass-bg border border-glass-border rounded-lg appearance-none cursor-pointer slider"
-                    min="1"
-                    max="100"
-                    value={formData.startup.teamSize || '1'}
-                    onChange={(e) => handleInputChange('startup', 'teamSize', e.target.value)}
-                    style={{
-                      background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${((formData.startup.teamSize || 1) - 1) / 99 * 100}%, #374151 ${((formData.startup.teamSize || 1) - 1) / 99 * 100}%, #374151 100%)`
-                    }}
-                  />
+                  
+                  {/* Custom slider for precise selection */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-text-secondary text-xs">1</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-text-primary font-bold text-lg">
+                          {formData.startup.teamSize === '100' ? '100+' : (formData.startup.teamSize || '1')}
+                        </span>
+                        <span className="text-text-secondary text-xs">people</span>
+                      </div>
+                      <span className="text-text-secondary text-xs">100+</span>
+                    </div>
+                    <input
+                      type="range"
+                      className="w-full h-2.5 bg-glass-bg border border-glass-border rounded-full appearance-none cursor-pointer slider"
+                      min="1"
+                      max="100"
+                      value={formData.startup.teamSize || '1'}
+                      onChange={(e) => handleInputChange('startup', 'teamSize', e.target.value)}
+                      style={{
+                        background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${((parseInt(formData.startup.teamSize || '1')) - 1) / 99 * 100}%, #374151 ${((parseInt(formData.startup.teamSize || '1')) - 1) / 99 * 100}%, #374151 100%)`
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
