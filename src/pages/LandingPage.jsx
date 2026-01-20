@@ -87,7 +87,7 @@ const LandingPage = () => {
         // Use passive listener for better scroll performance
         window.addEventListener('scroll', scrollHandlerRef.current, { passive: true })
 
-        // Delay initial check to ensure page is fully rendered
+
         const initTimeout = setTimeout(() => {
             if (scrollHandlerRef.current) {
                 scrollHandlerRef.current()
@@ -96,7 +96,7 @@ const LandingPage = () => {
 
         return () => {
             clearTimeout(initTimeout)
-            // Remove classes to restore styles
+
             document.body.classList.remove('landing-page-active')
             document.documentElement.classList.remove('landing-page-active')
             observer.disconnect()
