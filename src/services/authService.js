@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient.js'
+import { isEmbeddedBrowser, openInExternalBrowser } from '../utils/browserDetection.js'
 
 export const authService = {
     // Get current session
@@ -89,6 +90,10 @@ export const authService = {
     // Sign in with OAuth (Google, GitHub, etc.)
     async signInWithOAuth(provider, options = {}) {
         try {
+            // Check if we're in an embedded browser that may have OAuth restrictions
+            const isEmbedded = isEmbeddedBrowser()
+            
+            // Get the OAuth URL from Supabase
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider,
                 options: {
@@ -102,6 +107,31 @@ export const authService = {
             })
 
             if (error) throw error
+
+            // If in embedded browser and we have a URL, open it in external browser
+            if (isEmbedded && data?.url) {
+                console.log('Embedded browser detected, opening OAuth in external browser')
+                const opened = openInExternalBrowser(data.url)
+                
+                if (opened) {
+                    // Return special flag to indicate external browser was opened
+                    return {
+                        ...data,
+                        requiresExternalBrowser: true,
+                        message: 'Please complete sign-in in your browser'
+                    }
+                } else {
+                    // If we couldn't open external browser, still return the URL
+                    // The UI can handle showing instructions
+                    return {
+                        ...data,
+                        requiresExternalBrowser: true,
+                        message: 'Please copy the URL and open it in your default browser'
+                    }
+                }
+            }
+
+            // Normal flow for regular browsers
             return data
         } catch (error) {
             console.error('Error signing in with OAuth:', error)

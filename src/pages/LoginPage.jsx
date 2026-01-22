@@ -6,6 +6,7 @@ import { useAuth } from '../providers/AuthProvider.jsx'
 import { useDeviceType } from '../hooks'
 import AuthInput from '../components/AuthInput.jsx'
 import AuthButton from '../components/AuthButton.jsx'
+import { isEmbeddedBrowser, getBrowserName } from '../utils/browserDetection.js'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -15,6 +16,7 @@ const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
+  const [showExternalBrowserMessage, setShowExternalBrowserMessage] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -141,14 +143,44 @@ const LoginPage = () => {
   const signInWithProvider = async (provider) => {
     if (isSubmitting) return
 
+    // Check if we're in an embedded browser
+    const isEmbedded = isEmbeddedBrowser()
+    const browserName = getBrowserName()
+
     try {
-      const { error } = await authService.signInWithOAuth(provider, {
+      setIsSubmitting(true)
+      const result = await authService.signInWithOAuth(provider, {
         redirectTo: `${window.location.origin}/auth/callback`
       })
-      if (error) alert(error.message)
+
+      // Check if external browser was opened
+      if (result?.requiresExternalBrowser) {
+        setShowExternalBrowserMessage(true)
+        // Auto-hide message after 10 seconds
+        setTimeout(() => {
+          setShowExternalBrowserMessage(false)
+        }, 10000)
+        return
+      }
+
+      // Check for errors
+      if (result?.error) {
+        alert(result.error.message || 'OAuth authentication failed. Please try again.')
+      }
     } catch (error) {
       console.error('OAuth error:', error)
-      alert('OAuth authentication failed. Please try again.')
+      
+      // Provide more helpful error message for embedded browsers
+      if (isEmbedded) {
+        alert(
+          `Google sign-in requires opening in your default browser. ` +
+          `Please try opening this page in ${browserName === 'LinkedIn' ? 'Chrome or Safari' : 'your default browser'} instead.`
+        )
+      } else {
+        alert('OAuth authentication failed. Please try again.')
+      }
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -357,6 +389,31 @@ const LoginPage = () => {
             Continue with LinkedIn (coming soon)
           </AuthButton>
         </div>
+
+        {/* External Browser Message */}
+        {showExternalBrowserMessage && (
+          <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+            <div className="flex items-start">
+              <i className="fas fa-external-link-alt text-blue-400 mt-1 mr-3"></i>
+              <div className="flex-1">
+                <p className="text-sm text-text-primary font-medium mb-1">
+                  Opening in your browser
+                </p>
+                <p className="text-xs text-text-secondary">
+                  Please complete the sign-in process in the browser window that just opened. 
+                  You'll be redirected back here once signed in.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowExternalBrowserMessage(false)}
+                className="ml-2 text-text-secondary hover:text-text-primary transition-colors"
+                aria-label="Close message"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Toggle Mode */}
         <div className="text-center mt-5">
@@ -586,6 +643,31 @@ const LoginPage = () => {
             Continue with LinkedIn (coming soon)
           </button>
         </div>
+
+        {/* External Browser Message */}
+        {showExternalBrowserMessage && (
+          <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+            <div className="flex items-start">
+              <i className="fas fa-external-link-alt text-blue-400 mt-1 mr-3"></i>
+              <div className="flex-1">
+                <p className="text-sm text-text-primary font-medium mb-1">
+                  Opening in your browser
+                </p>
+                <p className="text-xs text-text-secondary">
+                  Please complete the sign-in process in the browser window that just opened. 
+                  You'll be redirected back here once signed in.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowExternalBrowserMessage(false)}
+                className="ml-2 text-text-secondary hover:text-text-primary transition-colors"
+                aria-label="Close message"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Toggle Mode */}
         <div className="text-center mt-8">
