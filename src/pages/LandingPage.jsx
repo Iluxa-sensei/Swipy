@@ -84,7 +84,7 @@ const LandingPage = () => {
             });
         };
 
-        // Use passive listener for better scroll performance
+
         window.addEventListener('scroll', scrollHandlerRef.current, { passive: true })
 
 
