@@ -1,18 +1,41 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../services/supabaseClient.js'
 import { profileService } from '../services/profileService.js'
 import { cleanAuthTokensFromUrl } from '../utils/authTokenCleaner.js'
 
 const OAuthCallback = () => {
     const navigate = useNavigate()
-    const [searchParams] = useSearchParams()
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const handleOAuthCallback = async () => {
             try {
+                const hashParams = new URLSearchParams(window.location.hash.substring(1))
+                const queryParams = new URLSearchParams(window.location.search)
+                const idToken = hashParams.get('id_token') || queryParams.get('id_token')
+                const accessToken = hashParams.get('access_token') || queryParams.get('access_token')
+
+                // If we received an ID token from the backend OAuth flow, exchange it with Supabase
+                if (idToken) {
+                    const { error: idTokenError } = await supabase.auth.signInWithIdToken({
+                        provider: 'google',
+                        token: idToken,
+                        access_token: accessToken || undefined
+                    })
+
+                    if (idTokenError) {
+                        console.error('OAuth ID token error:', idTokenError)
+                        setError(idTokenError.message)
+                        setLoading(false)
+                        setTimeout(() => {
+                            navigate('/login', { replace: true })
+                        }, 3000)
+                        return
+                    }
+                }
+
                 // Security: Let Supabase process tokens from URL first, then clean after a brief delay
                 // Supabase needs to read tokens from URL hash to establish session
                 // The delay ensures Supabase has fully processed and stored the session

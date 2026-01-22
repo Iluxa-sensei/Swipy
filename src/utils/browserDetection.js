@@ -18,10 +18,12 @@ export const isEmbeddedBrowser = () => {
 
   // Check for common embedded browser indicators
   // These patterns detect in-app browsers that Google OAuth blocks
+  // Based on common in-app browser user agent strings
   const embeddedBrowserPatterns = [
+    /linkedinapp/i,          // LinkedIn App (case-insensitive)
     /FBAN|FBAV|FB_IAB/i,    // Facebook App (multiple variants)
-    /LinkedInApp|LinkedIn/i, // LinkedIn App
-    /Line\//i,               // Line App
+    /fb_iab/i,              // Facebook in-app browser
+    /Line/i,                 // Line App
     /Twitter|X-Twitter/i,    // Twitter/X App
     /Instagram/i,            // Instagram App
     /Snapchat/i,             // Snapchat App
@@ -109,7 +111,8 @@ export const canOpenExternalBrowser = () => {
 
 /**
  * Attempt to open URL in external browser
- * Uses multiple methods to try to escape the in-app browser
+ * Uses platform-specific schemes (x-safari- for iOS, Intent URLs for Android)
+ * to force opening in the system's default browser, bypassing in-app browsers
  * @param {string} url - URL to open
  * @returns {boolean} - True if attempt was made
  */
@@ -123,27 +126,42 @@ export const openInExternalBrowser = (url) => {
     const isAndroid = ua.includes('android')
     const isIOS = /iphone|ipad|ipod/.test(ua)
 
-    // Method 1: Try Android Intent URL to force external browser
-    if (isAndroid) {
+    // Method 1: iOS Safari URL scheme (x-safari-https://...)
+    // This is the most reliable way to force Safari on iOS from in-app browsers
+    if (isIOS) {
       try {
-        // Convert to Android intent URL that opens in default browser
-        const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;end`
-        window.location.href = intentUrl
+        // Use x-safari- prefix to force Safari on iOS
+        // This works from LinkedIn, Facebook, and other in-app browsers
+        const safariUrl = 'x-safari-' + url
+        console.log('Attempting to open in Safari via x-safari- scheme:', safariUrl)
+        window.location.href = safariUrl
         return true
       } catch (e) {
-        console.log('Android intent failed, trying fallback')
+        console.log('iOS Safari scheme failed, trying fallback:', e)
       }
     }
 
-    // Method 2: Try iOS Safari-specific approach
-    if (isIOS) {
-      // On iOS, setting location directly sometimes opens Safari
-      // when called from a user gesture context
+    // Method 2: Android Chrome Intent URL
+    // This forces Chrome to open the URL, bypassing in-app browsers
+    if (isAndroid) {
       try {
-        window.location.href = url
+        // Remove protocol and create intent URL targeting Chrome
+        const urlWithoutProtocol = url.replace(/^https?:\/\//, '')
+        const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;package=com.android.chrome;end`
+        console.log('Attempting to open in Chrome via Intent URL:', intentUrl)
+        window.location.href = intentUrl
         return true
       } catch (e) {
-        console.log('iOS location change failed, trying fallback')
+        console.log('Android Chrome Intent failed, trying fallback:', e)
+        // Fallback: Try without specifying Chrome package (uses default browser)
+        try {
+          const urlWithoutProtocol = url.replace(/^https?:\/\//, '')
+          const fallbackIntentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;end`
+          window.location.href = fallbackIntentUrl
+          return true
+        } catch (e2) {
+          console.log('Android Intent fallback also failed:', e2)
+        }
       }
     }
 
@@ -151,33 +169,41 @@ export const openInExternalBrowser = (url) => {
     try {
       const newWindow = window.open(url, '_system')
       if (newWindow) {
+        console.log('Opened via _system target')
         return true
       }
     } catch (e) {
-      console.log('_system target failed')
+      console.log('_system target failed:', e)
     }
 
     // Method 4: Standard window.open with _blank
     try {
       const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
       if (newWindow && !newWindow.closed) {
+        console.log('Opened via window.open')
         return true
       }
     } catch (e) {
-      console.log('_blank target failed')
+      console.log('_blank target failed:', e)
     }
 
-    // Method 5: Create and click a link element
-    const link = document.createElement('a')
-    link.href = url
-    link.target = '_blank'
-    link.rel = 'noopener noreferrer'
-    link.style.display = 'none'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    // Method 5: Create and click a link element (last resort)
+    try {
+      const link = document.createElement('a')
+      link.href = url
+      link.target = '_blank'
+      link.rel = 'noopener noreferrer'
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      console.log('Opened via link click')
+      return true
+    } catch (e) {
+      console.error('Link click method failed:', e)
+    }
     
-    return true
+    return false
   } catch (error) {
     console.error('Error opening external browser:', error)
     return false

@@ -92,16 +92,45 @@ export const authService = {
         try {
             // Check if we're in an embedded browser that may have OAuth restrictions
             const isEmbedded = isEmbeddedBrowser()
-            
-            // If in embedded browser, we need to skip automatic redirect
-            // so we can open the URL in an external browser instead
+            const redirectTo = options.redirectTo || `${window.location.origin}/auth/callback`
+
+            // For Google in embedded browsers, use backend proxy to avoid disallowed_useragent
+            if (isEmbedded && provider === 'google') {
+                const response = await fetch('/api/auth/google/init', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ redirectTo })
+                })
+
+                if (!response.ok) {
+                    const errorText = await response.text()
+                    throw new Error(`Failed to initialize Google OAuth: ${errorText}`)
+                }
+
+                const { authUrl } = await response.json()
+                if (!authUrl) {
+                    throw new Error('Google OAuth URL not provided by server')
+                }
+
+                const opened = openInExternalBrowser(authUrl)
+                return {
+                    url: authUrl,
+                    requiresExternalBrowser: true,
+                    externalBrowserOpened: opened,
+                    message: opened
+                        ? 'Please complete sign-in in your browser'
+                        : 'Please copy the URL and open it in your default browser'
+                }
+            }
+
+            // If in embedded browser for other providers, skip auto-redirect
             if (isEmbedded) {
                 console.log('Embedded browser detected, using skipBrowserRedirect')
                 
                 const { data, error } = await supabase.auth.signInWithOAuth({
                     provider,
                     options: {
-                        redirectTo: options.redirectTo || `${window.location.origin}/auth/callback`,
+                        redirectTo,
                         queryParams: {
                             access_type: 'offline',
                             prompt: 'consent',
@@ -135,7 +164,7 @@ export const authService = {
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider,
                 options: {
-                    redirectTo: options.redirectTo || `${window.location.origin}/auth/callback`,
+                    redirectTo,
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'consent',

@@ -59,6 +59,7 @@ export function cleanAuthTokensFromUrl() {
     const sensitiveParams = [
       'access_token',
       'refresh_token',
+      'id_token',
       'token',
       'provider_token',           // OAuth provider tokens (Google, GitHub, etc.)
       'provider_refresh_token',  // OAuth provider refresh tokens
@@ -91,6 +92,7 @@ export function cleanAuthTokensFromUrl() {
     const sensitiveParams = [
       'access_token',
       'refresh_token',
+      'id_token',
       'token',
       'provider_token',
       'provider_refresh_token',
