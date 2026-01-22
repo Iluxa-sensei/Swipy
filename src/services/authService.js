@@ -93,7 +93,45 @@ export const authService = {
             // Check if we're in an embedded browser that may have OAuth restrictions
             const isEmbedded = isEmbeddedBrowser()
             
-            // Get the OAuth URL from Supabase
+            // If in embedded browser, we need to skip automatic redirect
+            // so we can open the URL in an external browser instead
+            if (isEmbedded) {
+                console.log('Embedded browser detected, using skipBrowserRedirect')
+                
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider,
+                    options: {
+                        redirectTo: options.redirectTo || `${window.location.origin}/auth/callback`,
+                        queryParams: {
+                            access_type: 'offline',
+                            prompt: 'consent',
+                        },
+                        skipBrowserRedirect: true, // Don't auto-redirect, we'll handle it
+                        ...options
+                    }
+                })
+
+                if (error) throw error
+
+                // Now open the URL in an external browser
+                if (data?.url) {
+                    console.log('Opening OAuth URL in external browser:', data.url)
+                    const opened = openInExternalBrowser(data.url)
+                    
+                    return {
+                        ...data,
+                        requiresExternalBrowser: true,
+                        externalBrowserOpened: opened,
+                        message: opened 
+                            ? 'Please complete sign-in in your browser' 
+                            : 'Please copy the URL and open it in your default browser'
+                    }
+                }
+                
+                return data
+            }
+
+            // Normal flow for regular browsers - let Supabase handle the redirect
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider,
                 options: {
@@ -107,31 +145,6 @@ export const authService = {
             })
 
             if (error) throw error
-
-            // If in embedded browser and we have a URL, open it in external browser
-            if (isEmbedded && data?.url) {
-                console.log('Embedded browser detected, opening OAuth in external browser')
-                const opened = openInExternalBrowser(data.url)
-                
-                if (opened) {
-                    // Return special flag to indicate external browser was opened
-                    return {
-                        ...data,
-                        requiresExternalBrowser: true,
-                        message: 'Please complete sign-in in your browser'
-                    }
-                } else {
-                    // If we couldn't open external browser, still return the URL
-                    // The UI can handle showing instructions
-                    return {
-                        ...data,
-                        requiresExternalBrowser: true,
-                        message: 'Please copy the URL and open it in your default browser'
-                    }
-                }
-            }
-
-            // Normal flow for regular browsers
             return data
         } catch (error) {
             console.error('Error signing in with OAuth:', error)
