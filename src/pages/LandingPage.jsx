@@ -54,7 +54,7 @@ const LandingPage = () => {
         const elements = document.querySelectorAll('.fade-in-up')
         elements.forEach(el => observer.observe(el))
 
-        // FAQ slides up effect - FAQ section is sticky above footer, slides up to reveal footer (like playntest.com)
+
         let rafId = null
         scrollHandlerRef.current = () => {
             if (rafId) return
