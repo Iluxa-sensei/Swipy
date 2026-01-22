@@ -17,37 +17,54 @@ export const isEmbeddedBrowser = () => {
   const uaLower = ua.toLowerCase()
 
   // Check for common embedded browser indicators
+  // These patterns detect in-app browsers that Google OAuth blocks
   const embeddedBrowserPatterns = [
-    /FBAN|FBAV/i,           // Facebook App
-    /LinkedInApp/i,         // LinkedIn App
-    /Line/i,                // Line App
-    /Twitter/i,             // Twitter App
-    /Instagram/i,           // Instagram App
-    /Snapchat/i,            // Snapchat App
-    /WhatsApp/i,            // WhatsApp App
-    /wv/i,                  // WebView (Android)
-    /WebView/i,             // WebView (iOS)
+    /FBAN|FBAV|FB_IAB/i,    // Facebook App (multiple variants)
+    /LinkedInApp|LinkedIn/i, // LinkedIn App
+    /Line\//i,               // Line App
+    /Twitter|X-Twitter/i,    // Twitter/X App
+    /Instagram/i,            // Instagram App
+    /Snapchat/i,             // Snapchat App
+    /WhatsApp/i,             // WhatsApp App
+    /Messenger/i,            // Facebook Messenger
+    /MicroMessenger/i,       // WeChat
+    /; wv\)/i,               // Android WebView (specific pattern)
+    /\bwv\b/i,               // WebView indicator
   ]
 
   // Check if any pattern matches
   const isEmbedded = embeddedBrowserPatterns.some(pattern => pattern.test(ua))
 
-  // Additional checks for iOS standalone mode
-  const isIOSStandalone = 
-    window.navigator.standalone === false ||
-    (window.matchMedia && 
-     !window.matchMedia('(display-mode: standalone)').matches && 
-     !window.matchMedia('(display-mode: minimal-ui)').matches)
+  // LinkedIn-specific detection (multiple methods)
+  const isLinkedIn = 
+    uaLower.includes('linkedin') ||
+    uaLower.includes('lclcandroid') || // LinkedIn Android
+    uaLower.includes('lclcios') ||     // LinkedIn iOS
+    (document.referrer && document.referrer.includes('linkedin.com'))
 
-  // Additional checks for Android WebView
+  // Check for Android WebView specifically
+  // Android WebView user agent contains "wv" in version string like "Chrome/xxx.x.x.x Mobile Safari/xxx.xx"
   const isAndroidWebView = 
-    uaLower.includes('wv') || 
-    (uaLower.includes('android') && !uaLower.includes('chrome'))
+    (uaLower.includes('android') && uaLower.includes('; wv)')) ||
+    (uaLower.includes('android') && !uaLower.includes('chrome') && uaLower.includes('version/'))
 
-  // Check if iOS device
-  const isIOSDevice = /iphone|ipad|ipod/i.test(uaLower)
+  // iOS WebView detection
+  // iOS in-app browsers don't have "Safari" in the user agent if they're WebViews
+  const isIOSWebView = 
+    (uaLower.includes('iphone') || uaLower.includes('ipad') || uaLower.includes('ipod')) &&
+    !uaLower.includes('safari') &&
+    uaLower.includes('applewebkit')
 
-  return isEmbedded || (isIOSStandalone && isIOSDevice) || isAndroidWebView
+  // Debug logging
+  console.log('Browser detection:', {
+    userAgent: ua,
+    isEmbedded,
+    isLinkedIn,
+    isAndroidWebView,
+    isIOSWebView
+  })
+
+  return isEmbedded || isLinkedIn || isAndroidWebView || isIOSWebView
 }
 
 /**
@@ -92,6 +109,7 @@ export const canOpenExternalBrowser = () => {
 
 /**
  * Attempt to open URL in external browser
+ * Uses multiple methods to try to escape the in-app browser
  * @param {string} url - URL to open
  * @returns {boolean} - True if attempt was made
  */
@@ -101,27 +119,75 @@ export const openInExternalBrowser = (url) => {
   }
 
   try {
-    // Try to open in new window/tab
-    // On mobile, this may prompt user to open in external browser
-    const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
-    
-    // Check if popup was blocked
-    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-      // Popup blocked, try alternative method
-      // Create a temporary link and click it
-      const link = document.createElement('a')
-      link.href = url
-      link.target = '_blank'
-      link.rel = 'noopener noreferrer'
-      link.style.display = 'none'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+    const ua = navigator.userAgent.toLowerCase()
+    const isAndroid = ua.includes('android')
+    const isIOS = /iphone|ipad|ipod/.test(ua)
+
+    // Method 1: Try Android Intent URL to force external browser
+    if (isAndroid) {
+      try {
+        // Convert to Android intent URL that opens in default browser
+        const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;end`
+        window.location.href = intentUrl
+        return true
+      } catch (e) {
+        console.log('Android intent failed, trying fallback')
+      }
     }
+
+    // Method 2: Try iOS Safari-specific approach
+    if (isIOS) {
+      // On iOS, setting location directly sometimes opens Safari
+      // when called from a user gesture context
+      try {
+        window.location.href = url
+        return true
+      } catch (e) {
+        console.log('iOS location change failed, trying fallback')
+      }
+    }
+
+    // Method 3: window.open with _system target (works in some WebViews)
+    try {
+      const newWindow = window.open(url, '_system')
+      if (newWindow) {
+        return true
+      }
+    } catch (e) {
+      console.log('_system target failed')
+    }
+
+    // Method 4: Standard window.open with _blank
+    try {
+      const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
+      if (newWindow && !newWindow.closed) {
+        return true
+      }
+    } catch (e) {
+      console.log('_blank target failed')
+    }
+
+    // Method 5: Create and click a link element
+    const link = document.createElement('a')
+    link.href = url
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
     
     return true
   } catch (error) {
     console.error('Error opening external browser:', error)
     return false
   }
+}
+
+/**
+ * Get the current page URL that can be copied to clipboard
+ * @returns {string} - Current page URL
+ */
+export const getCurrentPageUrl = () => {
+  return window.location.href
 }

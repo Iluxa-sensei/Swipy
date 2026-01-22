@@ -17,6 +17,7 @@ const LoginPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [showExternalBrowserMessage, setShowExternalBrowserMessage] = useState(false)
+  const [externalBrowserUrl, setExternalBrowserUrl] = useState(null)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -155,11 +156,17 @@ const LoginPage = () => {
 
       // Check if external browser was opened
       if (result?.requiresExternalBrowser) {
+        // Store the URL for manual copy option
+        if (result.url) {
+          setExternalBrowserUrl(result.url)
+        }
         setShowExternalBrowserMessage(true)
-        // Auto-hide message after 10 seconds
-        setTimeout(() => {
-          setShowExternalBrowserMessage(false)
-        }, 10000)
+        // Don't auto-hide if external browser may not have opened
+        if (result.externalBrowserOpened) {
+          setTimeout(() => {
+            setShowExternalBrowserMessage(false)
+          }, 15000)
+        }
         return
       }
 
@@ -181,6 +188,24 @@ const LoginPage = () => {
       }
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const copyOAuthUrl = async () => {
+    if (!externalBrowserUrl) return
+    
+    try {
+      await navigator.clipboard.writeText(externalBrowserUrl)
+      alert('Link copied! Paste it in Chrome or Safari to sign in.')
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = externalBrowserUrl
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      alert('Link copied! Paste it in Chrome or Safari to sign in.')
     }
   }
 
@@ -399,13 +424,26 @@ const LoginPage = () => {
                 <p className="text-sm text-text-primary font-medium mb-1">
                   Opening in your browser
                 </p>
-                <p className="text-xs text-text-secondary">
+                <p className="text-xs text-text-secondary mb-3">
                   Please complete the sign-in process in the browser window that just opened. 
                   You'll be redirected back here once signed in.
                 </p>
+                <p className="text-xs text-text-secondary mb-2">
+                  <strong>Didn't open?</strong> Copy the link and paste it in Chrome or Safari:
+                </p>
+                <button
+                  onClick={copyOAuthUrl}
+                  className="w-full py-2 px-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-blue-400 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <i className="fas fa-copy"></i>
+                  Copy Sign-in Link
+                </button>
               </div>
               <button
-                onClick={() => setShowExternalBrowserMessage(false)}
+                onClick={() => {
+                  setShowExternalBrowserMessage(false)
+                  setExternalBrowserUrl(null)
+                }}
                 className="ml-2 text-text-secondary hover:text-text-primary transition-colors"
                 aria-label="Close message"
               >
@@ -653,13 +691,26 @@ const LoginPage = () => {
                 <p className="text-sm text-text-primary font-medium mb-1">
                   Opening in your browser
                 </p>
-                <p className="text-xs text-text-secondary">
+                <p className="text-xs text-text-secondary mb-3">
                   Please complete the sign-in process in the browser window that just opened. 
                   You'll be redirected back here once signed in.
                 </p>
+                <p className="text-xs text-text-secondary mb-2">
+                  <strong>Didn't open?</strong> Copy the link and paste it in Chrome or Safari:
+                </p>
+                <button
+                  onClick={copyOAuthUrl}
+                  className="w-full py-2 px-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-blue-400 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <i className="fas fa-copy"></i>
+                  Copy Sign-in Link
+                </button>
               </div>
               <button
-                onClick={() => setShowExternalBrowserMessage(false)}
+                onClick={() => {
+                  setShowExternalBrowserMessage(false)
+                  setExternalBrowserUrl(null)
+                }}
                 className="ml-2 text-text-secondary hover:text-text-primary transition-colors"
                 aria-label="Close message"
               >
