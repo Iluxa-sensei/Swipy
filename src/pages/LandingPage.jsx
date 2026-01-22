@@ -78,7 +78,7 @@ const LandingPage = () => {
                     const finalTransform = -Math.min(scrollDistance, maxReveal);
                     setFaqTransform(finalTransform);
 
-                    // Show footer when we've started revealing
+
                     setFooterVisible(scrollDistance > 50);
                 }
             });
