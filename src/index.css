@@ -242,6 +242,20 @@
     @apply opacity-100 translate-x-0;
   }
 
+  /* Onboarding page: enable proper scrolling */
+  .screen.onboarding-page {
+    @apply flex flex-col;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .screen.onboarding-page .flex-1 {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   /* Desktop: screen should be relative, not absolute */
   @media (min-width: 1024px) {
 

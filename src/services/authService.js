@@ -5,16 +5,13 @@ export const authService = {
     // Get current session
     async getCurrentSession() {
         try {
-            console.log('authService.getCurrentSession: Calling supabase.auth.getSession()')
             const { data: { session }, error } = await supabase.auth.getSession()
-            console.log('authService.getCurrentSession: Supabase response:', { session, error })
 
             if (error) {
                 console.error('authService.getCurrentSession: Supabase error:', error)
                 throw error
             }
 
-            console.log('authService.getCurrentSession: Returning session:', session)
             return session
         } catch (error) {
             console.error('authService.getCurrentSession: Error:', error)
@@ -59,21 +56,16 @@ export const authService = {
     // Sign in with email and password
     async signIn(email, password) {
         try {
-            console.log('authService.signIn: Attempting sign in for email:', email)
-
             const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password
             })
-
-            console.log('authService.signIn: Supabase response:', { data, error })
 
             if (error) {
                 console.error('authService.signIn: Supabase error:', error)
                 throw error
             }
 
-            console.log('authService.signIn: Sign in successful, data:', data)
             return data
         } catch (error) {
             console.error('authService.signIn: Error:', error)

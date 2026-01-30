@@ -27,7 +27,6 @@ export const AuthProvider = ({ children }) => {
           try {
             const parsedSession = JSON.parse(cachedSession)
             if (parsedSession && parsedSession.user?.id && parsedSession.access_token) {
-              console.log('AuthProvider: Using cached session')
               setSession(parsedSession)
               setInitialized(true)
               setLoading(false)
@@ -39,11 +38,8 @@ export const AuthProvider = ({ children }) => {
           }
         }
 
-        console.log('AuthProvider: Initializing authentication...')
-
         // Security: Get initial session
         const currentSession = await authService.getCurrentSession()
-        console.log('AuthProvider: Current session:', currentSession)
 
         if (!isMounted) return
 
@@ -54,13 +50,11 @@ export const AuthProvider = ({ children }) => {
             setSession(null)
             sessionStorage.removeItem('swipy_session')
           } else {
-            console.log('AuthProvider: Setting valid session:', currentSession)
             setSession(currentSession)
             // Cache the session
             sessionStorage.setItem('swipy_session', JSON.stringify(currentSession))
           }
         } else {
-          console.log('AuthProvider: No session found')
           setSession(null)
           sessionStorage.removeItem('swipy_session')
         }

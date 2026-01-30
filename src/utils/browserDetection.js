@@ -37,12 +37,15 @@ export const isEmbeddedBrowser = () => {
   // Check if any pattern matches
   const isEmbedded = embeddedBrowserPatterns.some(pattern => pattern.test(ua))
 
+  const isMobileDevice = /iphone|ipad|ipod|android/i.test(uaLower)
+
   // LinkedIn-specific detection (multiple methods)
+  // Only treat LinkedIn referrer as embedded on mobile devices.
   const isLinkedIn = 
     uaLower.includes('linkedin') ||
     uaLower.includes('lclcandroid') || // LinkedIn Android
     uaLower.includes('lclcios') ||     // LinkedIn iOS
-    (document.referrer && document.referrer.includes('linkedin.com'))
+    (isMobileDevice && document.referrer && document.referrer.includes('linkedin.com'))
 
   // Check for Android WebView specifically
   // Android WebView user agent contains "wv" in version string like "Chrome/xxx.x.x.x Mobile Safari/xxx.xx"

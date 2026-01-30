@@ -201,7 +201,7 @@ const OnboardingPage = () => {
   const progress = (currentStep / 4) * 100
 
   return (
-    <div className="screen active">
+    <div className="screen active onboarding-page">
       {/* Progress Bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-glass-border z-50">
         <div
@@ -228,7 +228,7 @@ const OnboardingPage = () => {
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto pb-6">
+      <div className="flex-1 overflow-y-auto pb-6 min-h-0">
         {/* Step 1: Basic Information */}
         {currentStep === 1 && (
           <div className="p-6 space-y-6 animate-fade-in">
