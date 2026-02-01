@@ -30,13 +30,13 @@ const LandingPage = () => {
     }, [])
 
 
-    // Enable scrolling for landing page
+
     useEffect(() => {
         // Add class to body and html to enable scrolling via CSS
         document.body.classList.add('landing-page-active')
         document.documentElement.classList.add('landing-page-active')
 
-        // Add scroll animations
+
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -100px 0px'
