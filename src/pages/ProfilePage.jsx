@@ -397,90 +397,100 @@ const ProfilePage = () => {
         )}
 
         {activeTab === 'portfolio' && userRole === 'founder' && (
-          <div className="p-6 animate-fade-in">
-            <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-              <i className="fas fa-rocket text-blue-400"></i>
-              My Startups
-            </h3>
+          <div className="p-4 animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-text-primary flex items-center gap-2">
+                <i className="fas fa-rocket text-accent-primary"></i>
+                My Startups
+              </h3>
+              <button
+                className="btn-primary py-2 px-4 rounded-xl text-xs font-semibold"
+                onClick={() => navigate('/add')}
+              >
+                <i className="fas fa-plus mr-1.5"></i>
+                Create New
+              </button>
+            </div>
             {loadingComplete ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                <p className="text-text-secondary">Loading startups...</p>
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent-primary mx-auto mb-3"></div>
+                <p className="text-text-secondary text-sm">Loading startups...</p>
               </div>
             ) : completeProfile?.startups?.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <i className="fas fa-rocket text-3xl text-white"></i>
+              <div className="text-center py-10">
+                <div className="w-16 h-16 bg-accent-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <i className="fas fa-rocket text-2xl text-accent-primary"></i>
                 </div>
-                <h3 className="text-xl font-bold text-text-primary mb-2">No Startups Yet</h3>
-                <p className="text-text-secondary mb-6">Create your first startup to showcase your entrepreneurial journey</p>
+                <h3 className="text-lg font-bold text-text-primary mb-2">No Startups Yet</h3>
+                <p className="text-text-secondary text-sm mb-5">Create your first startup to showcase your entrepreneurial journey</p>
                 <button
-                  className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
+                  className="btn-primary py-2.5 px-6 rounded-xl text-sm"
                   onClick={() => navigate('/add')}
                 >
                   <i className="fas fa-plus mr-2"></i>
-                  Create Startup
+                  Launch First Startup
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-6">
+              <div className="grid grid-cols-1 gap-4">
                 {completeProfile?.startups?.map((startup) => (
-                  <div key={startup.id} className="bg-bg-secondary/80 border border-glass-border rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-blue-400/20">
-                    <div className={`h-32 ${startup.gradient || 'bg-gradient-primary'} relative`}>
+                  <div key={startup.id} className="bg-bg-secondary/80 border border-glass-border rounded-2xl overflow-hidden">
+                    <div className={`h-20 ${startup.gradient || 'bg-gradient-primary'} relative`}>
                       {startup.image && (
                         <img src={startup.image} alt={startup.name} className="w-full h-full object-cover" />
                       )}
-                      <div className="absolute inset-0 bg-black/20"></div>
-                      <div className="absolute top-4 right-4 flex gap-2">
-                        {startup.funding && (
-                          <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-semibold text-white">
-                            {startup.funding}
-                          </span>
-                        )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                      <div className="absolute top-2 right-2 flex gap-1.5">
                         {startup.stage && (
-                          <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-semibold text-white">
+                          <span className="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-md text-[10px] font-bold text-white">
                             {startup.stage}
                           </span>
                         )}
                       </div>
+                      <div className="absolute bottom-2 left-3">
+                        <h4 className="text-base font-bold text-white drop-shadow-md">{startup.name}</h4>
+                      </div>
                     </div>
-                    <div className="p-6">
-                      <h4 className="text-xl font-bold text-text-primary mb-2">{startup.name}</h4>
-                      <p className="text-text-secondary mb-3 leading-relaxed">{startup.description}</p>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm font-medium">
-                          {startup.category}
-                        </span>
-                        {startup.teamSize && (
-                          <span className="px-3 py-1 bg-bg-secondary/80 text-text-secondary rounded-full text-sm font-medium">
-                            Team: {startup.teamSize}
+                    <div className="p-3.5">
+                      <div className="flex flex-wrap gap-1.5 mb-2.5">
+                        {startup.category && (
+                          <span className="px-2 py-0.5 bg-accent-primary/15 text-accent-primary rounded-md text-[10px] font-bold uppercase tracking-wider">
+                            {startup.category}
+                          </span>
+                        )}
+                        {startup.funding && (
+                          <span className="px-2 py-0.5 bg-bg-secondary/80 text-text-secondary rounded-md text-[10px] font-semibold">
+                            {startup.funding}
                           </span>
                         )}
                         {startup.location && (
-                          <span className="px-3 py-1 bg-bg-secondary/80 text-text-secondary rounded-full text-sm font-medium">
+                          <span className="px-2 py-0.5 bg-bg-secondary/80 text-text-secondary rounded-md text-[10px] font-semibold">
                             📍 {startup.location}
                           </span>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      {startup.description && (
+                        <p className="text-text-secondary mb-3 text-xs leading-relaxed line-clamp-2">{startup.description}</p>
+                      )}
+                      <div className="flex justify-center gap-2">
                         <button
-                          className="btn-secondary flex-1 hover:bg-accent-primary hover:text-white transition-all duration-200"
+                          className="btn-primary flex-1 py-2 rounded-xl text-xs font-semibold"
                           onClick={() => {
-                            if (startup.profiles?.username && startup.slug) {
-                                navigate(`/${startup.profiles.username}/startup/${startup.slug}`)
+                            const ownerUsername = startup.profiles?.username || profile?.username
+                            if (ownerUsername && startup.slug) {
+                                navigate(`/${ownerUsername}/startup/${startup.slug}`)
                             } else {
                                 navigate(`/startup/${startup.id}`)
                             }
                           }}
                         >
-                          <i className="fas fa-eye"></i>
                           View Details
                         </button>
                         <button
-                          className="btn-secondary hover:bg-accent-primary hover:text-white transition-all duration-200"
+                          className="w-9 h-9 flex items-center justify-center bg-bg-secondary border border-glass-border rounded-xl text-text-secondary hover:text-text-primary hover:bg-glass-border transition-colors"
                           onClick={() => navigate('/profile/edit')}
                         >
-                          <i className="fas fa-edit"></i>
+                          <i className="fas fa-edit text-xs"></i>
                         </button>
                       </div>
                     </div>

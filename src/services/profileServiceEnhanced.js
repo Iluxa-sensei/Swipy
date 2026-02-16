@@ -14,6 +14,9 @@ export const profileServiceEnhanced = {
             if (profileError) throw profileError
 
             // Get all related data in parallel
+            // Note: startups query uses select('*') without FK join to profiles,
+            // because the FK startups_owner_id_fkey references auth.users, not profiles.
+            // We attach the profile username separately below.
             const [
                 { data: workExperience },
                 { data: education },
@@ -25,8 +28,14 @@ export const profileServiceEnhanced = {
                 supabase.from('education').select('*').eq('user_id', userId).order('end_date', { ascending: false }),
                 supabase.from('portfolio_projects').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
                 supabase.from('achievements').select('*').eq('user_id', userId).order('date_earned', { ascending: false }),
-                supabase.from('startups').select('*, profiles!startups_owner_id_fkey(username)').eq('owner_id', userId).order('created_at', { ascending: false })
+                supabase.from('startups').select('*').eq('owner_id', userId).order('created_at', { ascending: false })
             ])
+
+            // Attach owner profile username to each startup for URL generation
+            const startupsWithProfile = (startups || []).map(s => ({
+                ...s,
+                profiles: { username: profile.username }
+            }))
 
             return {
                 profile,
@@ -34,7 +43,7 @@ export const profileServiceEnhanced = {
                 education: education || [],
                 portfolioProjects: portfolioProjects || [],
                 achievements: achievements || [],
-                startups: startups || []
+                startups: startupsWithProfile
             }
         } catch (error) {
             console.error('Error getting complete profile:', error)
@@ -260,13 +269,29 @@ export const profileServiceEnhanced = {
     // Get user's startups for portfolio display
     async getUserStartups(userId) {
         try {
+            // Fetch startups without FK join (FK references auth.users, not profiles)
             const { data, error } = await supabase
                 .from('startups')
-                .select('*, profiles!startups_owner_id_fkey(username)')
+                .select('*')
                 .eq('owner_id', userId)
                 .order('created_at', { ascending: false })
 
             if (error) throw error
+
+            // Fetch owner username separately
+            if (data && data.length > 0) {
+                const { data: ownerProfile } = await supabase
+                    .from('profiles')
+                    .select('username')
+                    .eq('id', userId)
+                    .single()
+
+                return data.map(s => ({
+                    ...s,
+                    profiles: { username: ownerProfile?.username }
+                }))
+            }
+
             return data || []
         } catch (error) {
             console.error('Error getting user startups:', error)

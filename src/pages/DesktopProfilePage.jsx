@@ -419,41 +419,48 @@ const DesktopProfilePage = () => {
                                 </button>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-3 gap-5">
                                 {completeProfile.startups.map((startup) => (
                                     <div key={startup.id} className="desktop-card group !p-0 overflow-hidden">
-                                        <div className={`h-40 ${startup.gradient || 'bg-gradient-primary'} relative`}>
+                                        <div className={`h-24 ${startup.gradient || 'bg-gradient-primary'} relative`}>
                                             {startup.image && (
                                                 <img src={startup.image} alt={startup.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                             )}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                                            <div className="absolute top-3 right-3 flex gap-2">
-                                                {startup.funding && (
-                                                    <span className="px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[10px] font-bold text-white border border-white/30">
-                                                        {startup.funding}
-                                                    </span>
-                                                )}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                            <div className="absolute top-2.5 right-2.5 flex gap-1.5">
                                                 {startup.stage && (
-                                                    <span className="px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[10px] font-bold text-white border border-white/30">
+                                                    <span className="px-2 py-0.5 bg-white/20 backdrop-blur-md rounded-md text-[10px] font-bold text-white border border-white/20">
                                                         {startup.stage}
                                                     </span>
                                                 )}
                                             </div>
-                                        </div>
-                                        <div className="p-6">
-                                            <div className="flex justify-between items-start mb-3">
-                                                <h4 className="text-xl font-bold text-text-primary">{startup.name}</h4>
-                                                <span className="px-2.5 py-1 bg-accent-primary/10 text-accent-primary rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                                                    {startup.category}
-                                                </span>
+                                            <div className="absolute bottom-2.5 left-3">
+                                                <h4 className="text-base font-bold text-white drop-shadow-md truncate">{startup.name}</h4>
                                             </div>
-                                            <p className="text-text-secondary mb-4 leading-relaxed text-sm line-clamp-2">{startup.description}</p>
-                                            <div className="flex gap-2">
+                                        </div>
+                                        <div className="p-4">
+                                            <div className="flex flex-wrap gap-1.5 mb-3">
+                                                {startup.category && (
+                                                    <span className="px-2 py-0.5 bg-accent-primary/10 text-accent-primary rounded-md text-[10px] font-bold uppercase tracking-wider">
+                                                        {startup.category}
+                                                    </span>
+                                                )}
+                                                {startup.funding && (
+                                                    <span className="px-2 py-0.5 bg-bg-secondary/80 text-text-secondary rounded-md text-[10px] font-semibold">
+                                                        {startup.funding}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {startup.description && (
+                                                <p className="text-text-secondary mb-3 text-xs leading-relaxed line-clamp-2">{startup.description}</p>
+                                            )}
+                                            <div className="flex justify-center gap-2">
                                                 <button
-                                                    className="btn-primary flex-1 py-2.5 rounded-xl text-sm"
+                                                    className="btn-primary flex-1 py-2 rounded-xl text-xs font-semibold"
                                                     onClick={() => {
-                                                        if (startup.profiles?.username && startup.slug) {
-                                                            navigate(`/${startup.profiles.username}/startup/${startup.slug}`)
+                                                        const ownerUsername = startup.profiles?.username || profile?.username
+                                                        if (ownerUsername && startup.slug) {
+                                                            navigate(`/${ownerUsername}/startup/${startup.slug}`)
                                                         } else {
                                                             navigate(`/startup/${startup.id}`)
                                                         }
@@ -462,10 +469,10 @@ const DesktopProfilePage = () => {
                                                     View Details
                                                 </button>
                                                 <button
-                                                    className="w-10 h-10 flex items-center justify-center bg-bg-secondary border border-glass-border rounded-xl text-text-primary hover:bg-glass-border transition-colors"
+                                                    className="w-9 h-9 flex items-center justify-center bg-bg-secondary border border-glass-border rounded-xl text-text-secondary hover:text-text-primary hover:bg-glass-border transition-colors"
                                                     onClick={() => navigate('/profile/edit')}
                                                 >
-                                                    <i className="fas fa-edit text-sm"></i>
+                                                    <i className="fas fa-edit text-xs"></i>
                                                 </button>
                                             </div>
                                         </div>
