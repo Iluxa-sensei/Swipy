@@ -259,6 +259,11 @@
   /* Desktop: screen should be relative, not absolute */
   @media (min-width: 1024px) {
 
+    /* Onboarding on desktop: use unified dark background #0b0c10 (single color) */
+    body:has(.onboarding-page) {
+      background: #0b0c10;
+    }
+
     .desktop-main .screen,
     .desktop-content-area .screen {
       position: relative !important;
@@ -271,6 +276,34 @@
       margin: 0 !important;
       padding: 0 !important;
       box-sizing: border-box;
+    }
+
+    /* Desktop main with onboarding: fixed height so content area and onboarding get a defined flex height */
+    .desktop-main:has(.onboarding-page) {
+      height: 100vh !important;
+      min-height: 100vh !important;
+    }
+
+    /* Desktop content area with onboarding: constrain height so flex child can resolve height: 100% */
+    .desktop-content-area:has(.onboarding-page) {
+      min-height: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    /* Onboarding on desktop: fill content area and use flex so the scrollable middle section gets height */
+    .desktop-content-area .screen.onboarding-page {
+      display: flex !important;
+      flex-direction: column !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      flex: 1 1 0 !important;
+    }
+
+    .desktop-content-area .screen.onboarding-page .flex-1 {
+      flex: 1 1 0 !important;
+      min-height: 0 !important;
+      overflow-y: auto !important;
     }
 
     /* Ensure desktop-shell takes full width */
