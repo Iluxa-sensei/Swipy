@@ -153,9 +153,9 @@ const FiltersPage = () => {
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
-            {filters.categories.map(cat => (
+            {(filters.industries || []).map(cat => (
               <span key={cat} className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm">
-                {cat} <button onClick={() => toggleCategory(cat)} className="ml-1">×</button>
+                {cat} <button onClick={() => toggleIndustry(cat)} className="ml-1">×</button>
               </span>
             ))}
             {filters.stages.map(stage => (
