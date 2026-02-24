@@ -8,6 +8,7 @@ const NAV_ITEMS = [
     { id: 'home', label: 'News', icon: 'fa-regular fa-newspaper', path: '/home' },
     { id: 'chat', label: 'Chats', icon: 'fa-regular fa-comments', path: '/chat' },
     { id: 'saved', label: 'Saved', icon: 'fa-regular fa-bookmark', path: '/saved' },
+    { id: 'jobs', label: 'Jobs', icon: 'fa-solid fa-briefcase', path: '/jobs' },
     { id: 'notifications', label: 'Alerts', icon: 'fa-regular fa-bell', path: '/notifications' },
     { id: 'activity-dashboard', label: 'Insights', icon: 'fa-solid fa-chart-simple', path: '/activity-dashboard' },
     { id: 'profile', label: 'Profile', icon: 'fa-regular fa-user', path: '/profile' },
@@ -259,7 +260,13 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                                 <h1>Account Settings</h1>
                             </>
                         )}
-                        {!['home', 'chat', 'saved', 'notifications', 'activity-dashboard', 'profile', 'settings'].includes(currentScreen) && (
+                        {currentScreen === 'jobs' && (
+                            <>
+                                <p className="desktop-header-eyebrow">Job Scanner</p>
+                                <h1>Find Jobs</h1>
+                            </>
+                        )}
+                        {!['home', 'chat', 'saved', 'notifications', 'activity-dashboard', 'profile', 'settings', 'jobs'].includes(currentScreen) && (
                             <>
                                 <p className="desktop-header-eyebrow">Swipy</p>
                                 <h1>Dashboard</h1>

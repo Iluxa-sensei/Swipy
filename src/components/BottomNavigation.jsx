@@ -22,6 +22,7 @@ const BottomNavigation = ({ currentScreen, onScreenChange }) => {
 
   const navItems = [
     { id: 'home', icon: 'fas fa-fire', label: 'Home', path: '/home' },
+    { id: 'jobs', icon: 'fas fa-briefcase', label: 'Jobs', path: '/jobs' },
     ...(userRole === 'founder' ? [{ id: 'add', icon: 'fas fa-plus', label: 'Add', path: '/add' }] : []),
     { id: 'chat', icon: 'fas fa-comments', label: 'Chat', path: '/chat' },
     { id: 'profile', icon: 'fas fa-user', label: 'Profile', path: '/profile' }

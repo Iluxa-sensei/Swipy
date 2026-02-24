@@ -35,6 +35,10 @@ import SettingsPage from './pages/SettingsPage'
 import DesktopSettingsPage from './pages/DesktopSettingsPage.jsx'
 import DesktopSupportPage from './pages/DesktopSupportPage.jsx'
 import SupportPage from './pages/SupportPage.jsx'
+import JobSearchPage from './pages/JobSearchPage'
+import DesktopJobSearchPage from './pages/DesktopJobSearchPage.jsx'
+import JobDetailsPage from './pages/JobDetailsPage'
+import DesktopJobDetailsPage from './pages/DesktopJobDetailsPage.jsx'
 import ActivityDashboardPage from './pages/ActivityDashboardPage'
 import OAuthCallback from './components/OAuthCallback'
 import ResetPasswordPage from './pages/ResetPasswordPage'
@@ -102,6 +106,8 @@ function App() {
         <Route path="/:nickname/startup/:startup_name" element={isDesktop ? <DesktopStartupDetailPage /> : <StartupDetailPage />} />
         <Route path="/startup/:id" element={isDesktop ? <DesktopStartupDetailPage /> : <StartupDetailPage />} />
         <Route path="/saved" element={isDesktop ? <DesktopSavedPage /> : <SavedPage />} />
+        <Route path="/jobs" element={isDesktop ? <DesktopJobSearchPage /> : <JobSearchPage />} />
+        <Route path="/jobs/:id" element={isDesktop ? <DesktopJobDetailsPage /> : <JobDetailsPage />} />
         <Route path="/notifications" element={isDesktop ? <DesktopNotificationsPage /> : <NotificationsPage />} />
         <Route path="/chat" element={isDesktop ? <DesktopChatPage /> : <ChatPage />} />
         <Route path="/profile/edit" element={isDesktop ? <DesktopProfileEditPage /> : <ProfileEditPage />} />
