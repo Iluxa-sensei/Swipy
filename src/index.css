@@ -242,11 +242,17 @@
     @apply opacity-100 translate-x-0;
   }
 
-  /* Onboarding page: enable proper scrolling */
+  /* Onboarding page: enable proper scrolling and use dark dashboard background */
   .screen.onboarding-page {
     @apply flex flex-col;
+    background: #0b0c10;
     height: 100%;
     min-height: 0;
+  }
+
+  /* Make onboarding header match the black background */
+  .screen.onboarding-page .header {
+    background: #0b0c10;
   }
 
   .screen.onboarding-page .flex-1 {

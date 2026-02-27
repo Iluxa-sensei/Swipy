@@ -1,14 +1,67 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider.jsx'
+import { profileService } from '../services/profileService.js'
 
 export const ProtectedRoute = () => {
   const { session, loading, hasValidSession, error } = useAuth()
   const location = useLocation()
+  const [onboardingChecked, setOnboardingChecked] = useState(false)
+  const [requiresOnboarding, setRequiresOnboarding] = useState(false)
+  const isOnboardingRoute = location.pathname === '/onboarding'
 
   // Check for cached session to avoid loading screen
   const cachedSession = sessionStorage.getItem('swipy_session')
   const hasCachedSession = cachedSession && JSON.parse(cachedSession)?.user?.id
+
+  // Check onboarding status for authenticated users
+  useEffect(() => {
+    // Skip onboarding check for onboarding route itself
+    if (isOnboardingRoute) {
+      setOnboardingChecked(true)
+      setRequiresOnboarding(false)
+      return
+    }
+
+    // Only run when we have an authenticated user
+    if (!session?.user?.id) {
+      setOnboardingChecked(true)
+      setRequiresOnboarding(false)
+      return
+    }
+
+    let cancelled = false
+
+    const checkOnboarding = async () => {
+      try {
+        setOnboardingChecked(false)
+        const profile = await profileService.getProfile(session.user.id)
+
+        if (cancelled) return
+
+        // If there's no profile or onboarding flag is false, require onboarding
+        if (!profile || !profile.onboarding_completed) {
+          setRequiresOnboarding(true)
+        } else {
+          setRequiresOnboarding(false)
+        }
+      } catch (e) {
+        if (cancelled) return
+        console.warn('ProtectedRoute: Failed to check onboarding status, redirecting to onboarding', e)
+        setRequiresOnboarding(true)
+      } finally {
+        if (!cancelled) {
+          setOnboardingChecked(true)
+        }
+      }
+    }
+
+    checkOnboarding()
+
+    return () => {
+      cancelled = true
+    }
+  }, [session?.user?.id, isOnboardingRoute])
 
   // Security: Show loading state while checking authentication (only if no cached session)
   if (loading && !hasCachedSession) {
@@ -97,6 +150,27 @@ export const ProtectedRoute = () => {
         </div>
       </div>
     )
+  }
+
+  // Enforce mandatory onboarding for all protected routes except the onboarding page itself
+  if (!isOnboardingRoute) {
+    // While we are checking onboarding status, show a small loading state
+    if (session?.user?.id && !onboardingChecked) {
+      return (
+        <div className="screen active">
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-text-secondary">Loading your profile...</p>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    if (session?.user?.id && onboardingChecked && requiresOnboarding) {
+      return <Navigate to="/onboarding" replace />
+    }
   }
 
   // Security: All checks passed, render protected content

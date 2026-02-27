@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { searchJobs } from '../data/mockJobs'
+import { searchJobs } from '../services/jobService'
 
 const JobSearchPage = () => {
     const navigate = useNavigate()
@@ -133,9 +133,11 @@ const JobSearchPage = () => {
                                                     <i className="fas fa-location-dot text-[9px]"></i>
                                                     {job.location}
                                                 </span>
-                                                <span className="px-2 py-0.5 bg-bg-tertiary/60 border border-glass-border rounded-md text-[11px] text-text-secondary">
-                                                    {job.type}
-                                                </span>
+                                                {job.type && (
+                                                    <span className="px-2 py-0.5 bg-bg-tertiary/60 border border-glass-border rounded-md text-[11px] text-text-secondary">
+                                                        {job.type}
+                                                    </span>
+                                                )}
                                             </div>
                                             <p className="text-xs text-text-secondary mt-2 line-clamp-2">{job.shortDescription}</p>
                                             {job.salary && (

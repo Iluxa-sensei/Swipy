@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import JobCard from '../components/JobCard'
-import { searchJobs } from '../data/mockJobs'
+import { searchJobs } from '../services/jobService'
 
 const DesktopJobSearchPage = () => {
     const navigate = useNavigate()
