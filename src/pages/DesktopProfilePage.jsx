@@ -49,6 +49,16 @@ const DesktopProfilePage = () => {
         avatarUrl: profile.avatar_url || null,
     } : null
 
+    const getProfileCompletion = () => {
+        if (!profile) return 0
+        const fields = ['full_name', 'username', 'bio', 'location', 'avatar_url', 'role', 'website']
+        const filled = fields.filter(f => profile[f] && String(profile[f]).trim() !== '').length
+        const interestsFilled = profile.interests && profile.interests.length > 0 ? 1 : 0
+        return Math.round(((filled + interestsFilled) / (fields.length + 1)) * 100)
+    }
+
+    const profileCompletion = getProfileCompletion()
+
 
     if (profileLoading) {
         return (
@@ -112,6 +122,12 @@ const DesktopProfilePage = () => {
 
     return (
         <div className="desktop-page">
+            {/* Page header */}
+            <div className="desktop-page-header">
+                <p>Profile</p>
+                <h1>My Swipy Profile</h1>
+            </div>
+
             {/* Profile Header - Compact and Modern */}
             <div className="desktop-page-section !pb-6">
                 <div className="flex items-center gap-6">
@@ -146,6 +162,23 @@ const DesktopProfilePage = () => {
                                     <span>{userProfile.location}</span>
                                 </div>
                             )}
+                        </div>
+                        {/* Profile completion */}
+                        <div className="mt-4 max-w-xs">
+                            <div className="flex items-center justify-between mb-1">
+                                <span className="text-[11px] uppercase tracking-[0.16em] text-text-secondary">
+                                    Profile completeness
+                                </span>
+                                <span className="text-xs font-semibold text-accent-primary">
+                                    {profileCompletion}%
+                                </span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-bg-secondary/80 overflow-hidden">
+                                <div
+                                    className="h-full bg-gradient-to-r from-blue-400 via-indigo-500 to-violet-500 transition-all duration-500"
+                                    style={{ width: `${profileCompletion}%` }}
+                                />
+                            </div>
                         </div>
                     </div>
                     <div className="flex gap-2 flex-shrink-0">

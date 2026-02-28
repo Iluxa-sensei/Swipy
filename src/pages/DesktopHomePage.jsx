@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth, useStartupsLazy, useSwipes } from '../hooks'
+import { useAuth, useStartupsLazy, useSwipes, useProfile } from '../hooks'
 import { chatService, startupService, swipeService } from '../services'
 
 const DesktopHomePage = () => {
@@ -16,46 +16,60 @@ const DesktopHomePage = () => {
         refetch
     } = useStartupsLazy()
     const { likeStartup, likes, removeSwipe, refetch: refetchSwipes } = useSwipes(user?.id)
+    const { profile } = useProfile(user?.id)
     const [likedStartups, setLikedStartups] = useState(new Set())
     // Local state for optimistic likes_count updates
     const [likesCountUpdates, setLikesCountUpdates] = useState({})
 
-    const heroItems = useMemo(() => startups.slice(0, 5), [startups])
-    const [heroIndex, setHeroIndex] = useState(0)
-    const [metrics, setMetrics] = useState({
-        startupsCount: 0,
-        usersCount: 0,
-        chatsCount: 0
-    })
-    const [metricsLoading, setMetricsLoading] = useState(true)
+    // Calculate profile completeness for smart recommendation
+    const getProfileCompleteness = () => {
+        if (!profile) return 0
+        const fields = ['full_name', 'username', 'bio', 'location', 'avatar_url', 'role', 'website']
+        const filled = fields.filter(f => profile[f] && String(profile[f]).trim() !== '').length
+        const interestsFilled = profile.interests && profile.interests.length > 0 ? 1 : 0
+        return Math.round(((filled + interestsFilled) / (fields.length + 1)) * 100)
+    }
 
-    useEffect(() => {
-        setHeroIndex(0)
-    }, [heroItems.length])
-
-    useEffect(() => {
-        if (heroItems.length < 2) return undefined
-        const id = setInterval(() => {
-            setHeroIndex(prev => (prev + 1) % heroItems.length)
-        }, 6000)
-        return () => clearInterval(id)
-    }, [heroItems])
-
-    // Load dashboard metrics
-    useEffect(() => {
-        const loadMetrics = async () => {
-            try {
-                setMetricsLoading(true)
-                const data = await startupService.getDashboardMetrics()
-                setMetrics(data)
-            } catch (error) {
-                console.error('Failed to load dashboard metrics:', error)
-            } finally {
-                setMetricsLoading(false)
+    const getSmartRecommendation = () => {
+        const completeness = getProfileCompleteness()
+        if (completeness < 70) {
+            return {
+                icon: 'fa-user-pen',
+                title: 'Complete Your Profile',
+                description: `Your profile is ${completeness}% complete. A full profile helps you get better matches and visibility.`,
+                buttonText: 'Fill Profile',
+                action: () => navigate('/profile/edit'),
+                gradient: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                iconBg: 'rgba(99, 102, 241, 0.2)',
+                iconColor: '#a78bfa',
+                progress: completeness
             }
         }
-        loadMetrics()
-    }, [])
+        if (!startups.some(s => s.owner_id === user?.id)) {
+            return {
+                icon: 'fa-rocket',
+                title: 'Add Your Startup',
+                description: 'Showcase your startup to investors and connect with potential partners worldwide.',
+                buttonText: 'Add Startup',
+                action: () => navigate('/add'),
+                gradient: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
+                iconBg: 'rgba(245, 158, 11, 0.2)',
+                iconColor: '#fbbf24',
+                progress: null
+            }
+        }
+        return {
+            icon: 'fa-comments',
+            title: 'Start a Conversation',
+            description: 'Connect with founders and investors. Direct messaging builds real partnerships.',
+            buttonText: 'Browse Startups',
+            action: () => navigate('/home'),
+            gradient: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)',
+            iconBg: 'rgba(59, 130, 246, 0.2)',
+            iconColor: '#60a5fa',
+            progress: null
+        }
+    }
 
     const ensureAuth = () => {
         if (!user?.id) {
@@ -438,104 +452,328 @@ const DesktopHomePage = () => {
         )
     }
 
-    const currentHero = heroItems[heroIndex]
+    const recommendation = getSmartRecommendation()
 
     return (
         <div className="desktop-home">
-            <section className="desktop-hero modern">
-                <div className="hero-carousel">
-                    {currentHero ? (
-                        <div
-                            className={`hero-slide ${!currentHero.image && !currentHero.logo_url ? 'gradient' : ''}`}
-                            style={{
-                                backgroundImage: currentHero.image
-                                    ? `url(${currentHero.image})`
-                                    : currentHero.logo_url
-                                        ? `url(${currentHero.logo_url})`
-                                        : undefined
-                            }}
-                        >
-                            <div className="hero-overlay">
-                                <p className="hero-eyebrow">Startup news</p>
-                                <h2>{currentHero.name} raised {currentHero.funding_round || 'a new round'}</h2>
-                                <p className="hero-subtitle">
-                                    {currentHero.description}
-                                </p>
-                                <button type="button" className="btn-primary hero-read-more-btn" onClick={() => handleDetails(currentHero.id)}>
-                                    Read more
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="hero-slide gradient">
-                            <div className="hero-overlay">
-                                <p className="hero-eyebrow">Startup news</p>
-                                <h2>Discover venture-ready founders</h2>
-                                <p className="hero-subtitle">
-                                    Real-time startup intelligence, direct messaging, and data-backed confidence for decisive investors.
-                                </p>
-                                <button type="button" className="btn-primary" onClick={() => navigate('/add')}>
-                                    Submit startup
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                    {heroItems.length > 1 && (
-                        <div className="hero-controls">
-                            {heroItems.map((item, idx) => (
-                                <button
-                                    key={item.id || idx}
-                                    type="button"
-                                    className={idx === heroIndex ? 'active' : ''}
-                                    onClick={() => setHeroIndex(idx)}
-                                    aria-label={`Show hero slide ${idx + 1}`}
-                                ></button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                <div className="hero-metrics modern">
-                    <div className="metric-card">
-                        <p className="metric-label">Startups registered</p>
-                        <p className="metric-value">
-                            {metricsLoading ? '...' : metrics.startupsCount}
-                        </p>
+            {/* News Banner */}
+            <section style={{
+                position: 'relative',
+                borderRadius: '28px',
+                overflow: 'hidden',
+                minHeight: '280px',
+                marginBottom: '24px'
+            }}>
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundImage: 'url(/news.png)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    opacity: 0.35
+                }} />
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.85) 0%, rgba(15, 23, 42, 0.7) 50%, rgba(10, 10, 20, 0.9) 100%)',
+                }} />
+                <div style={{
+                    position: 'relative',
+                    zIndex: 1,
+                    padding: '40px 48px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end',
+                    minHeight: '280px',
+                    gap: '16px'
+                }}>
+                    <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        background: 'rgba(239, 68, 68, 0.15)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        borderRadius: '20px',
+                        padding: '6px 14px',
+                        width: 'fit-content'
+                    }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444', animation: 'pulse 2s infinite' }} />
+                        <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#fca5a5', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Breaking News</span>
                     </div>
-                    <div className="metric-card">
-                        <p className="metric-label">Users registered</p>
-                        <p className="metric-value">
-                            {metricsLoading ? '...' : metrics.usersCount}
-                        </p>
-                    </div>
-                    <div className="metric-card">
-                        <p className="metric-label">Total chats</p>
-                        <p className="metric-value">
-                            {metricsLoading ? '...' : metrics.chatsCount}
-                        </p>
-                    </div>
+                    <h2 style={{
+                        fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
+                        fontWeight: '800',
+                        lineHeight: '1.2',
+                        color: '#fff',
+                        maxWidth: '700px',
+                        letterSpacing: '-0.02em'
+                    }}>
+                        OpenAI raises $110B in one of the largest private funding rounds in history
+                    </h2>
+                    <p style={{
+                        fontSize: '0.95rem',
+                        color: 'rgba(255,255,255,0.6)',
+                        maxWidth: '550px',
+                        lineHeight: '1.6'
+                    }}>
+                        The new funding consists of a $50B investment from Amazon, $30B each from Nvidia and SoftBank, against a $730B pre-money valuation.
+                    </p>
+                    <a
+                        href="https://techcrunch.com/2026/02/27/openai-raises-110b-in-one-of-the-largest-private-funding-rounds-in-history/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: '#3b82f6',
+                            color: '#fff',
+                            padding: '12px 28px',
+                            borderRadius: '14px',
+                            fontSize: '0.9rem',
+                            fontWeight: '600',
+                            textDecoration: 'none',
+                            width: 'fit-content',
+                            transition: 'all 0.2s ease',
+                            border: 'none',
+                            cursor: 'pointer'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#2563eb'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#3b82f6'; e.currentTarget.style.transform = 'translateY(0)' }}
+                    >
+                        Read More
+                        <i className="fas fa-arrow-right" style={{ fontSize: '0.8rem' }}></i>
+                    </a>
                 </div>
             </section>
 
-            <section className="desktop-news-section">
+            {/* Smart Action Cards */}
+            <section style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '20px',
+                marginBottom: '32px'
+            }}>
+                {/* Column 1: Smart Recommendation */}
+                <div style={{
+                    padding: '24px',
+                    borderRadius: '22px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'rgba(255,255,255,0.03)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    overflow: 'hidden'
+                }}
+                    onClick={recommendation.action}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+                >
+                    <div style={{ position: 'absolute', top: 0, right: 0, width: '120px', height: '120px', background: recommendation.gradient, opacity: 0.07, borderRadius: '0 0 0 100%' }} />
+                    <div style={{
+                        width: '44px', height: '44px', borderRadius: '14px',
+                        background: recommendation.iconBg,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '18px', color: recommendation.iconColor
+                    }}>
+                        <i className={`fas ${recommendation.icon}`}></i>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.7rem', fontWeight: '600', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
+                            Recommendation
+                        </div>
+                        <h4 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>
+                            {recommendation.title}
+                        </h4>
+                        <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', lineHeight: '1.5' }}>
+                            {recommendation.description}
+                        </p>
+                    </div>
+                    {recommendation.progress !== null && (
+                        <div style={{ marginTop: 'auto' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>Profile completeness</span>
+                                <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#a78bfa' }}>{recommendation.progress}%</span>
+                            </div>
+                            <div style={{ height: '4px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)' }}>
+                                <div style={{ height: '100%', borderRadius: '4px', width: `${recommendation.progress}%`, background: recommendation.gradient, transition: 'width 0.5s ease' }} />
+                            </div>
+                        </div>
+                    )}
+                    <button type="button" style={{
+                        marginTop: recommendation.progress !== null ? '8px' : 'auto',
+                        padding: '10px 20px', borderRadius: '12px',
+                        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#fff', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer',
+                        transition: 'all 0.2s ease', width: '100%'
+                    }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
+                    >
+                        {recommendation.buttonText} →
+                    </button>
+                </div>
+
+                {/* Column 2: New Feature - Swipy Jobs */}
+                <div style={{
+                    padding: '24px',
+                    borderRadius: '22px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'rgba(255,255,255,0.03)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    overflow: 'hidden'
+                }}
+                    onClick={() => navigate('/jobs')}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+                >
+                    <div style={{ position: 'absolute', top: 0, right: 0, width: '120px', height: '120px', background: 'linear-gradient(135deg, #3b82f6, #06b6d4)', opacity: 0.07, borderRadius: '0 0 0 100%' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                            width: '44px', height: '44px', borderRadius: '14px',
+                            background: 'rgba(59,130,246,0.15)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '18px', color: '#60a5fa'
+                        }}>
+                            <i className="fas fa-wand-magic-sparkles"></i>
+                        </div>
+                        <span style={{
+                            padding: '4px 10px', borderRadius: '8px',
+                            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                            fontSize: '0.65rem', fontWeight: '700', color: '#fff',
+                            textTransform: 'uppercase', letterSpacing: '0.08em'
+                        }}>New</span>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.7rem', fontWeight: '600', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
+                            New Feature
+                        </div>
+                        <h4 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>
+                            AI Search for Vacancies
+                        </h4>
+                        <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', lineHeight: '1.5' }}>
+                            Find your dream job at innovative startups. Powered by AI to match your skills and preferences perfectly.
+                        </p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                        <i className="fas fa-briefcase" style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}></i>
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', fontWeight: '500' }}>Swipy Jobs</span>
+                    </div>
+                    <button type="button" style={{
+                        marginTop: 'auto',
+                        padding: '10px 20px', borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+                        border: 'none', color: '#fff', fontSize: '0.85rem', fontWeight: '600',
+                        cursor: 'pointer', transition: 'all 0.2s ease', width: '100%'
+                    }}
+                        onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+                        onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)' }}
+                    >
+                        Try Now →
+                    </button>
+                </div>
+
+                {/* Column 3: Discover & Explore */}
+                <div style={{
+                    padding: '24px',
+                    borderRadius: '22px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'rgba(255,255,255,0.03)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    overflow: 'hidden'
+                }}
+                    onClick={() => { document.getElementById('startups-section')?.scrollIntoView({ behavior: 'smooth' }) }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+                >
+                    <div style={{ position: 'absolute', top: 0, right: 0, width: '120px', height: '120px', background: 'linear-gradient(135deg, #ef4444, #dc2626)', opacity: 0.07, borderRadius: '0 0 0 100%' }} />
+                    <div style={{
+                        width: '44px', height: '44px', borderRadius: '14px',
+                        background: 'rgba(239,68,68,0.15)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '18px', color: '#f87171'
+                    }}>
+                        <i className="fas fa-fire-flame-curved"></i>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.7rem', fontWeight: '600', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
+                            Trending
+                        </div>
+                        <h4 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>
+                            Swipe & Discover
+                        </h4>
+                        <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', lineHeight: '1.5' }}>
+                            Browse curated startups, swipe right to connect, and build your investment portfolio effortlessly.
+                        </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                        {['AI/ML', 'FinTech', 'HealthTech'].map(tag => (
+                            <span key={tag} style={{
+                                padding: '4px 10px', borderRadius: '8px',
+                                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
+                                fontSize: '0.7rem', fontWeight: '600', color: '#f87171'
+                            }}>{tag}</span>
+                        ))}
+                    </div>
+                    <button type="button" style={{
+                        marginTop: 'auto',
+                        padding: '10px 20px', borderRadius: '12px',
+                        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#fff', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer',
+                        transition: 'all 0.2s ease', width: '100%'
+                    }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
+                    >
+                        Explore Now →
+                    </button>
+                </div>
+            </section>
+
+            <section id="startups-section" className="desktop-news-section">
                 <div className="section-header">
                     <div>
                         <p className="section-eyebrow">Startups</p>
                         <h3>Get acquainted with startups</h3>
                     </div>
-                    <div className="section-actions">
-                        {hasMore && (
-                            <button
-                                type="button"
-                                className="btn-secondary"
-                                disabled={loadingMore}
-                                onClick={() => loadMore()}
-                            >
-                                {loadingMore ? 'Loading...' : 'Load more'}
-                            </button>
-                        )}
-                    </div>
                 </div>
                 {renderNewsState()}
+                {hasMore && (
+                    <div
+                        style={{
+                            marginTop: '24px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <button
+                            type="button"
+                            className="btn-secondary"
+                            disabled={loadingMore}
+                            onClick={() => loadMore()}
+                            style={{
+                                borderRadius: '999px',
+                                paddingLeft: '28px',
+                                paddingRight: '28px',
+                            }}
+                        >
+                            {loadingMore ? 'Loading...' : 'Load more'}
+                        </button>
+                    </div>
+                )}
             </section>
         </div>
     )

@@ -66,7 +66,7 @@ const LandingPage = () => {
                     const currentScroll = window.scrollY
 
                     // The distance from the bottom of the scrollable area where the FAQ should start moving
-                    const revealDistance = 150; // Reduced from 700 as requested
+                    const revealDistance = 100; // Reduced from 700 as requested
 
                     let scrollDistance = 0;
                     if (currentScroll > (scrollableHeight - revealDistance)) {
@@ -170,6 +170,15 @@ const LandingPage = () => {
                     margin: 0 !important;
                     padding: 0 !important;
                     -webkit-overflow-scrolling: touch;
+                    /* Allow text selection and copying on the landing page */
+                    -webkit-user-select: text !important;
+                    -khtml-user-select: text !important;
+                    -moz-user-select: text !important;
+                    -ms-user-select: text !important;
+                    user-select: text !important;
+                    -webkit-touch-callout: default !important;
+                    /* Hide text caret while still allowing selection/copy */
+                    caret-color: transparent !important;
                 }
                 
                 body.landing-page-active #root {
@@ -199,6 +208,20 @@ const LandingPage = () => {
                 body.landing-page-active .scroller-container,
                 body.landing-page-active .scroller-container * {
                     overflow: hidden !important;
+                }
+
+                /* Exception for the FAQ section which needs overflow: hidden for rounded corners */
+                body.landing-page-active #faq {
+                    overflow: hidden !important;
+                }
+
+                /* Ensure any landing-page containers can still select text */
+                body.landing-page-active .startup-card-container {
+                    -webkit-user-select: text !important;
+                    -khtml-user-select: text !important;
+                    -moz-user-select: text !important;
+                    -ms-user-select: text !important;
+                    user-select: text !important;
                 }
                 
                 * {
@@ -1042,7 +1065,7 @@ const LandingPage = () => {
                                     border: '1px solid rgba(255, 255, 255, 0.05)',
                                     transition: 'all 0.3s ease',
                                     display: 'flex',
-                                    alignItems: 'flex-start',
+                                    alignItems: 'center',
                                     gap: '20px'
                                 }}
                                     onMouseEnter={(e) => {
@@ -1308,7 +1331,7 @@ const LandingPage = () => {
                     id="faq"
                     className="fade-in-up"
                     style={{
-                        padding: '40px 24px 20px',
+                        padding: '40px 24px 120px',
                         width: '100%',
                         margin: '0 auto',
                         position: 'sticky',

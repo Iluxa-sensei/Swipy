@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth, useProfile } from '../hooks'
 import { useFilters } from '../context/FiltersContext'
+import { useJobSearchFilters } from '../context/JobSearchFiltersContext.jsx'
 import { useState, useEffect, useRef } from 'react'
 import { searchService } from '../services/searchService.js'
 
@@ -15,12 +16,103 @@ const NAV_ITEMS = [
     { id: 'settings', label: 'Settings', icon: 'fa-solid fa-gear', path: '/settings' }
 ]
 
+const JOB_FILTER_OPTIONS = [
+    {
+        id: 'remote',
+        label: 'Remote only',
+        description: 'Roles that mention remote or work from home in the location.',
+        icon: 'fa-solid fa-globe'
+    },
+    {
+        id: 'high-salary',
+        label: 'Top compensation',
+        description: 'Prioritise roles with clearly specified, higher salary bands.',
+        icon: 'fa-solid fa-arrow-trend-up'
+    },
+    {
+        id: 'senior',
+        label: 'Senior & Lead',
+        description: 'Leadership, staff, and senior individual contributor roles.',
+        icon: 'fa-solid fa-user-tie'
+    },
+    {
+        id: 'mid-level',
+        label: 'Mid-level',
+        description: 'Solid experience required but not a leadership position.',
+        icon: 'fa-solid fa-layer-group'
+    },
+    {
+        id: 'junior',
+        label: 'Junior & Intern',
+        description: 'Entry-level roles and internships with mentorship.',
+        icon: 'fa-solid fa-seedling'
+    },
+    {
+        id: 'full-time',
+        label: 'Full-time',
+        description: 'Permanent, full-time positions.',
+        icon: 'fa-solid fa-clock'
+    },
+    {
+        id: 'contract',
+        label: 'Contract & Freelance',
+        description: 'Short-term or contract-based engagements.',
+        icon: 'fa-solid fa-briefcase'
+    },
+    {
+        id: 'fast-growing',
+        label: 'Fast-growing teams',
+        description: 'Companies hiring aggressively across multiple roles.',
+        icon: 'fa-solid fa-bolt'
+    }
+]
+
+const MAX_JOB_FILTERS = 5
+
+const HOME_FILTER_DATA = {
+    industries: {
+        label: 'Industries',
+        icon: 'fa-solid fa-tags',
+        items: ["AI/ML", "FinTech", "HealthTech", "EdTech", "Sustainability", "E-commerce", "Gaming", "Enterprise", "Mobile", "Web3"]
+    },
+    stages: {
+        label: 'Stages',
+        icon: 'fa-solid fa-chart-line',
+        items: ["Idea", "MVP", "Seed", "Series A", "Series B", "Series C+"]
+    },
+    locations: {
+        label: 'Locations',
+        icon: 'fa-solid fa-location-dot',
+        items: ["Remote", "Asia", "Europe", "North America", "South America", "Africa", "Australia"]
+    },
+    teamSize: {
+        label: 'Team Size',
+        icon: 'fa-solid fa-users',
+        items: ["1-5", "6-10", "11-25", "26-50", "50+"]
+    },
+    funding: {
+        label: 'Funding',
+        icon: 'fa-solid fa-money-bill-trend-up',
+        items: ["Bootstrapped", "Under $1K", "Under $10K", "Under $100K", "$500K+"]
+    }
+}
+
 const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minimal = false }) => {
     const navigate = useNavigate()
     const { user } = useAuth()
     const { profile } = useProfile(user?.id)
-    const { getActiveFiltersCount } = useFilters()
+    const {
+        filters: homeFilters,
+        toggleIndustry,
+        toggleStage,
+        toggleLocation,
+        setTeamSize,
+        setFunding,
+        clearFilters: clearHomeFilters,
+        getActiveFiltersCount,
+    } = useFilters()
     const activeFiltersCount = getActiveFiltersCount()
+    const { jobFilters: selectedJobFilters, setJobFilters: setSelectedJobFilters } = useJobSearchFilters()
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('')
@@ -30,6 +122,20 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
     const [searchPosition, setSearchPosition] = useState({ top: 0, left: 0, width: 0 })
     const searchRef = useRef(null)
     const searchContainerRef = useRef(null)
+
+    // Home filter popover state
+    const [isHomeFilterOpen, setIsHomeFilterOpen] = useState(false)
+    const [homeFilterPos, setHomeFilterPos] = useState({ top: 0, right: 0 })
+    const [activeHomeTab, setActiveHomeTab] = useState('industries')
+    const homeFilterRef = useRef(null)
+    const homeFilterBtnRef = useRef(null)
+
+    // Jobs filter popover state (desktop jobs page)
+    const [isJobFilterOpen, setIsJobFilterOpen] = useState(false)
+    const [jobFilterError, setJobFilterError] = useState('')
+    const [jobFilterPos, setJobFilterPos] = useState({ top: 0, right: 0 })
+    const jobFilterRef = useRef(null)
+    const jobFilterBtnRef = useRef(null)
 
     const handleNavClick = (item) => {
         if (onScreenChange) {
@@ -117,6 +223,79 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
         }
     }, [showSearchResults, currentScreen])
 
+    // Close home filters popover when clicking outside
+    useEffect(() => {
+        if (!isHomeFilterOpen) return
+
+        const handleClickOutside = (event) => {
+            const clickedInsidePopover = homeFilterRef.current && homeFilterRef.current.contains(event.target)
+            const clickedInsideBtn = homeFilterBtnRef.current && homeFilterBtnRef.current.contains(event.target)
+            if (!clickedInsidePopover && !clickedInsideBtn) {
+                setIsHomeFilterOpen(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [isHomeFilterOpen])
+
+    // Close job filters popover when clicking outside
+    useEffect(() => {
+        if (!isJobFilterOpen) return
+
+        const handleClickOutside = (event) => {
+            const clickedInsidePopover = jobFilterRef.current && jobFilterRef.current.contains(event.target)
+            const clickedInsideBtn = jobFilterBtnRef.current && jobFilterBtnRef.current.contains(event.target)
+            if (!clickedInsidePopover && !clickedInsideBtn) {
+                setIsJobFilterOpen(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [isJobFilterOpen])
+
+    const toggleHomeFilterItem = (category, item) => {
+        switch (category) {
+            case 'industries': toggleIndustry(item); break
+            case 'stages': toggleStage(item); break
+            case 'locations': toggleLocation(item); break
+            case 'teamSize': setTeamSize(item); break
+            case 'funding': setFunding(item); break
+            default: break
+        }
+    }
+
+    const isHomeFilterActive = (category, item) => {
+        switch (category) {
+            case 'industries': return homeFilters.industries.includes(item)
+            case 'stages': return homeFilters.stages.includes(item)
+            case 'locations': return homeFilters.locations.includes(item)
+            case 'teamSize': return homeFilters.teamSize === item
+            case 'funding': return homeFilters.funding === item
+            default: return false
+        }
+    }
+
+    const toggleJobFilter = (id) => {
+        setJobFilterError('')
+        setSelectedJobFilters((prev) => {
+            if (prev.includes(id)) {
+                return prev.filter((f) => f !== id)
+            }
+            if (prev.length >= MAX_JOB_FILTERS) {
+                setJobFilterError(`You can select up to ${MAX_JOB_FILTERS} filters`)
+                return prev
+            }
+            return [...prev, id]
+        })
+    }
+
+    const clearJobFilters = () => {
+        setSelectedJobFilters([])
+        setJobFilterError('')
+    }
+
     // Close search results when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -149,7 +328,7 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
         if (type === 'startup') {
             // Helper to check if string is a UUID
             const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
-            
+
             // Check for profiles.username first (from search results), then owner_nickname, then fetch
             const ownerUsername = item.profiles?.username || item.owner_nickname
             if (ownerUsername && !isUUID(ownerUsername) && item.slug) {
@@ -393,17 +572,54 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                             </div>
                         )}
                         {currentScreen === 'home' && (
-                            <button
-                                type="button"
-                                className="desktop-icon-btn desktop-filter-btn"
-                                onClick={() => navigate('/filters')}
-                                title="Filters"
-                            >
-                                <i className="fa-solid fa-filter"></i>
-                                {activeFiltersCount > 0 && (
-                                    <span className="desktop-filter-badge">{activeFiltersCount}</span>
-                                )}
-                            </button>
+                            <div ref={homeFilterRef} style={{ overflow: 'visible' }}>
+                                <button
+                                    ref={homeFilterBtnRef}
+                                    type="button"
+                                    className="desktop-icon-btn desktop-filter-btn"
+                                    onClick={() => {
+                                        if (homeFilterBtnRef.current) {
+                                            const rect = homeFilterBtnRef.current.getBoundingClientRect()
+                                            setHomeFilterPos({
+                                                top: rect.bottom + 12,
+                                                right: window.innerWidth - rect.right,
+                                            })
+                                        }
+                                        setIsHomeFilterOpen((open) => !open)
+                                    }}
+                                    title="Filters"
+                                >
+                                    <i className="fa-solid fa-filter"></i>
+                                    {activeFiltersCount > 0 && (
+                                        <span className="desktop-filter-badge">{activeFiltersCount}</span>
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                        {currentScreen === 'jobs' && (
+                            <div ref={jobFilterRef} style={{ overflow: 'visible' }}>
+                                <button
+                                    ref={jobFilterBtnRef}
+                                    type="button"
+                                    className="desktop-icon-btn desktop-filter-btn"
+                                    onClick={() => {
+                                        if (jobFilterBtnRef.current) {
+                                            const rect = jobFilterBtnRef.current.getBoundingClientRect()
+                                            setJobFilterPos({
+                                                top: rect.bottom + 12,
+                                                right: window.innerWidth - rect.right,
+                                            })
+                                        }
+                                        setIsJobFilterOpen((open) => !open)
+                                    }}
+                                    title="Job filters"
+                                >
+                                    <i className="fa-solid fa-filter"></i>
+                                    {selectedJobFilters.length > 0 && (
+                                        <span className="desktop-filter-badge">{selectedJobFilters.length}</span>
+                                    )}
+                                </button>
+                            </div>
                         )}
                         <button type="button" className="desktop-icon-btn" onClick={() => navigate('/notifications')}>
                             <i className="fa-regular fa-bell"></i>
@@ -425,10 +641,247 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                     </div>
                 </header>
 
-                <main className="desktop-content-area">
+                <main className="desktop-content-area" style={{ overflow: 'visible' }}>
                     {children}
                 </main>
             </div>
+
+            {/* Home filter popover — rendered as fixed overlay so overflow:hidden parents can't clip it */}
+            {isHomeFilterOpen && (
+                <div
+                    ref={(el) => {
+                        if (el) homeFilterRef.current = el
+                    }}
+                    className="fixed w-[340px] rounded-3xl border border-white/10 bg-bg-primary/70 shadow-[0_24px_80px_rgba(0,0,0,0.75)] backdrop-blur-2xl"
+                    style={{
+                        top: homeFilterPos.top,
+                        right: homeFilterPos.right,
+                        zIndex: 999999,
+                    }}
+                >
+                    {/* Header */}
+                    <div className="px-4 pt-4 pb-3 border-b border-white/10 flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-semibold text-text-primary">Filter startups</p>
+                            <p className="text-xs text-text-secondary mt-0.5">
+                                Narrow down your feed.
+                            </p>
+                        </div>
+                        {activeFiltersCount > 0 && (
+                            <button
+                                type="button"
+                                onClick={clearHomeFilters}
+                                className="text-[11px] font-medium text-[#5a8ceb] hover:underline"
+                            >
+                                Clear all
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="flex overflow-x-auto border-b border-white/10 px-1 gap-0.5 scrollbar-hide">
+                        {Object.entries(HOME_FILTER_DATA).map(([key, cat]) => (
+                            <button
+                                key={key}
+                                type="button"
+                                onClick={() => setActiveHomeTab(key)}
+                                className={`flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-medium whitespace-nowrap transition-all duration-200 border-b-2 ${activeHomeTab === key
+                                        ? 'border-[#5a8ceb] text-[#5a8ceb]'
+                                        : 'border-transparent text-text-secondary hover:text-text-primary'
+                                    }`}
+                            >
+                                <i className={`${cat.icon} text-[10px]`}></i>
+                                {cat.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Active filter tags */}
+                    {activeFiltersCount > 0 && (
+                        <div className="px-4 pt-3 flex flex-wrap gap-1.5">
+                            {homeFilters.industries.map((item) => (
+                                <span key={item} className="inline-flex items-center gap-1 rounded-full bg-[#5a8ceb]/15 text-[#5a8ceb] text-[11px] px-2.5 py-1">
+                                    <span>{item}</span>
+                                    <button type="button" onClick={() => toggleIndustry(item)} className="hover:text-[#5a8ceb]/70">×</button>
+                                </span>
+                            ))}
+                            {homeFilters.stages.map((item) => (
+                                <span key={item} className="inline-flex items-center gap-1 rounded-full bg-[#5a8ceb]/15 text-[#5a8ceb] text-[11px] px-2.5 py-1">
+                                    <span>{item}</span>
+                                    <button type="button" onClick={() => toggleStage(item)} className="hover:text-[#5a8ceb]/70">×</button>
+                                </span>
+                            ))}
+                            {homeFilters.locations.map((item) => (
+                                <span key={item} className="inline-flex items-center gap-1 rounded-full bg-[#5a8ceb]/15 text-[#5a8ceb] text-[11px] px-2.5 py-1">
+                                    <span>{item}</span>
+                                    <button type="button" onClick={() => toggleLocation(item)} className="hover:text-[#5a8ceb]/70">×</button>
+                                </span>
+                            ))}
+                            {homeFilters.teamSize && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[#5a8ceb]/15 text-[#5a8ceb] text-[11px] px-2.5 py-1">
+                                    <span>{homeFilters.teamSize}</span>
+                                    <button type="button" onClick={() => setTeamSize(homeFilters.teamSize)} className="hover:text-[#5a8ceb]/70">×</button>
+                                </span>
+                            )}
+                            {homeFilters.funding && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[#5a8ceb]/15 text-[#5a8ceb] text-[11px] px-2.5 py-1">
+                                    <span>{homeFilters.funding}</span>
+                                    <button type="button" onClick={() => setFunding(homeFilters.funding)} className="hover:text-[#5a8ceb]/70">×</button>
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Filter items grid */}
+                    <div className="max-h-64 overflow-y-auto px-3 pt-3 pb-3">
+                        <div className="flex flex-wrap gap-2">
+                            {HOME_FILTER_DATA[activeHomeTab]?.items.map((item) => {
+                                const active = isHomeFilterActive(activeHomeTab, item)
+                                return (
+                                    <button
+                                        key={item}
+                                        type="button"
+                                        onClick={() => toggleHomeFilterItem(activeHomeTab, item)}
+                                        className={`px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 border ${active
+                                                ? 'border-[#5a8ceb] bg-[#5a8ceb]/20 text-[#5a8ceb] shadow-[0_0_0_1px_rgba(90,140,235,0.3)]'
+                                                : 'border-white/8 bg-white/4 text-text-secondary hover:border-white/15 hover:bg-white/8 hover:text-text-primary'
+                                            }`}
+                                    >
+                                        {item}
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="px-4 pb-3 pt-2 border-t border-white/10 flex items-center justify-end">
+                        <button
+                            type="button"
+                            onClick={() => setIsHomeFilterOpen(false)}
+                            className="text-[11px] font-semibold px-3.5 py-1.5 rounded-full bg-[#5a8ceb] text-white hover:bg-[#4a7cd4] transition-colors"
+                        >
+                            Done
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Job filter popover — rendered as fixed overlay so overflow:hidden parents can't clip it */}
+            {isJobFilterOpen && (
+                <div
+                    ref={(el) => {
+                        // merge into jobFilterRef so outside-click detection still works
+                        if (el) jobFilterRef.current = el
+                    }}
+                    className="fixed w-80 rounded-3xl border border-white/10 bg-bg-primary/70 shadow-[0_24px_80px_rgba(0,0,0,0.75)] backdrop-blur-2xl"
+                    style={{
+                        top: jobFilterPos.top,
+                        right: jobFilterPos.right,
+                        zIndex: 999999,
+                    }}
+                >
+                    <div className="px-4 pt-4 pb-3 border-b border-white/10 flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-semibold text-text-primary">Refine job matches</p>
+                            <p className="text-xs text-text-secondary mt-0.5">
+                                Choose up to {MAX_JOB_FILTERS} smart filters.
+                            </p>
+                        </div>
+                        {selectedJobFilters.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={clearJobFilters}
+                                className="text-[11px] font-medium text-[#5a8ceb] hover:underline"
+                            >
+                                Clear
+                            </button>
+                        )}
+                    </div>
+
+                    {selectedJobFilters.length > 0 && (
+                        <div className="px-4 pt-3 flex flex-wrap gap-2">
+                            {selectedJobFilters.map((id) => {
+                                const f = JOB_FILTER_OPTIONS.find((opt) => opt.id === id)
+                                if (!f) return null
+                                return (
+                                    <span
+                                        key={id}
+                                        className="inline-flex items-center gap-1 rounded-full bg-[#5a8ceb]/15 text-[#5a8ceb] text-[11px] px-2.5 py-1"
+                                    >
+                                        <span>{f.label}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleJobFilter(id)}
+                                            className="hover:text-[#5a8ceb]/70"
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                )
+                            })}
+                        </div>
+                    )}
+
+                    <div className="max-h-80 overflow-y-auto px-2.5 pt-2 pb-3 space-y-1.5">
+                        {JOB_FILTER_OPTIONS.map((filter) => {
+                            const isActive = selectedJobFilters.includes(filter.id)
+                            const isDisabled = !isActive && selectedJobFilters.length >= MAX_JOB_FILTERS
+
+                            return (
+                                <button
+                                    key={filter.id}
+                                    type="button"
+                                    onClick={() => toggleJobFilter(filter.id)}
+                                    disabled={isDisabled}
+                                    className={`w-full text-left px-2.5 py-2.5 rounded-xl transition-all duration-200 border ${isActive
+                                        ? 'border-[#5a8ceb] bg-[#101827] shadow-[0_0_0_1px_rgba(90,140,235,0.4)]'
+                                        : 'border-transparent hover:border-glass-border/80 hover:bg-bg-tertiary/80'
+                                        } ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div
+                                            className={`mt-0.5 w-8 h-8 rounded-full flex items-center justify-center text-xs ${isActive
+                                                ? 'bg-[#5a8ceb]/20 text-[#5a8ceb]'
+                                                : 'bg-bg-tertiary text-text-secondary'
+                                                }`}
+                                        >
+                                            <i className={filter.icon}></i>
+                                        </div>
+                                        <div className="flex-1">
+                                            <p
+                                                className={`text-xs font-semibold ${isActive ? 'text-text-primary' : 'text-text-secondary'
+                                                    }`}
+                                            >
+                                                {filter.label}
+                                            </p>
+                                            <p className="text-[11px] text-text-secondary mt-0.5">
+                                                {filter.description}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </button>
+                            )
+                        })}
+                    </div>
+
+                    <div className="px-4 pb-3 pt-2 border-t border-white/10 flex items-center justify-end">
+                        <button
+                            type="button"
+                            onClick={() => setIsJobFilterOpen(false)}
+                            className="text-[11px] font-semibold px-3.5 py-1.5 rounded-full bg-[#5a8ceb] text-white hover:bg-[#4a7cd4] transition-colors"
+                        >
+                            Done
+                        </button>
+                    </div>
+
+                    {jobFilterError && (
+                        <div className="px-4 pb-3">
+                            <p className="text-[11px] text-accent-warning">{jobFilterError}</p>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     )
 }
