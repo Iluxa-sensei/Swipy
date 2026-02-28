@@ -122,12 +122,6 @@ const DesktopProfilePage = () => {
 
     return (
         <div className="desktop-page">
-            {/* Page header */}
-            <div className="desktop-page-header">
-                <p>Profile</p>
-                <h1>My Swipy Profile</h1>
-            </div>
-
             {/* Profile Header - Compact and Modern */}
             <div className="desktop-page-section !pb-6">
                 <div className="flex items-center gap-6">
@@ -251,9 +245,9 @@ const DesktopProfilePage = () => {
                 {/* Tab Content */}
                 {activeTab === 'profile' && (
                     <div className="space-y-6 animate-fade-in">
-                        {/* Main Content Grid */}
-                        <div className="grid grid-cols-3 gap-6">
-                            {/* Left Column - Bio */}
+                        {/* Main Content — Masonry-style adaptive grid */}
+                        <div className="grid grid-cols-3 gap-6 items-start">
+                            {/* Left Column - Bio + Interests */}
                             <div className="col-span-2 space-y-6">
                                 <div className="desktop-card">
                                     <h3 className="text-xl font-bold text-text-primary mb-4">About Me</h3>
@@ -262,15 +256,79 @@ const DesktopProfilePage = () => {
                                             {userProfile.bio}
                                         </p>
                                     ) : (
-                                        <div className="flex flex-col items-center justify-center py-8 text-center">
-                                            <i className="fas fa-info-circle text-4xl text-text-secondary mb-3 opacity-50"></i>
-                                            <p className="text-text-secondary mb-4">No bio added yet</p>
+                                        <div className="flex items-center gap-4 py-2">
+                                            <div className="w-10 h-10 rounded-xl bg-accent-primary/10 flex items-center justify-center flex-shrink-0">
+                                                <i className="fas fa-pen text-accent-primary text-sm"></i>
+                                            </div>
+                                            <p className="text-text-secondary text-sm">Tell others about yourself — your background, passions, and what you're building.</p>
                                             <button 
-                                                className="btn-primary py-2.5 px-6 rounded-xl text-sm"
+                                                className="btn-primary py-2 px-5 rounded-xl text-sm flex-shrink-0"
                                                 onClick={() => navigate('/profile/edit')}
                                             >
-                                                <i className="fas fa-plus mr-2"></i>
                                                 Add Bio
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Interests — moved here for better visual balance */}
+                                <div className="desktop-card">
+                                    <h3 className="text-lg font-bold text-text-primary mb-3 flex items-center gap-2">
+                                        <i className="fas fa-heart text-accent-primary text-base"></i>
+                                        Interests
+                                    </h3>
+                                    {profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0 ? (
+                                        <div className="flex flex-wrap gap-2">
+                                            {profile.interests.map((interest, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="px-3 py-1.5 bg-accent-primary/20 text-accent-primary rounded-lg text-sm font-medium border border-accent-primary/30"
+                                                >
+                                                    {interest}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-4 py-2">
+                                            <div className="w-10 h-10 rounded-xl bg-accent-primary/10 flex items-center justify-center flex-shrink-0">
+                                                <i className="fas fa-heart text-accent-primary text-sm"></i>
+                                            </div>
+                                            <p className="text-text-secondary text-sm">Add your interests to connect with like-minded people.</p>
+                                            <button 
+                                                className="btn-primary py-2 px-5 rounded-xl text-sm flex-shrink-0"
+                                                onClick={() => navigate('/profile/edit')}
+                                            >
+                                                Add
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Certifications — moved here */}
+                                <div className="desktop-card">
+                                    <h3 className="text-lg font-bold text-text-primary mb-3 flex items-center gap-2">
+                                        <i className="fas fa-certificate text-accent-primary text-base"></i>
+                                        Certifications
+                                    </h3>
+                                    {profile?.certifications && profile.certifications.length > 0 ? (
+                                        <div className="flex flex-wrap gap-2">
+                                            {profile.certifications.map((cert, index) => (
+                                                <span key={index} className="px-3 py-1.5 bg-bg-secondary/80 border border-glass-border rounded-lg text-sm text-text-primary font-medium">
+                                                    {cert}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-4 py-2">
+                                            <div className="w-10 h-10 rounded-xl bg-accent-primary/10 flex items-center justify-center flex-shrink-0">
+                                                <i className="fas fa-certificate text-accent-primary text-sm"></i>
+                                            </div>
+                                            <p className="text-text-secondary text-sm">Show off your certifications and qualifications.</p>
+                                            <button 
+                                                className="btn-primary py-2 px-5 rounded-xl text-sm flex-shrink-0"
+                                                onClick={() => navigate('/profile/edit')}
+                                            >
+                                                Add
                                             </button>
                                         </div>
                                     )}
@@ -280,7 +338,7 @@ const DesktopProfilePage = () => {
                             {/* Right Column - Skills & Social */}
                             <div className="space-y-6">
                                 <div className="desktop-card">
-                                    <h3 className="text-xl font-bold text-text-primary mb-4">Technical Skills</h3>
+                                    <h3 className="text-lg font-bold text-text-primary mb-3">Technical Skills</h3>
                                     {profile?.skills && profile.skills.length > 0 ? (
                                         <div className="flex flex-wrap gap-2">
                                             {profile.skills.map((skill, index) => (
@@ -290,127 +348,65 @@ const DesktopProfilePage = () => {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col items-center justify-center py-6 text-center">
-                                            <i className="fas fa-code text-3xl text-text-secondary mb-3 opacity-50"></i>
-                                            <p className="text-text-secondary mb-4 text-sm">No skills added yet</p>
+                                        <div className="flex items-center gap-3 py-2">
+                                            <div className="w-9 h-9 rounded-lg bg-accent-primary/10 flex items-center justify-center flex-shrink-0">
+                                                <i className="fas fa-code text-accent-primary text-sm"></i>
+                                            </div>
+                                            <p className="text-text-secondary text-sm flex-1">No skills added yet</p>
                                             <button 
-                                                className="btn-primary py-2.5 px-6 rounded-xl text-sm"
+                                                className="btn-primary py-1.5 px-4 rounded-lg text-xs flex-shrink-0"
                                                 onClick={() => navigate('/profile/edit')}
                                             >
-                                                <i className="fas fa-plus mr-2"></i>
-                                                Add Skills
+                                                Add
                                             </button>
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="desktop-card">
-                                    <h3 className="text-xl font-bold text-text-primary mb-4">Connect</h3>
+                                    <h3 className="text-lg font-bold text-text-primary mb-3">Connect</h3>
                                     {(profile?.github_url || profile?.linkedin_url || profile?.website || profile?.instagram_url) ? (
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-2">
                                             {profile?.github_url && (
-                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-accent-primary/30 transition-all group" href={profile.github_url} target="_blank" rel="noreferrer">
+                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2.5 hover:border-accent-primary/30 transition-all group" href={profile.github_url} target="_blank" rel="noreferrer">
                                                     <i className="fab fa-github text-lg text-text-primary group-hover:text-accent-primary transition-colors"></i>
                                                     <span className="font-medium text-sm text-text-primary">GitHub</span>
                                                 </a>
                                             )}
                                             {profile?.linkedin_url && (
-                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-blue-500/30 transition-all group" href={profile.linkedin_url} target="_blank" rel="noreferrer">
+                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2.5 hover:border-blue-500/30 transition-all group" href={profile.linkedin_url} target="_blank" rel="noreferrer">
                                                     <i className="fab fa-linkedin text-lg text-blue-400 group-hover:scale-110 transition-transform"></i>
                                                     <span className="font-medium text-sm text-text-primary">LinkedIn</span>
                                                 </a>
                                             )}
                                             {profile?.instagram_url && (
-                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-pink-500/30 transition-all group" href={profile.instagram_url} target="_blank" rel="noreferrer">
+                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2.5 hover:border-pink-500/30 transition-all group" href={profile.instagram_url} target="_blank" rel="noreferrer">
                                                     <i className="fab fa-instagram text-lg text-pink-400 group-hover:scale-110 transition-transform"></i>
                                                     <span className="font-medium text-sm text-text-primary">Instagram</span>
                                                 </a>
                                             )}
                                             {profile?.website && (
-                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-accent-primary/30 transition-all group" href={profile.website} target="_blank" rel="noreferrer">
+                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2.5 hover:border-accent-primary/30 transition-all group" href={profile.website} target="_blank" rel="noreferrer">
                                                     <i className="fas fa-globe text-lg text-accent-primary group-hover:scale-110 transition-transform"></i>
                                                     <span className="font-medium text-sm text-text-primary">Website</span>
                                                 </a>
                                             )}
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col items-center justify-center py-6 text-center">
-                                            <i className="fas fa-link text-3xl text-text-secondary mb-3 opacity-50"></i>
-                                            <p className="text-text-secondary mb-4 text-sm">No links added yet</p>
+                                        <div className="flex items-center gap-3 py-2">
+                                            <div className="w-9 h-9 rounded-lg bg-accent-primary/10 flex items-center justify-center flex-shrink-0">
+                                                <i className="fas fa-link text-accent-primary text-sm"></i>
+                                            </div>
+                                            <p className="text-text-secondary text-sm flex-1">No links added</p>
                                             <button 
-                                                className="btn-primary py-2.5 px-6 rounded-xl text-sm"
+                                                className="btn-primary py-1.5 px-4 rounded-lg text-xs flex-shrink-0"
                                                 onClick={() => navigate('/profile/edit')}
                                             >
-                                                <i className="fas fa-plus mr-2"></i>
-                                                Add Links
+                                                Add
                                             </button>
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Additional Sections */}
-                        <div className="grid grid-cols-2 gap-6">
-                            {/* Interests */}
-                            <div className="desktop-card">
-                                <h3 className="text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
-                                    <i className="fas fa-heart text-accent-primary"></i>
-                                    Interests
-                                </h3>
-                                {profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0 ? (
-                                    <div className="flex flex-wrap gap-2">
-                                        {profile.interests.map((interest, index) => (
-                                            <span
-                                                key={index}
-                                                className="px-3 py-1.5 bg-accent-primary/20 text-accent-primary rounded-lg text-sm font-medium border border-accent-primary/30"
-                                            >
-                                                {interest}
-                                            </span>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center py-6 text-center">
-                                        <i className="fas fa-heart text-3xl text-text-secondary mb-3 opacity-50"></i>
-                                        <p className="text-text-secondary mb-4 text-sm">No interests added yet</p>
-                                        <button 
-                                            className="btn-primary py-2.5 px-6 rounded-xl text-sm"
-                                            onClick={() => navigate('/profile/edit')}
-                                        >
-                                            <i className="fas fa-plus mr-2"></i>
-                                            Add Interests
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Certifications */}
-                            <div className="desktop-card">
-                                <h3 className="text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
-                                    <i className="fas fa-certificate text-accent-primary"></i>
-                                    Certifications
-                                </h3>
-                                {profile?.certifications && profile.certifications.length > 0 ? (
-                                    <div className="flex flex-wrap gap-2">
-                                        {profile.certifications.map((cert, index) => (
-                                            <span key={index} className="px-3 py-1.5 bg-bg-secondary/80 border border-glass-border rounded-lg text-sm text-text-primary font-medium">
-                                                {cert}
-                                            </span>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center py-6 text-center">
-                                        <i className="fas fa-certificate text-3xl text-text-secondary mb-3 opacity-50"></i>
-                                        <p className="text-text-secondary mb-4 text-sm">No certifications added yet</p>
-                                        <button 
-                                            className="btn-primary py-2.5 px-6 rounded-xl text-sm"
-                                            onClick={() => navigate('/profile/edit')}
-                                        >
-                                            <i className="fas fa-plus mr-2"></i>
-                                            Add Certifications
-                                        </button>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </div>

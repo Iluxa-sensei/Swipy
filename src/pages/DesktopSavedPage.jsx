@@ -66,16 +66,9 @@ const DesktopSavedPage = () => {
 
     return (
         <div className="desktop-page">
-            {/* Page header */}
-            <div className="desktop-page-header">
-                <p>Library</p>
-                <h1>Saved Startups</h1>
-            </div>
-
             <div className="desktop-page-section">
-                {/* Tabs + summary */}
-                <div className="flex items-center justify-between gap-4 mb-6">
-                    <div className="flex gap-3">
+                {/* Tabs */}
+                <div className="flex gap-3 mb-6">
                     <button
                         className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${activeTab === 'liked'
                             ? 'bg-gradient-to-r from-blue-300 to-blue-700 text-white shadow-lg'
@@ -96,17 +89,6 @@ const DesktopSavedPage = () => {
                         <i className="fas fa-times mr-2"></i>
                         Passed ({passed.length})
                     </button>
-                    </div>
-                    <div className="hidden md:flex items-center gap-3 text-sm text-text-secondary">
-                        <span className="px-3 py-1 rounded-full bg-bg-secondary/70 border border-glass-border">
-                            <i className="fas fa-heart mr-1 text-red-400"></i>
-                            {liked.length} liked
-                        </span>
-                        <span className="px-3 py-1 rounded-full bg-bg-secondary/70 border border-glass-border">
-                            <i className="fas fa-times mr-1 text-text-secondary"></i>
-                            {passed.length} passed
-                        </span>
-                    </div>
                 </div>
 
                 {list.length === 0 ? (
@@ -121,12 +103,14 @@ const DesktopSavedPage = () => {
                             <p className="text-text-secondary mb-8">
                                 Startups you {activeTab === 'liked' ? 'like' : 'pass'} will appear here.
                             </p>
-                            <button
-                                className="btn-primary"
-                                onClick={() => navigate('/home')}
-                            >
-                                Browse Startups
-                            </button>
+                            <div className="flex justify-center">
+                                <button
+                                    className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-full font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                                    onClick={() => navigate('/home')}
+                                >
+                                    Browse Startups
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ) : (

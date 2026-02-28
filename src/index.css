@@ -2342,12 +2342,8 @@
     overflow: visible !important;
   }
 
-  .jobs-orbit-wrapper * {
+  .jobs-orbit-wrapper *:not(.jobs-orbit-card):not(.jobs-orbit-img) {
     overflow: visible !important;
-  }
-
-  .jobs-orbit-wrapper .jobs-orbit-img {
-    overflow: hidden !important;
   }
 
   .jobs-orbit-inner {
@@ -2381,7 +2377,7 @@
     position: absolute;
     border: 2px solid rgba(var(--color-card));
     border-radius: 14px;
-    overflow: visible !important;
+    overflow: hidden !important;
     inset: 0;
     transform: rotateY(calc((360deg / var(--quantity)) * var(--index))) translateZ(var(--translateZ));
   }

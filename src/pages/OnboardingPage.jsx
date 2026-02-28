@@ -271,12 +271,18 @@ const OnboardingPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Bio
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-text-primary">
+                    Bio
+                  </label>
+                  <span className={`text-xs ${(userData.bio?.length || 0) > 270 ? 'text-red-400' : 'text-text-secondary'}`}>
+                    {userData.bio?.length || 0}/300
+                  </span>
+                </div>
                 <textarea
                   value={userData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
+                  onChange={(e) => handleInputChange('bio', e.target.value.slice(0, 300))}
+                  maxLength={300}
                   rows={4}
                   className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200 resize-none"
                   placeholder="Tell us about yourself..."

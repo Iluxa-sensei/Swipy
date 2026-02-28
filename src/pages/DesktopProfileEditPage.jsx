@@ -650,10 +650,16 @@ const ProfileTab = ({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-semibold text-text-primary mb-2">Bio</label>
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="block text-sm font-semibold text-text-primary">Bio</label>
+                            <span className={`text-xs ${(profile.bio?.length || 0) > 270 ? 'text-red-400' : 'text-text-secondary'}`}>
+                                {profile.bio?.length || 0}/300
+                            </span>
+                        </div>
                         <textarea
                             value={profile.bio}
-                            onChange={(e) => handleInputChange('bio', e.target.value)}
+                            onChange={(e) => handleInputChange('bio', e.target.value.slice(0, 300))}
+                            maxLength={300}
                             rows={4}
                             className="w-full px-4 py-3 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-all duration-300 resize-none"
                             placeholder="Tell us about yourself..."
