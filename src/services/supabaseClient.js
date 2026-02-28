@@ -9,12 +9,40 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Please check your .env file and ensure VITE_PUBLIC_SUPABASE_URL and VITE_PUBLIC_SUPABASE_ANON_KEY are set')
 }
 
+// Custom storage so Supabase respects "Remember this device":
+// when swipy_remember_me is '0', use sessionStorage (session dies when tab closes);
+// otherwise use localStorage (persists until sign out).
+const REMEMBER_ME_KEY = 'swipy_remember_me'
+
+function getStorage () {
+  try {
+    const flag = localStorage.getItem(REMEMBER_ME_KEY)
+    return flag === '0' ? sessionStorage : localStorage
+  } catch {
+    return localStorage
+  }
+}
+
+const authStorage = {
+  getItem (key) {
+    return getStorage().getItem(key)
+  },
+  setItem (key, value) {
+    getStorage().setItem(key, value)
+  },
+  removeItem (key) {
+    sessionStorage.removeItem(key)
+    localStorage.removeItem(key)
+  }
+}
+
 // Create Supabase client
 const supabaseClient = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder-key', {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    storage: authStorage,
     // Security: Set secure cookie options
     cookieOptions: {
       secure: import.meta.env.PROD, // HTTPS only in production

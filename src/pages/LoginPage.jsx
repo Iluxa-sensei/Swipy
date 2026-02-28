@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { authService } from '../services/authService.js'
 import { profileService } from '../services/profileService.js'
@@ -11,13 +11,35 @@ import { isEmbeddedBrowser, getBrowserName } from '../utils/browserDetection.js'
 const LoginPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { session } = useAuth()
+  const { session, loading } = useAuth()
   const { isDesktop } = useDeviceType()
   const [isLogin, setIsLogin] = useState(true)
+
+  // If already logged in (e.g. "Remember this device" + opened app from landing), redirect into the app
+  useEffect(() => {
+    if (loading || !session?.user?.id || !session?.access_token) return
+    const redirectTo = location.state?.from?.pathname || '/home'
+    let cancelled = false
+    profileService
+      .getProfile(session.user.id)
+      .then((profile) => {
+        if (cancelled) return
+        if (!profile || !profile.onboarding_completed) {
+          navigate('/onboarding', { replace: true })
+        } else {
+          navigate(redirectTo, { replace: true })
+        }
+      })
+      .catch(() => {
+        if (!cancelled) navigate('/onboarding', { replace: true })
+      })
+    return () => { cancelled = true }
+  }, [session?.user?.id, session?.access_token, loading, navigate, location.state?.from?.pathname])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [showExternalBrowserMessage, setShowExternalBrowserMessage] = useState(false)
   const [externalBrowserUrl, setExternalBrowserUrl] = useState(null)
+  const [rememberMe, setRememberMe] = useState(true)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -93,29 +115,20 @@ const LoginPage = () => {
 
       if (isLogin) {
         try {
-          const data = await authService.signIn(formData.email, formData.password)
-
-          // Check if user has completed onboarding
-          if (data?.user?.id) {
-            try {
-              const profile = await profileService.getProfile(data.user.id)
-
-              // If onboarding not completed, redirect to onboarding
-              if (!profile || !profile.onboarding_completed) {
-                navigate('/onboarding', { replace: true })
-                return
-              }
-            } catch (profileError) {
-              console.error('Error checking profile:', profileError)
-              // If profile check fails, assume onboarding needed
-              navigate('/onboarding', { replace: true })
-              return
-            }
+          // Set remember-me BEFORE signIn so Supabase custom storage uses the correct store
+          // (sessionStorage when false, localStorage when true) when persisting the session.
+          if (rememberMe) {
+            localStorage.setItem('swipy_remember_me', '1')
+          } else {
+            localStorage.setItem('swipy_remember_me', '0')
           }
 
-          // User has completed onboarding, redirect to intended destination or home
+          await authService.signIn(formData.email, formData.password)
+
+          // Navigate immediately; ProtectedRoute will check onboarding and redirect if needed.
+          // This avoids a second sequential network call (getProfile) before navigation.
           const redirectTo = location.state?.from?.pathname || '/home'
-          navigate(redirectTo)
+          navigate(redirectTo, { replace: true })
         } catch (signInError) {
           alert(signInError.message || 'Sign in failed. Please check your credentials and try again.')
           return
@@ -150,6 +163,14 @@ const LoginPage = () => {
 
     try {
       setIsSubmitting(true)
+
+      // Persist "remember this device" preference so OAuth flows can use it
+      if (rememberMe) {
+        localStorage.setItem('swipy_remember_me', '1')
+      } else {
+        localStorage.setItem('swipy_remember_me', '0')
+      }
+
       const result = await authService.signInWithOAuth(provider, {
         redirectTo: `${window.location.origin}/auth/callback`
       })
@@ -318,6 +339,20 @@ const LoginPage = () => {
               minLength={8}
               maxLength={128}
             />
+          </div>
+
+          {/* Remember this device */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="rememberMeDesktop"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 text-blue-400 bg-glass-bg border-glass-border rounded"
+            />
+            <label htmlFor="rememberMeDesktop" className="text-sm text-text-secondary">
+              Remember this device
+            </label>
           </div>
 
           {!isLogin && (
@@ -573,6 +608,20 @@ const LoginPage = () => {
               minLength={8}
               maxLength={128}
             />
+          </div>
+
+          {/* Remember this device */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="rememberMeMobile"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 text-blue-400 bg-glass-bg border-glass-border rounded"
+            />
+            <label htmlFor="rememberMeMobile" className="text-sm text-text-secondary">
+              Remember this device
+            </label>
           </div>
 
           {!isLogin && (

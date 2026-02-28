@@ -21,8 +21,15 @@ export const AuthProvider = ({ children }) => {
           return
         }
 
+        // Read remember-me preference (default: remembered when key is missing)
+        const rememberMeFlag = localStorage.getItem('swipy_remember_me')
+        const rememberMe = rememberMeFlag === null ? true : rememberMeFlag === '1'
+
         // Check for cached session first
-        const cachedSession = sessionStorage.getItem('swipy_session')
+        const cachedSession = rememberMe
+          ? localStorage.getItem('swipy_session')
+          : sessionStorage.getItem('swipy_session')
+
         if (cachedSession) {
           try {
             const parsedSession = JSON.parse(cachedSession)
@@ -35,6 +42,7 @@ export const AuthProvider = ({ children }) => {
           } catch (e) {
             console.warn('AuthProvider: Invalid cached session, clearing')
             sessionStorage.removeItem('swipy_session')
+            localStorage.removeItem('swipy_session')
           }
         }
 
@@ -49,14 +57,22 @@ export const AuthProvider = ({ children }) => {
             console.warn('AuthProvider: Invalid session data, clearing session')
             setSession(null)
             sessionStorage.removeItem('swipy_session')
+            localStorage.removeItem('swipy_session')
           } else {
             setSession(currentSession)
-            // Cache the session
-            sessionStorage.setItem('swipy_session', JSON.stringify(currentSession))
+            // Cache the session based on remember-me preference
+            if (rememberMe) {
+              localStorage.setItem('swipy_session', JSON.stringify(currentSession))
+              sessionStorage.removeItem('swipy_session')
+            } else {
+              sessionStorage.setItem('swipy_session', JSON.stringify(currentSession))
+              localStorage.removeItem('swipy_session')
+            }
           }
         } else {
           setSession(null)
           sessionStorage.removeItem('swipy_session')
+          localStorage.removeItem('swipy_session')
         }
 
         setInitialized(true)
@@ -81,19 +97,42 @@ export const AuthProvider = ({ children }) => {
               case 'SIGNED_IN':
                 if (newSession?.user?.id && newSession?.access_token) {
                   setSession(newSession)
-                  sessionStorage.setItem('swipy_session', JSON.stringify(newSession))
+                  // Use remember-me preference for storage; default to true if not set
+                  {
+                    const flag = localStorage.getItem('swipy_remember_me')
+                    const remember = flag === null ? true : flag === '1'
+
+                    if (remember) {
+                      localStorage.setItem('swipy_session', JSON.stringify(newSession))
+                      sessionStorage.removeItem('swipy_session')
+                    } else {
+                      sessionStorage.setItem('swipy_session', JSON.stringify(newSession))
+                      localStorage.removeItem('swipy_session')
+                    }
+                  }
                   setError(null)
                 }
                 break
               case 'SIGNED_OUT':
                 setSession(null)
                 sessionStorage.removeItem('swipy_session')
+                localStorage.removeItem('swipy_session')
                 setError(null)
                 break
               case 'TOKEN_REFRESHED':
                 if (newSession?.user?.id && newSession?.access_token) {
                   setSession(newSession)
-                  sessionStorage.setItem('swipy_session', JSON.stringify(newSession))
+                  {
+                    const flag = localStorage.getItem('swipy_remember_me')
+                    const remember = flag === null ? true : flag === '1'
+                    if (remember) {
+                      localStorage.setItem('swipy_session', JSON.stringify(newSession))
+                      sessionStorage.removeItem('swipy_session')
+                    } else {
+                      sessionStorage.setItem('swipy_session', JSON.stringify(newSession))
+                      localStorage.removeItem('swipy_session')
+                    }
+                  }
                   setError(null)
                 }
                 break
