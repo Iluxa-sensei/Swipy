@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../providers/AuthProvider.jsx'
 
 const LandingPage = () => {
     const navigate = useNavigate()
+    const { session, loading } = useAuth()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [openFaqIndex, setOpenFaqIndex] = useState(null)
     const [footerVisible, setFooterVisible] = useState(false)
@@ -15,6 +17,15 @@ const LandingPage = () => {
     const ctaRef = useRef(null)
     const scrollHandlerRef = useRef(null)
     const isLogoAnimating = useRef(false)
+
+    // If user is already logged in (e.g. "Remember this device"), send them straight to app instead of login
+    const goToLoginOrApp = () => {
+        if (!loading && session?.user?.id && session?.access_token) {
+            navigate('/home')
+        } else {
+            navigate('/login')
+        }
+    }
 
     // Load fonts
     useEffect(() => {
@@ -769,7 +780,7 @@ const LandingPage = () => {
                     {/* Auth Buttons */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <button
-                            onClick={() => navigate('/login')}
+                            onClick={goToLoginOrApp}
                             style={{
                                 background: 'rgba(255, 255, 255, 0.1)',
                                 color: 'rgba(255, 255, 255, 0.9)',
@@ -791,7 +802,7 @@ const LandingPage = () => {
                             Log In
                         </button>
                         <button
-                            onClick={() => navigate('/login')}
+                            onClick={goToLoginOrApp}
                             style={{
                                 background: '#4880ff',
                                 color: '#ffffff',
@@ -864,7 +875,7 @@ const LandingPage = () => {
                         </p>
                         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
                             <button
-                                onClick={() => navigate('/login')}
+                                onClick={goToLoginOrApp}
                                 style={{
                                     background: '#4880ff',
                                     color: '#ffffff',
@@ -1524,7 +1535,7 @@ const LandingPage = () => {
                             Ready to Find Your Next Startup?
                         </h2>
                         <button
-                            onClick={() => navigate('/login')}
+                            onClick={goToLoginOrApp}
                             style={{
                                 background: '#4880ff',
                                 color: '#ffffff',

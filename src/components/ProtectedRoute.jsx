@@ -3,6 +3,20 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider.jsx'
 import { profileService } from '../services/profileService.js'
 
+// In-memory cache for onboarding status to avoid refetch on every protected route visit (TTL 2 min)
+const ONBOARDING_CACHE_TTL_MS = 2 * 60 * 1000
+const onboardingCache = new Map()
+
+function getCachedOnboardingCompleted (userId) {
+  const entry = onboardingCache.get(userId)
+  if (!entry || Date.now() - entry.ts > ONBOARDING_CACHE_TTL_MS) return null
+  return entry.onboardingCompleted
+}
+
+export function setCachedOnboardingCompleted (userId, onboardingCompleted) {
+  onboardingCache.set(userId, { onboardingCompleted, ts: Date.now() })
+}
+
 export const ProtectedRoute = () => {
   const { session, loading, hasValidSession, error } = useAuth()
   const location = useLocation()
@@ -11,7 +25,11 @@ export const ProtectedRoute = () => {
   const isOnboardingRoute = location.pathname === '/onboarding'
 
   // Check for cached session to avoid loading screen
-  const cachedSession = sessionStorage.getItem('swipy_session')
+  const rememberMeFlag = localStorage.getItem('swipy_remember_me')
+  const rememberMe = rememberMeFlag === null ? true : rememberMeFlag === '1'
+  const cachedSession = rememberMe
+    ? localStorage.getItem('swipy_session')
+    : sessionStorage.getItem('swipy_session')
   const hasCachedSession = cachedSession && JSON.parse(cachedSession)?.user?.id
 
   // Check onboarding status for authenticated users
@@ -30,21 +48,26 @@ export const ProtectedRoute = () => {
       return
     }
 
+    const userId = session.user.id
+    const cached = getCachedOnboardingCompleted(userId)
+    if (cached !== null) {
+      setRequiresOnboarding(!cached)
+      setOnboardingChecked(true)
+      return
+    }
+
     let cancelled = false
 
     const checkOnboarding = async () => {
       try {
         setOnboardingChecked(false)
-        const profile = await profileService.getProfile(session.user.id)
+        const profile = await profileService.getProfile(userId)
 
         if (cancelled) return
 
-        // If there's no profile or onboarding flag is false, require onboarding
-        if (!profile || !profile.onboarding_completed) {
-          setRequiresOnboarding(true)
-        } else {
-          setRequiresOnboarding(false)
-        }
+        const completed = !!(profile?.onboarding_completed)
+        setCachedOnboardingCompleted(userId, completed)
+        setRequiresOnboarding(!completed)
       } catch (e) {
         if (cancelled) return
         console.warn('ProtectedRoute: Failed to check onboarding status, redirecting to onboarding', e)

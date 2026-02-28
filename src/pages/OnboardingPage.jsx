@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks'
 import { profileService } from '../services'
 import LocationSelector from '../components/LocationSelector'
+import { setCachedOnboardingCompleted } from '../components/ProtectedRoute.jsx'
 
 const OnboardingPage = () => {
   const navigate = useNavigate()
@@ -179,6 +180,8 @@ const OnboardingPage = () => {
       if (!result) {
         throw new Error('Failed to create/update profile')
       }
+
+      setCachedOnboardingCompleted(user.id, true)
 
       // Navigate to home page
       navigate('/home')
