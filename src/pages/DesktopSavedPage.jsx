@@ -67,6 +67,7 @@ const DesktopSavedPage = () => {
     return (
         <div className="desktop-page">
             <div className="desktop-page-section">
+                {/* Tabs */}
                 <div className="flex gap-3 mb-6">
                     <button
                         className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${activeTab === 'liked'
@@ -102,12 +103,14 @@ const DesktopSavedPage = () => {
                             <p className="text-text-secondary mb-8">
                                 Startups you {activeTab === 'liked' ? 'like' : 'pass'} will appear here.
                             </p>
-                            <button
-                                className="btn-primary"
-                                onClick={() => navigate('/home')}
-                            >
-                                Browse Startups
-                            </button>
+                            <div className="flex justify-center">
+                                <button
+                                    className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-full font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                                    onClick={() => navigate('/home')}
+                                >
+                                    Browse Startups
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ) : (

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
 import { FiltersProvider } from './context/FiltersContext'
+import { JobSearchFiltersProvider } from './context/JobSearchFiltersContext.jsx'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { extractAndCleanAuthTokens } from './utils/authTokenCleaner.js'
 
@@ -129,24 +130,26 @@ function App() {
 
   return (
     <FiltersProvider>
-      {isDesktop ? (
-        <DesktopLayout
-          currentScreen={currentScreen}
-          onScreenChange={handleScreenChange}
-          minimal={desktopMinimal}
-        >
-          {routes}
-        </DesktopLayout>
-      ) : (
-        <MobileLayout
-          currentScreen={currentScreen}
-          onScreenChange={handleScreenChange}
-          showBottomNav={showBottomNav}
-        >
-          {routes}
-        </MobileLayout>
-      )}
-      <Analytics />
+      <JobSearchFiltersProvider>
+        {isDesktop ? (
+          <DesktopLayout
+            currentScreen={currentScreen}
+            onScreenChange={handleScreenChange}
+            minimal={desktopMinimal}
+          >
+            {routes}
+          </DesktopLayout>
+        ) : (
+          <MobileLayout
+            currentScreen={currentScreen}
+            onScreenChange={handleScreenChange}
+            showBottomNav={showBottomNav}
+          >
+            {routes}
+          </MobileLayout>
+        )}
+        <Analytics />
+      </JobSearchFiltersProvider>
     </FiltersProvider>
   )
 }

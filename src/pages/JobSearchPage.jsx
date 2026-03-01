@@ -1,15 +1,51 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchJobs } from '../services/jobService'
+import { useJobSearchFilters } from '../context/JobSearchFiltersContext.jsx'
+
+const JOB_FILTER_OPTIONS = [
+    { id: 'remote', label: 'Remote only', icon: 'fa-solid fa-globe' },
+    { id: 'high-salary', label: 'Top compensation', icon: 'fa-solid fa-arrow-trend-up' },
+    { id: 'senior', label: 'Senior & Lead', icon: 'fa-solid fa-user-tie' },
+    { id: 'mid-level', label: 'Mid-level', icon: 'fa-solid fa-layer-group' },
+    { id: 'junior', label: 'Junior & Intern', icon: 'fa-solid fa-seedling' },
+    { id: 'full-time', label: 'Full-time', icon: 'fa-solid fa-clock' },
+    { id: 'contract', label: 'Contract & Freelance', icon: 'fa-solid fa-briefcase' },
+    { id: 'fast-growing', label: 'Fast-growing teams', icon: 'fa-solid fa-bolt' },
+]
+const MAX_JOB_FILTERS = 5
 
 const JobSearchPage = () => {
     const navigate = useNavigate()
+    const { jobFilters, setJobFilters } = useJobSearchFilters()
     const [query, setQuery] = useState('')
     const [jobs, setJobs] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [hasSearched, setHasSearched] = useState(false)
     const [error, setError] = useState(null)
     const [validationMsg, setValidationMsg] = useState('')
+    const [isFilterOpen, setIsFilterOpen] = useState(false)
+    const filterRef = useRef(null)
+
+    // Close filter popover on outside click
+    useEffect(() => {
+        if (!isFilterOpen) return
+        const handler = (e) => {
+            if (filterRef.current && !filterRef.current.contains(e.target)) {
+                setIsFilterOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handler)
+        return () => document.removeEventListener('mousedown', handler)
+    }, [isFilterOpen])
+
+    const toggleFilter = (id) => {
+        setJobFilters((prev) => {
+            if (prev.includes(id)) return prev.filter((f) => f !== id)
+            if (prev.length >= MAX_JOB_FILTERS) return prev
+            return [...prev, id]
+        })
+    }
 
     const handleSearch = useCallback(async () => {
         setValidationMsg('')
@@ -24,8 +60,23 @@ const JobSearchPage = () => {
         setHasSearched(true)
 
         try {
-            // TODO: Replace searchJobs with real API call
-            const results = await searchJobs(query)
+            let effectiveQuery = query
+            if (jobFilters && jobFilters.length > 0) {
+                const extras = []
+                if (jobFilters.includes('remote')) extras.push('remote OR "work from home"')
+                if (jobFilters.includes('high-salary')) extras.push('"high salary" OR competitive')
+                if (jobFilters.includes('senior')) extras.push('senior OR lead OR principal')
+                if (jobFilters.includes('mid-level')) extras.push('mid')
+                if (jobFilters.includes('junior')) extras.push('junior OR intern OR graduate')
+                if (jobFilters.includes('full-time')) extras.push('"full time"')
+                if (jobFilters.includes('contract')) extras.push('contract OR freelance')
+                if (jobFilters.includes('fast-growing')) extras.push('startup OR scaleup')
+
+                const filtersPart = extras.join(' ')
+                effectiveQuery = `${query} ${filtersPart}`.trim()
+            }
+
+            const results = await searchJobs(effectiveQuery)
             setJobs(results)
         } catch (err) {
             console.error('Job search error:', err)
@@ -33,7 +84,7 @@ const JobSearchPage = () => {
         } finally {
             setIsLoading(false)
         }
-    }, [query])
+    }, [query, jobFilters])
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') handleSearch()
@@ -46,7 +97,98 @@ const JobSearchPage = () => {
                     <i className="fas fa-arrow-left"></i>
                 </button>
                 <h1>Job Scanner</h1>
-                <div className="w-10"></div>
+                <div className="relative" ref={filterRef}>
+                    <button
+                        className="header-btn relative"
+                        onClick={() => setIsFilterOpen((v) => !v)}
+                    >
+                        <i className="fas fa-filter"></i>
+                        {jobFilters.length > 0 && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#5a8ceb] text-white text-[10px] font-bold flex items-center justify-center">
+                                {jobFilters.length}
+                            </span>
+                        )}
+                    </button>
+
+                    {isFilterOpen && (
+                        <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl border border-glass-border bg-bg-primary shadow-xl shadow-black/50 backdrop-blur-xl z-50 overflow-hidden">
+                            {/* Header */}
+                            <div className="px-4 pt-4 pb-3 border-b border-glass-border/60 flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-semibold text-text-primary">Job Filters</p>
+                                    <p className="text-[11px] text-text-secondary mt-0.5">Choose up to {MAX_JOB_FILTERS}</p>
+                                </div>
+                                {jobFilters.length > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setJobFilters([])}
+                                        className="text-[11px] font-medium text-[#5a8ceb]"
+                                    >
+                                        Clear
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Active chips */}
+                            {jobFilters.length > 0 && (
+                                <div className="px-3 pt-2.5 pb-1 flex flex-wrap gap-1.5">
+                                    {jobFilters.map((id) => {
+                                        const f = JOB_FILTER_OPTIONS.find((o) => o.id === id)
+                                        if (!f) return null
+                                        return (
+                                            <span key={id} className="inline-flex items-center gap-1 rounded-full bg-[#5a8ceb]/15 text-[#5a8ceb] text-[11px] px-2.5 py-1">
+                                                {f.label}
+                                                <button type="button" onClick={() => toggleFilter(id)} className="ml-0.5">×</button>
+                                            </span>
+                                        )
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Options */}
+                            <div className="max-h-64 overflow-y-auto px-2 py-2 space-y-1">
+                                {JOB_FILTER_OPTIONS.map((filter) => {
+                                    const isActive = jobFilters.includes(filter.id)
+                                    const isDisabled = !isActive && jobFilters.length >= MAX_JOB_FILTERS
+                                    return (
+                                        <button
+                                            key={filter.id}
+                                            type="button"
+                                            onClick={() => toggleFilter(filter.id)}
+                                            disabled={isDisabled}
+                                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 border ${isActive
+                                                ? 'border-[#5a8ceb]/60 bg-[#5a8ceb]/10'
+                                                : 'border-transparent hover:bg-bg-secondary'
+                                                } ${isDisabled ? 'opacity-35 cursor-not-allowed' : ''}`}
+                                        >
+                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0 ${isActive ? 'bg-[#5a8ceb]/20 text-[#5a8ceb]' : 'bg-bg-tertiary text-text-secondary'
+                                                }`}>
+                                                <i className={filter.icon}></i>
+                                            </div>
+                                            <span className={`text-xs font-medium ${isActive ? 'text-text-primary' : 'text-text-secondary'}`}>
+                                                {filter.label}
+                                            </span>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="px-4 pb-3 pt-2 border-t border-glass-border/60 flex items-center justify-between">
+                                <p className="text-[11px] text-text-secondary">
+                                    {jobFilters.length === 0 ? 'No filters yet' : `${jobFilters.length} active`}
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsFilterOpen(false)}
+                                    className="text-[11px] font-semibold px-3 py-1.5 rounded-full bg-[#5a8ceb] text-white hover:bg-[#4a7cd4] transition-colors"
+                                >
+                                    Done
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="flex-1 overflow-y-auto pb-6">
@@ -69,9 +211,9 @@ const JobSearchPage = () => {
                             onClick={handleSearch}
                             disabled={isLoading}
                             aria-label="Search jobs"
-                            className="px-5 py-3 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl font-medium text-sm hover:from-blue-600 hover:to-blue-800 transition-all disabled:opacity-50"
+                            className="group relative bg-slate-900 w-64 border-2 border-[#5a8ceb] text-white text-base font-bold rounded-xl overflow-hidden transition-all duration-500 hover:border-[#7ba8f0] py-3 px-3 text-left before:absolute before:w-10 before:h-10 before:content-[''] before:right-2 before:top-1 before:z-10 before:bg-[#3b5fc7] before:rounded-full before:blur-lg before:transition-all before:duration-500 after:absolute after:z-10 after:w-16 after:h-16 after:content-[''] after:bg-[#1e3a8a] after:right-6 after:top-2 after:rounded-full after:blur-lg after:transition-all after:duration-500 hover:before:right-10 hover:before:-bottom-4 hover:before:blur hover:after:-right-6 hover:after:scale-110 disabled:opacity-50"
                         >
-                            {isLoading ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-search"></i>}
+                            {isLoading ? <i className="fas fa-spinner fa-spin"></i> : 'Search'}
                         </button>
                     </div>
 

@@ -175,12 +175,14 @@ const SavedPage = () => {
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-4">No Saved Startups</h2>
                         <p className="text-text-secondary mb-8">Startups you like or pass will appear here.</p>
-                        <button
-                            className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
-                            onClick={() => navigate('/home')}
-                        >
-                            Browse Startups
-                        </button>
+                        <div className="flex justify-center">
+                            <button
+                                className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-full font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                                onClick={() => navigate('/home')}
+                            >
+                                Browse Startups
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     <div className="space-y-3">
