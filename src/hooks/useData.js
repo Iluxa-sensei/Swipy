@@ -327,6 +327,14 @@ export const useSwipes = (userId) => {
         }
     }, [userId])
 
+    const getSwipeStatus = useCallback(async (startupId) => {
+        try {
+            return await swipeService.getSwipeStatus(userId, startupId)
+        } catch (err) {
+            return 'none'
+        }
+    }, [userId])
+
     const removeSwipe = useCallback(async (startupId) => {
         try {
             await swipeService.removeSwipe(userId, startupId)
@@ -351,7 +359,8 @@ export const useSwipes = (userId) => {
         refetch: fetchSwipes,
         likeStartup,
         passStartup,
-        removeSwipe
+        removeSwipe,
+        getSwipeStatus
     }
 }
 

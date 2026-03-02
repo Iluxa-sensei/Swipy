@@ -131,7 +131,7 @@ const DesktopHomePage = () => {
         checkLikes()
     }, [user?.id, startups])
 
-    const handleLike = async (startupId) => {
+        const handleLike = async (startupId) => {
         if (!ensureAuth()) return
 
         const isLiked = likedStartups.has(startupId)

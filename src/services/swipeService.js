@@ -165,10 +165,7 @@ export const swipeService = {
             ebitda,
             image,
             created_at,
-            updated_at,
-            profiles!startups_owner_id_fkey (
-              username
-            )
+            updated_at
           )
         `)
                 .eq('user_id', userId)
@@ -218,10 +215,7 @@ export const swipeService = {
             ebitda,
             image,
             created_at,
-            updated_at,
-            profiles!startups_owner_id_fkey (
-              username
-            )
+            updated_at
           )
         `)
                 .eq('user_id', userId)
