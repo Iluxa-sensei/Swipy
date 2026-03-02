@@ -129,7 +129,7 @@ export const useStartupsLazy = () => {
     const { filters } = useFilters()
     const startupsRef = useRef([])
 
-    const PAGE_SIZE = 5 // Load 5 startups at a time for optimal performance - ensures we always have 2+ ready
+    const PAGE_SIZE = 6 // Load 6 startups at a time for optimal performance - ensures we always have 2+ ready
 
     // Keep ref in sync with state
     useEffect(() => {

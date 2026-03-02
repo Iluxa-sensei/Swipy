@@ -433,7 +433,7 @@ const DesktopProfilePage = () => {
                                 <p className="text-text-secondary">Loading your portfolio...</p>
                             </div>
                         ) : !completeProfile?.startups?.length ? (
-                            <div className="text-center py-16 desktop-card">
+                            <div className="text-center flex flex-col items-center py-16 desktop-card">
                                 <div className="w-20 h-20 bg-accent-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                     <i className="fas fa-rocket text-3xl text-accent-primary"></i>
                                 </div>
@@ -534,7 +534,7 @@ const DesktopProfilePage = () => {
                                 <p className="text-text-secondary">Loading achievements...</p>
                             </div>
                         ) : !completeProfile?.achievements?.length ? (
-                            <div className="text-center py-16 desktop-card">
+                            <div className="text-center flex flex-col items-center py-16 desktop-card">
                                 <div className="w-20 h-20 bg-yellow-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                     <i className="fas fa-trophy text-3xl text-yellow-500"></i>
                                 </div>

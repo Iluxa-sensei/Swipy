@@ -204,37 +204,46 @@ const OnboardingPage = () => {
   const progress = (currentStep / 4) * 100
 
   return (
-    <div className="screen active onboarding-page">
-      {/* Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 h-1 bg-glass-border z-50">
-        <div
-          className="h-full bg-gradient-to-r from-blue-300 to-blue-700 transition-all duration-500"
-          style={{ width: `${progress}%` }}
-        ></div>
-      </div>
-
-      {/* Header */}
-      <div className="header">
-        <div className="w-10"></div>
-        <h1 className="text-lg font-bold">Welcome to Swipy</h1>
-        <div className="w-10"></div>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="mx-4 mt-4 p-4 bg-red-500/20 border border-red-500/30 rounded-2xl">
-          <div className="flex items-center gap-3 text-red-600">
-            <i className="fas fa-exclamation-circle"></i>
-            <span className="font-medium">{error}</span>
+    <div className="min-h-screen w-full bg-[#050816] bg-gradient-to-br from-[#050816] via-[#020617] to-black flex flex-col items-center justify-center px-4">
+      {/* Brand & progress */}
+      <div className="w-full max-w-xl mx-auto mb-6">
+        <div className="flex items-center justify-center mb-6">
+          <div className="flex items-center gap-2">
+            <img
+              src="/Vector.png"
+              alt="Swipy logo"
+              className="w-8 h-8"
+            />
+            <span className="text-lg font-semibold tracking-tight text-white">Swipy</span>
           </div>
         </div>
-      )}
+        <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-blue-400 via-indigo-500 to-cyan-400 transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+      </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto pb-6 min-h-0">
+      {/* Centered onboarding card */}
+      <div className="w-full max-w-xl mx-auto">
+        <div className="bg-bg-secondary/90 border border-glass-border rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.7)] backdrop-blur-xl p-6 sm:p-8">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/40 rounded-2xl">
+              <div className="flex items-center gap-3 text-red-300">
+                <i className="fas fa-exclamation-circle"></i>
+                <span className="font-medium text-sm">{error}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Step content */}
+          {/* Step 1: Basic Information */}
+          <div className="max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
         {/* Step 1: Basic Information */}
         {currentStep === 1 && (
-          <div className="p-6 space-y-6 animate-fade-in">
+          <div className="pt-2 space-y-6 animate-fade-in">
             <div className="text-center mb-8">
               <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <i className="fas fa-user text-3xl text-white"></i>
@@ -307,7 +316,7 @@ const OnboardingPage = () => {
 
         {/* Step 2: Role Selection */}
         {currentStep === 2 && (
-          <div className="p-6 space-y-6 animate-fade-in">
+          <div className="pt-2 space-y-6 animate-fade-in">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-text-primary mb-2">What's your role?</h2>
               <p className="text-text-secondary">Choose the role that best describes you</p>
@@ -345,7 +354,7 @@ const OnboardingPage = () => {
 
         {/* Step 3: Interests & Location */}
         {currentStep === 3 && (
-          <div className="p-6 space-y-6 animate-fade-in">
+          <div className="pt-2 space-y-6 animate-fade-in">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-text-primary mb-2">What interests you?</h2>
               <p className="text-text-secondary">Select industries and set your location</p>
@@ -391,7 +400,7 @@ const OnboardingPage = () => {
 
         {/* Step 4: Review & Complete */}
         {currentStep === 4 && (
-          <div className="p-6 space-y-6 animate-fade-in">
+          <div className="pt-2 space-y-6 animate-fade-in">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-text-primary mb-2">Review Your Profile</h2>
               <p className="text-text-secondary">Everything looks great! Let's get you started</p>
@@ -447,46 +456,47 @@ const OnboardingPage = () => {
             </div>
           </div>
         )}
-      </div>
+          </div>
 
-      {/* Navigation */}
-      <div className="p-6 border-t border-glass-border bg-bg-secondary/80">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={prevStep}
-            disabled={currentStep === 1}
-            className={`px-6 py-3 rounded-2xl font-medium ${currentStep === 1
-              ? 'bg-glass-bg text-text-secondary cursor-not-allowed'
-              : 'bg-glass-bg text-text-primary'
+          {/* Navigation inside card */}
+          <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <button
+              onClick={prevStep}
+              disabled={currentStep === 1}
+              className={`w-full sm:w-auto px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
+                currentStep === 1
+                  ? 'border-transparent text-text-secondary cursor-not-allowed bg-transparent'
+                  : 'border-glass-border text-text-secondary hover:bg-bg-tertiary'
               }`}
-          >
-            <i className="fas fa-arrow-left mr-2"></i>
-            Back
-          </button>
+            >
+              <i className="fas fa-arrow-left mr-2"></i>
+              Back
+            </button>
 
-          {currentStep < 4 ? (
-            <button
-              onClick={nextStep}
-              disabled={
-                (currentStep === 1 && (!userData.full_name.trim() || !userData.username.trim())) ||
-                (currentStep === 2 && !userData.role) ||
-                (currentStep === 3 && (userData.interests.length === 0 || !userData.locationContinent))
-              }
-              className="px-8 py-3 bg-gradient-to-r from-blue-300 to-blue-700 text-white rounded-2xl font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-              <i className="fas fa-arrow-right ml-2"></i>
-            </button>
-          ) : (
-            <button
-              onClick={completeOnboarding}
-              disabled={loading}
-              className="px-8 py-3 bg-gradient-to-r from-green-400 to-green-600 text-white rounded-2xl font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-check'} mr-2`}></i>
-              {loading ? 'Setting up...' : 'Get Started'}
-            </button>
-          )}
+            {currentStep < 4 ? (
+              <button
+                onClick={nextStep}
+                disabled={
+                  (currentStep === 1 && (!userData.full_name.trim() || !userData.username.trim())) ||
+                  (currentStep === 2 && !userData.role) ||
+                  (currentStep === 3 && (userData.interests.length === 0 || !userData.locationContinent))
+                }
+                className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-400 to-indigo-600 text-white rounded-xl font-semibold shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+                <i className="fas fa-arrow-right ml-2"></i>
+              </button>
+            ) : (
+              <button
+                onClick={completeOnboarding}
+                disabled={loading}
+                className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-xl font-semibold shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-check'} mr-2`}></i>
+                {loading ? 'Setting up...' : 'Get Started'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

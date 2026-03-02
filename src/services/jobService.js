@@ -7,7 +7,7 @@
 const ADZUNA_APP_ID = import.meta.env.VITE_ADZUNA_APP_ID
 const ADZUNA_APP_KEY = import.meta.env.VITE_ADZUNA_APP_KEY
 const ADZUNA_COUNTRY = 'gb'
-const RESULTS_PER_PAGE = 5
+const RESULTS_PER_PAGE = 6
 
 const BASE_URL = 'https://api.adzuna.com/v1/api'
 
@@ -76,7 +76,7 @@ function normalizeJob(result, index) {
 
 /**
  * Search jobs via the Adzuna API.
- * Returns at most RESULTS_PER_PAGE (5) normalised job objects.
+ * Returns at most RESULTS_PER_PAGE (6) normalised job objects.
  */
 export async function searchJobs(query) {
     if (!query || !query.trim()) return []

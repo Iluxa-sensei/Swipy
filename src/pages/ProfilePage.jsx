@@ -416,7 +416,7 @@ const ProfilePage = () => {
                 <p className="text-text-secondary text-sm">Loading startups...</p>
               </div>
             ) : completeProfile?.startups?.length === 0 ? (
-              <div className="text-center py-10">
+              <div className="text-center flex flex-col items-center py-10">
                 <div className="w-16 h-16 bg-accent-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <i className="fas fa-rocket text-2xl text-accent-primary"></i>
                 </div>
@@ -528,7 +528,7 @@ const ProfilePage = () => {
                 <p className="text-text-secondary">Loading achievements...</p>
               </div>
             ) : completeProfile?.achievements?.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="text-center flex flex-col items-center py-12">
                 <div className="w-24 h-24 bg-gradient-to-br from-yellow-300 to-yellow-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
                   <i className="fas fa-trophy text-3xl text-white"></i>
                 </div>

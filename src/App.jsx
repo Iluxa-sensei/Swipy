@@ -96,6 +96,18 @@ function App() {
     return <LegalPage />
   }
 
+  // Onboarding uses its own full-screen focused layout without the main dashboard shell.
+  if (location.pathname === '/onboarding') {
+    return (
+      <FiltersProvider>
+        <JobSearchFiltersProvider>
+          <OnboardingPage />
+          <Analytics />
+        </JobSearchFiltersProvider>
+      </FiltersProvider>
+    )
+  }
+
   const routes = (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
