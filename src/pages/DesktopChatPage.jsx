@@ -599,7 +599,7 @@ const DesktopChatPage = () => {
             {filteredChats.length === 0 ? (
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
-                        <div className="text-center">
+                        <div className="text-center flex flex-col items-center">
                             <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
                                 <i className="fas fa-comments text-3xl text-white"></i>
                             </div>
