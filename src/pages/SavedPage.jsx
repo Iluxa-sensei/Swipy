@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSwipes, useAuth } from '../hooks'
+import Loader from '../components/Loader.jsx'
 
 const SavedPage = () => {
     const navigate = useNavigate()
@@ -96,10 +97,8 @@ const SavedPage = () => {
 
                 <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                        <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
-                            <i className="fas fa-spinner fa-spin text-3xl text-white"></i>
-                        </div>
-                        <h2 className="text-2xl font-bold text-text-primary mb-4">Loading Saved Startups</h2>
+                        <Loader />
+                        <h2 className="text-2xl font-bold text-text-primary mt-4 mb-4">Loading Saved Startups</h2>
                         <p className="text-text-secondary">Please wait...</p>
                     </div>
                 </div>

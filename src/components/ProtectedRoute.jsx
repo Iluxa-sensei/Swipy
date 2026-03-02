@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider.jsx'
 import { profileService } from '../services/profileService.js'
+import Loader from './Loader.jsx'
 
 // In-memory cache for onboarding status to avoid refetch on every protected route visit (TTL 2 min)
 const ONBOARDING_CACHE_TTL_MS = 2 * 60 * 1000
@@ -89,11 +90,11 @@ export const ProtectedRoute = () => {
   // Security: Show loading state while checking authentication (only if no cached session)
   if (loading && !hasCachedSession) {
     return (
-      <div className="screen active">
+      <div className="screen active auth-loading-screen">
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-text-secondary">Verifying authentication...</p>
+            <Loader />
+            <p className="text-text-secondary mt-4">Verifying authentication...</p>
           </div>
         </div>
       </div>
@@ -180,11 +181,11 @@ export const ProtectedRoute = () => {
     // While we are checking onboarding status, show a small loading state
     if (session?.user?.id && !onboardingChecked) {
       return (
-        <div className="screen active">
+        <div className="screen active auth-loading-screen">
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-text-secondary">Loading your profile...</p>
+              <Loader />
+              <p className="text-text-secondary mt-4">Loading your profile...</p>
             </div>
           </div>
         </div>

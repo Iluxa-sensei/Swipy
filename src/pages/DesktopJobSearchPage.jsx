@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import JobCard from '../components/JobCard'
 import { searchJobs } from '../services/jobService'
 import { useJobSearchFilters } from '../context/JobSearchFiltersContext.jsx'
+import Loader from '../components/Loader.jsx'
 
 const DesktopJobSearchPage = () => {
     const navigate = useNavigate()
@@ -76,10 +77,8 @@ const DesktopJobSearchPage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-16 h-16 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                                <i className="fas fa-briefcase text-2xl text-white"></i>
-                            </div>
-                            <div className="text-text-secondary">Loading jobs...</div>
+                            <Loader />
+                            <div className="text-text-secondary mt-4">Loading jobs...</div>
                         </div>
                     </div>
                 </div>
@@ -127,22 +126,9 @@ const DesktopJobSearchPage = () => {
 
                 {/* Skeleton Loading */}
                 {isLoading && (
-                    <div className="desktop-grid desktop-grid-3">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="desktop-card animate-pulse">
-                                <div className="flex flex-col gap-3">
-                                    <div className="w-full h-28 bg-bg-tertiary rounded-xl"></div>
-                                    <div className="h-5 bg-bg-tertiary rounded w-3/4"></div>
-                                    <div className="h-4 bg-bg-tertiary rounded w-1/2"></div>
-                                    <div className="flex gap-2">
-                                        <div className="h-6 bg-bg-tertiary rounded-lg w-24"></div>
-                                        <div className="h-6 bg-bg-tertiary rounded-lg w-20"></div>
-                                    </div>
-                                    <div className="h-3 bg-bg-tertiary rounded w-full"></div>
-                                    <div className="h-3 bg-bg-tertiary rounded w-2/3"></div>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="flex flex-col items-center justify-center py-12">
+                        <Loader />
+                        <p className="text-text-secondary mt-4">Searching jobs...</p>
                     </div>
                 )}
 

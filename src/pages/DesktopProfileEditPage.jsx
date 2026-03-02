@@ -4,6 +4,7 @@ import { useAuth } from '../providers/AuthProvider'
 import { useProfile } from '../hooks'
 import { profileService } from '../services/profileService'
 import { supabase } from '../services/supabaseClient'
+import Loader from '../components/Loader.jsx'
 
 const DesktopProfileEditPage = () => {
     const navigate = useNavigate()
@@ -363,8 +364,8 @@ const DesktopProfileEditPage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="animate-spin rounded-full h-16 w-16 border-2 border-transparent border-t-accent-primary border-r-accent-primary mx-auto mb-6"></div>
-                            <p className="text-text-secondary text-lg font-medium">Loading profile...</p>
+                            <Loader />
+                            <p className="text-text-secondary text-lg font-medium mt-4">Loading profile...</p>
                         </div>
                     </div>
                 </div>

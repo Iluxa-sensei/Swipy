@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks'
 import { profileService, chatService } from '../services'
 import { supabase } from '../services/supabaseClient'
+import Loader from '../components/Loader.jsx'
 
 const PublicProfilePage = () => {
   const { id, nickname } = useParams()
@@ -96,10 +97,8 @@ const PublicProfilePage = () => {
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-              <i className="fas fa-user text-3xl text-white"></i>
-            </div>
-            <div className="text-text-secondary">Loading profile...</div>
+            <Loader />
+            <div className="text-text-secondary mt-4">Loading profile...</div>
           </div>
         </div>
       </div>

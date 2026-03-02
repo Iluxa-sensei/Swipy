@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth, useProfile } from '../hooks'
 import { profileServiceEnhanced } from '../services/profileServiceEnhanced'
+import Loader from '../components/Loader.jsx'
 
 const ProfilePage = () => {
   const navigate = useNavigate()
@@ -77,10 +78,8 @@ const ProfilePage = () => {
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-              <i className="fas fa-user text-3xl text-white"></i>
-            </div>
-            <div className="text-text-secondary">Loading profile...</div>
+            <Loader />
+            <div className="text-text-secondary mt-4">Loading profile...</div>
           </div>
         </div>
       </div>

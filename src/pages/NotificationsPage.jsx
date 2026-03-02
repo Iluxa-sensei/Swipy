@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks'
 import { notificationService } from '../services'
 import { supabase } from '../services/supabaseClient'
+import Loader from '../components/Loader.jsx'
 
 const NotificationsPage = () => {
   const [notificationsList, setNotificationsList] = useState([])
@@ -158,10 +159,8 @@ const NotificationsPage = () => {
 
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-              <i className="fas fa-spinner fa-spin text-3xl text-white"></i>
-            </div>
-            <h2 className="text-2xl font-bold text-text-primary mb-4">Loading Notifications</h2>
+            <Loader />
+            <h2 className="text-2xl font-bold text-text-primary mt-4 mb-4">Loading Notifications</h2>
             <p className="text-text-secondary">Please wait...</p>
           </div>
         </div>

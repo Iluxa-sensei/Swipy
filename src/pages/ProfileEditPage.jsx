@@ -4,6 +4,7 @@ import { useAuth } from '../providers/AuthProvider'
 import { useProfile } from '../hooks'
 import { profileService } from '../services/profileService'
 import { supabase } from '../services/supabaseClient'
+import Loader from '../components/Loader.jsx'
 
 const ProfileEditPage = () => {
     const navigate = useNavigate()
@@ -362,8 +363,8 @@ const ProfileEditPage = () => {
             <div className="screen active bg-black/90 backdrop-blur-xl flex flex-col">
                 <div className="flex items-center justify-center flex-1">
                     <div className="text-center">
-                        <div className="animate-spin rounded-full h-16 w-16 border-2 border-transparent border-t-blue-500 border-r-blue-500 mx-auto mb-6"></div>
-                        <p className="text-white/70 text-lg font-medium">Loading profile...</p>
+                        <Loader />
+                        <p className="text-white/70 text-lg font-medium mt-4">Loading profile...</p>
                     </div>
                 </div>
             </div>

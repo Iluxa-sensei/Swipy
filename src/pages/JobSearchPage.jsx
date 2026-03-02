@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { searchJobs } from '../services/jobService'
 import { useJobSearchFilters } from '../context/JobSearchFiltersContext.jsx'
+import Loader from '../components/Loader.jsx'
 
 const JOB_FILTER_OPTIONS = [
     { id: 'remote', label: 'Remote only', icon: 'fa-solid fa-globe' },
@@ -230,19 +231,9 @@ const JobSearchPage = () => {
 
                     {/* Loading State */}
                     {isLoading && (
-                        <div className="space-y-3 pt-2">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="bg-bg-secondary border border-glass-border rounded-xl p-4 animate-pulse">
-                                    <div className="h-4 bg-bg-tertiary rounded w-3/4 mb-3"></div>
-                                    <div className="h-3 bg-bg-tertiary rounded w-1/2 mb-2"></div>
-                                    <div className="flex gap-2 mb-3">
-                                        <div className="h-5 bg-bg-tertiary rounded-lg w-20"></div>
-                                        <div className="h-5 bg-bg-tertiary rounded-lg w-16"></div>
-                                    </div>
-                                    <div className="h-3 bg-bg-tertiary rounded w-full mb-1"></div>
-                                    <div className="h-3 bg-bg-tertiary rounded w-2/3"></div>
-                                </div>
-                            ))}
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <Loader />
+                            <p className="text-text-secondary mt-4">Searching jobs...</p>
                         </div>
                     )}
 

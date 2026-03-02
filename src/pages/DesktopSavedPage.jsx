@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSwipes, useAuth } from '../hooks'
+import Loader from '../components/Loader.jsx'
 
 const DesktopSavedPage = () => {
     const navigate = useNavigate()
@@ -32,10 +33,8 @@ const DesktopSavedPage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-16 h-16 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                                <i className="fas fa-bookmark text-2xl text-white"></i>
-                            </div>
-                            <div className="text-text-secondary">Loading saved startups...</div>
+                            <Loader />
+                            <div className="text-text-secondary mt-4">Loading saved startups...</div>
                         </div>
                     </div>
                 </div>

@@ -242,6 +242,15 @@
     @apply opacity-100 translate-x-0;
   }
 
+  /* Auth/profile loading overlay: match app dark background, no gray */
+  .screen.auth-loading-screen {
+    background: #0b0c10;
+  }
+
+  body:has(.auth-loading-screen) {
+    background: #0b0c10;
+  }
+
   /* Onboarding page: enable proper scrolling and use dark dashboard background */
   .screen.onboarding-page {
     @apply flex flex-col;
@@ -3097,5 +3106,105 @@
 
   .screen.active:has(.swipe-container) .selection-chip {
     @apply hover:scale-105;
+  }
+}
+
+/* Loader component - three-body dots */
+.loader-three-body {
+  --uib-size: 35px;
+  --uib-speed: 0.8s;
+  --uib-color: #5D3FD3;
+  position: relative;
+  display: inline-block;
+  height: var(--uib-size);
+  width: var(--uib-size);
+  animation: loader-spin calc(var(--uib-speed) * 2.5) infinite linear;
+}
+
+.loader-three-body__dot {
+  position: absolute;
+  height: 100%;
+  width: 30%;
+}
+
+.loader-three-body__dot::after {
+  content: '';
+  position: absolute;
+  height: 0%;
+  width: 100%;
+  padding-bottom: 100%;
+  background-color: var(--uib-color);
+  border-radius: 50%;
+}
+
+.loader-three-body__dot:nth-child(1) {
+  bottom: 5%;
+  left: 0;
+  transform: rotate(60deg);
+  transform-origin: 50% 85%;
+}
+
+.loader-three-body__dot:nth-child(1)::after {
+  bottom: 0;
+  left: 0;
+  animation: loader-wobble1 var(--uib-speed) infinite ease-in-out;
+  animation-delay: calc(var(--uib-speed) * -0.3);
+}
+
+.loader-three-body__dot:nth-child(2) {
+  bottom: 5%;
+  right: 0;
+  transform: rotate(-60deg);
+  transform-origin: 50% 85%;
+}
+
+.loader-three-body__dot:nth-child(2)::after {
+  bottom: 0;
+  left: 0;
+  animation: loader-wobble1 var(--uib-speed) ease-in-out calc(var(--uib-speed) * -0.15) infinite;
+}
+
+.loader-three-body__dot:nth-child(3) {
+  bottom: -5%;
+  left: 0;
+  transform: translateX(116.666%);
+}
+
+.loader-three-body__dot:nth-child(3)::after {
+  top: 0;
+  left: 0;
+  animation: loader-wobble2 var(--uib-speed) infinite ease-in-out;
+}
+
+@keyframes loader-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loader-wobble1 {
+  0%,
+  100% {
+    transform: translateY(0%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-66%) scale(0.65);
+    opacity: 0.8;
+  }
+}
+
+@keyframes loader-wobble2 {
+  0%,
+  100% {
+    transform: translateY(0%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(66%) scale(0.65);
+    opacity: 0.8;
   }
 }
