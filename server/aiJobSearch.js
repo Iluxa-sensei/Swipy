@@ -19,6 +19,8 @@ const ADZUNA_APP_KEY = process.env.VITE_ADZUNA_APP_KEY
 const ADZUNA_DEFAULT_COUNTRY = process.env.ADZUNA_COUNTRY || 'gb'
 const ADZUNA_BASE_URL = 'https://api.adzuna.com/v1/api'
 const OPENAI_API_KEY = process.env.VITE_GPT_API_KEY || process.env.OPENAI_API_KEY
+const SCRAPINGBEE_API_KEY = process.env.SCRAPINGBEE_API_KEY
+const SCRAPINGBEE_BASE_URL = 'https://app.scrapingbee.com/api/v1'
 
 const openai = OPENAI_API_KEY
   ? new OpenAI({ apiKey: OPENAI_API_KEY })
@@ -83,6 +85,14 @@ function formatContractType(contractType, contractTime) {
   return parts.join(' · ') || null
 }
 
+function inferSeniority(title = '') {
+  const t = title.toLowerCase()
+  if (t.includes('principal') || t.includes('lead') || t.includes('head of') || t.includes('senior')) return 'Senior'
+  if (t.includes('mid-level') || t.includes('mid level') || t.includes('intermediate')) return 'Mid-level'
+  if (t.includes('junior') || t.includes('graduate') || t.includes('entry-level') || t.includes('entry level')) return 'Junior'
+  return null
+}
+
 function normalizeJob(result, index) {
   return {
     id: String(result.id),
@@ -90,7 +100,7 @@ function normalizeJob(result, index) {
     company: result.company?.display_name || 'Company not specified',
     location: result.location?.display_name || 'Location not specified',
     type: formatContractType(result.contract_type, result.contract_time),
-    experience: null,
+    experience: inferSeniority(result.title || ''),
     shortDescription: result.description || '',
     fullDescription: result.description || 'No description available.',
     salary: formatSalary(result.salary_min, result.salary_max),
@@ -120,6 +130,8 @@ app.post('/api/ai-job-search', async (req, res) => {
             role: 'system',
             content:
               'You convert natural language job search queries into Adzuna job search parameters. ' +
+              'Users often make spelling mistakes (e.g. "snior develloper"); you MUST silently correct obvious typos in job titles, skills and locations before building the query. ' +
+              'In such cases, set keywords to the corrected phrase (e.g. "senior developer") and location to the corrected place name. ' +
               'Return ONLY a single JSON object with these exact keys: keywords (string), location (string or null), country_code (string or null, e.g. gb, us), salary_min (number or null), ' +
               'employment_type (one of: full_time, part_time, any), contract_type (one of: permanent, contract, any), exclude_keywords (array of strings), sort_by (date or salary or null), results_per_page (number or null). ' +
               'Extract job titles, skills, and locations from the user text. If unclear, use null or "any".',
@@ -147,6 +159,79 @@ app.post('/api/ai-job-search', async (req, res) => {
   } catch (err) {
     console.error('AI job search error:', err)
     return res.status(500).json({ error: 'AI job search failed', message: err.message })
+  }
+})
+
+// Fetch and summarise a job's full description from the original vacancy page.
+// Body: { url: string, title?: string, company?: string, location?: string, experience?: string }
+app.post('/api/job-summary', async (req, res) => {
+  const { url, title, company, location, experience } = req.body || {}
+  if (!url || !String(url).trim()) {
+    return res.status(400).json({ error: 'Job URL is required' })
+  }
+  if (!openai || !OPENAI_API_KEY) {
+    return res.status(500).json({ error: 'OpenAI API key is not configured on the server' })
+  }
+  if (!SCRAPINGBEE_API_KEY) {
+    return res.status(500).json({ error: 'Browse API key (SCRAPINGBEE_API_KEY) is not configured on the server' })
+  }
+
+  try {
+    const sbParams = new URLSearchParams({
+      api_key: SCRAPINGBEE_API_KEY,
+      url: url,
+      render_js: 'false',
+      return_page_text: 'true',
+    })
+    const targetUrl = `${SCRAPINGBEE_BASE_URL}?${sbParams.toString()}`
+
+    const pageRes = await fetch(targetUrl)
+    if (!pageRes.ok) {
+      const text = await pageRes.text()
+      console.error(`ScrapingBee error ${pageRes.status}:`, text.slice(0, 500))
+      return res
+        .status(pageRes.status)
+        .json({ error: `Browse API error ${pageRes.status}`, details: text.slice(0, 300) })
+    }
+
+    const pageText = await pageRes.text()
+    const snippet = pageText.slice(0, 8000)
+
+    if (!snippet.trim()) {
+      return res.json({ summary: null, fallback: true })
+    }
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a concise job-description summariser. ' +
+            'Given text content from a job vacancy page plus some structured hints, extract ONLY the actual job description and summarise it briefly for a candidate. ' +
+            'Output 4–7 short bullet points covering: main responsibilities, key requirements/skills, seniority level, work model (remote/hybrid/on-site), location, salary/compensation if present, and anything uniquely important. ' +
+            'If the page text does not clearly state the location or seniority, fall back to the provided hints instead of saying they are not provided. ' +
+            'Write in clear, neutral English, suitable for displaying in an "About this role" section. Do not mention that you are summarising.',
+        },
+        {
+          role: 'user',
+          content:
+            `Job title: ${title || 'Unknown'}\n` +
+            `Company: ${company || 'Unknown'}\n` +
+            `Location from feed: ${location || 'Unknown'}\n` +
+            `Seniority from feed: ${experience || 'Unknown'}\n` +
+            `URL: ${url}\n\n` +
+            'Page text content:\n' +
+            snippet,
+        },
+      ],
+    })
+
+    const summary = completion.choices[0]?.message?.content?.trim() || null
+    return res.json({ summary })
+  } catch (err) {
+    console.error('Job summary error:', err)
+    return res.status(500).json({ error: 'Job summary failed', message: err.message })
   }
 })
 

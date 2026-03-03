@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { getJobById } from '../services/jobService'
 
@@ -7,6 +7,58 @@ const JobDetailsPage = () => {
     const { id } = useParams()
     const location = useLocation()
     const job = getJobById(id) || location.state?.job
+    const [summary, setSummary] = useState(job?.fullDescription || '')
+    const [summaryLoading, setSummaryLoading] = useState(!!job?.urlPlaceholder)
+    const [summaryError, setSummaryError] = useState(null)
+
+    useEffect(() => {
+        let isCancelled = false
+
+        const fetchSummary = async () => {
+            if (!job?.urlPlaceholder || job.urlPlaceholder === '#') {
+                setSummaryLoading(false)
+                return
+            }
+            try {
+                setSummaryLoading(true)
+                setSummaryError(null)
+                const res = await fetch('/api/job-summary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: job.urlPlaceholder,
+                        title: job.title,
+                        company: job.company,
+                        location: job.location,
+                        experience: job.experience,
+                    }),
+                })
+                if (!res.ok) {
+                    throw new Error(`Job summary error: ${res.status}`)
+                }
+                const data = await res.json()
+                if (!isCancelled && data.summary) {
+                    setSummary(data.summary)
+                }
+            } catch (err) {
+                console.error('Failed to fetch job summary', err)
+                if (!isCancelled) {
+                    setSummaryError('Unable to fetch full description. Showing original snippet.')
+                    setSummary(job.fullDescription)
+                }
+            } finally {
+                if (!isCancelled) {
+                    setSummaryLoading(false)
+                }
+            }
+        }
+
+        fetchSummary()
+
+        return () => {
+            isCancelled = true
+        }
+    }, [job])
 
     if (!job) {
         return (
@@ -115,8 +167,11 @@ const JobDetailsPage = () => {
                     <div>
                         <h3 className="text-lg font-semibold text-text-primary mb-3">About this role</h3>
                         <div className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
-                            {job.fullDescription}
+                            {summaryLoading ? 'Fetching full job details from the vacancy site…' : summary}
                         </div>
+                        {summaryError && (
+                            <p className="text-xs text-accent-warning mt-3">{summaryError}</p>
+                        )}
                     </div>
 
                     {/* Action Button */}

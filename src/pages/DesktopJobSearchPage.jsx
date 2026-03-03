@@ -136,7 +136,7 @@ const DesktopJobSearchPage = () => {
     return (
         <div className="desktop-page" style={{ overflow: 'visible' }}>
             <div className="desktop-page-section jobs-page-table-section" style={{ overflow: 'visible' }}>
-                {/* Top bar: left label, right actions (Filter, Export, Starred) */}
+                {/* Top bar: left label, right actions (Filter, Starred) */}
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-xl font-semibold text-text-primary">Job Scanner</h1>
                     <div className="flex items-center gap-2">
@@ -195,14 +195,6 @@ const DesktopJobSearchPage = () => {
                                 </div>
                             )}
                         </div>
-                        <button
-                            type="button"
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-glass-border bg-glass-bg text-text-primary text-sm font-medium hover:bg-glass-border transition-colors"
-                            aria-label="Export"
-                        >
-                            <i className="fas fa-file-export text-text-secondary"></i>
-                            Export
-                        </button>
                         <button
                             type="button"
                             onClick={() => navigate('/jobs/starred')}
