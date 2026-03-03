@@ -38,6 +38,8 @@ import DesktopSupportPage from './pages/DesktopSupportPage.jsx'
 import SupportPage from './pages/SupportPage.jsx'
 import JobSearchPage from './pages/JobSearchPage'
 import DesktopJobSearchPage from './pages/DesktopJobSearchPage.jsx'
+import StarredJobsPage from './pages/StarredJobsPage.jsx'
+import DesktopStarredJobsPage from './pages/DesktopStarredJobsPage.jsx'
 import JobDetailsPage from './pages/JobDetailsPage'
 import DesktopJobDetailsPage from './pages/DesktopJobDetailsPage.jsx'
 import ActivityDashboardPage from './pages/ActivityDashboardPage'
@@ -120,6 +122,7 @@ function App() {
         <Route path="/startup/:id" element={isDesktop ? <DesktopStartupDetailPage /> : <StartupDetailPage />} />
         <Route path="/saved" element={isDesktop ? <DesktopSavedPage /> : <SavedPage />} />
         <Route path="/jobs" element={isDesktop ? <DesktopJobSearchPage /> : <JobSearchPage />} />
+        <Route path="/jobs/starred" element={isDesktop ? <DesktopStarredJobsPage /> : <StarredJobsPage />} />
         <Route path="/jobs/:id" element={isDesktop ? <DesktopJobDetailsPage /> : <JobDetailsPage />} />
         <Route path="/notifications" element={isDesktop ? <DesktopNotificationsPage /> : <NotificationsPage />} />
         <Route path="/chat" element={isDesktop ? <DesktopChatPage /> : <ChatPage />} />

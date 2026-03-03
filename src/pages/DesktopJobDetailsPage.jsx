@@ -1,11 +1,12 @@
 import React from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { getJobById } from '../services/jobService'
 
 const DesktopJobDetailsPage = () => {
     const navigate = useNavigate()
     const { id } = useParams()
-    const job = getJobById(id)
+    const location = useLocation()
+    const job = getJobById(id) || location.state?.job
 
     if (!job) {
         return (

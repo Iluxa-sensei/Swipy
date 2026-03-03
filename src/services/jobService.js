@@ -74,31 +74,50 @@ function normalizeJob(result, index) {
     }
 }
 
+const AI_JOBS_BASE = (import.meta.env.VITE_AI_JOBS_API_URL || '').replace(/\/$/, '')
+const AI_JOBS_API = `${AI_JOBS_BASE}/api/ai-job-search`
+
 /**
- * Search jobs via the Adzuna API.
+ * Search jobs: tries AI-assisted backend first (GPT + Adzuna), falls back to direct Adzuna.
  * Returns at most RESULTS_PER_PAGE (6) normalised job objects.
  */
 export async function searchJobs(query) {
     if (!query || !query.trim()) return []
 
+    const q = query.trim()
+
+    // Try AI job search backend first (proxied to ai-server in dev)
+    try {
+        const res = await fetch(AI_JOBS_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: q }),
+        })
+        if (res.ok) {
+            const data = await res.json()
+            const jobs = data.jobs || []
+            cachedJobs = jobs
+            return jobs
+        }
+    } catch (_) {
+        // Fall through to direct Adzuna
+    }
+
+    // Fallback: direct Adzuna API
     const params = new URLSearchParams({
         app_id: ADZUNA_APP_ID,
         app_key: ADZUNA_APP_KEY,
         results_per_page: String(RESULTS_PER_PAGE),
-        what: query.trim(),
+        what: q,
         'content-type': 'application/json',
     })
-
     const url = `${BASE_URL}/jobs/${ADZUNA_COUNTRY}/search/1?${params}`
-
     const res = await fetch(url)
     if (!res.ok) {
         throw new Error(`Adzuna API error: ${res.status} ${res.statusText}`)
     }
-
     const data = await res.json()
     const results = (data.results || []).map(normalizeJob)
-
     cachedJobs = results
     return results
 }
