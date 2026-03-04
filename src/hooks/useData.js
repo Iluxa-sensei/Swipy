@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { startupService, swipeService, chatService, profileService } from '../services/index.js'
+import { startupService, swipeService, chatService, profileService, activityService } from '../services/index.js'
 import { useFilters } from '../context/FiltersContext'
 
 // Hook for working with startups (legacy - loads all at once)
@@ -492,5 +492,48 @@ export const useProfile = (userId) => {
         refetch: fetchProfile,
         updateProfile,
         uploadAvatar
+    }
+}
+
+// Hook for activity dashboard stats and recent activity
+export const useActivityDashboard = (userId) => {
+    const [stats, setStats] = useState({ profileViews: 0, matches: 0, applications: 0, daysActive: 0 })
+    const [recentActivity, setRecentActivity] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+
+    const fetch = useCallback(async () => {
+        if (!userId) {
+            setStats({ profileViews: 0, matches: 0, applications: 0, daysActive: 0 })
+            setRecentActivity([])
+            setLoading(false)
+            return
+        }
+        try {
+            setLoading(true)
+            setError(null)
+            const [statsData, activityData] = await Promise.all([
+                activityService.getActivityStats(userId),
+                activityService.getRecentActivity(userId, 20)
+            ])
+            setStats(statsData)
+            setRecentActivity(activityData)
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
+    }, [userId])
+
+    useEffect(() => {
+        fetch()
+    }, [fetch])
+
+    return {
+        stats,
+        recentActivity,
+        loading,
+        error,
+        refetch: fetch
     }
 }
