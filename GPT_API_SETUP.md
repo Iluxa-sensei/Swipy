@@ -60,3 +60,22 @@ npm run ai-server
 
 4. **Ошибка «Job search not configured»** — в `.env` не заданы ключи Adzuna. Добавьте их и перезапустите AI-сервер.
 
+## Деплой на Vercel (домен)
+
+На Vercel **не запускается** отдельный Node-сервер (`server/aiJobSearch.js`). Вместо него используются **Serverless Functions** в папке `api/`:
+
+- `api/ai-job-search.js` — поиск вакансий (Adzuna + опционально GPT)
+- `api/job-summary.js` — суммаризация описания вакансии (GPT + ScrapingBee)
+
+**Что сделать в Vercel:**
+
+1. В проекте в Vercel откройте **Settings → Environment Variables**.
+2. Добавьте те же переменные (для продакшена они подхватываются и в API):
+   - `VITE_ADZUNA_APP_ID`
+   - `VITE_ADZUNA_APP_KEY`
+   - `VITE_GPT_API_KEY` (для умного поиска и суммаризации)
+   - при использовании «About this role»: `SCRAPINGBEE_API_KEY`
+3. Сохраните и сделайте **Redeploy** проекта.
+
+После деплоя запросы с сайта на `/api/ai-job-search` будут обрабатываться этими функциями, и переменные окружения из Vercel будут использоваться автоматически.
+
