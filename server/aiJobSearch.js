@@ -116,6 +116,12 @@ app.post('/api/ai-job-search', async (req, res) => {
   if (!query || !String(query).trim()) {
     return res.status(400).json({ error: 'Query is required' })
   }
+  if (!ADZUNA_APP_ID || !ADZUNA_APP_KEY) {
+    return res.status(503).json({
+      error: 'Job search not configured',
+      message: 'Add VITE_ADZUNA_APP_ID and VITE_ADZUNA_APP_KEY to .env. Get keys at https://developer.adzuna.com/',
+    })
+  }
   const q = String(query).trim()
 
   try {
@@ -141,7 +147,7 @@ app.post('/api/ai-job-search', async (req, res) => {
       })
       try {
         intent = { ...intent, ...JSON.parse(completion.choices[0].message.content || '{}') }
-      } catch (_) {}
+      } catch (_) { }
     }
 
     const country = intent.country_code || ADZUNA_DEFAULT_COUNTRY
@@ -235,7 +241,19 @@ app.post('/api/job-summary', async (req, res) => {
   }
 })
 
+// Startup: validate required env and log clear errors
+const hasOpenAI = !!(process.env.VITE_GPT_API_KEY || process.env.OPENAI_API_KEY)
+const hasAdzuna = !!(ADZUNA_APP_ID && ADZUNA_APP_KEY)
+if (!hasAdzuna) {
+  console.warn('[AI Server] VITE_ADZUNA_APP_ID and VITE_ADZUNA_APP_KEY are required in .env for job search. Get keys: https://developer.adzuna.com/')
+}
+if (!hasOpenAI) {
+  console.warn('[AI Server] VITE_GPT_API_KEY (or OPENAI_API_KEY) not set. Smart query parsing disabled; job-summary will fail. Get key: https://platform.openai.com/api-keys')
+}
+
 const PORT = process.env.AI_SERVER_PORT || 3001
 app.listen(PORT, () => {
   console.log(`AI Job Search server: http://localhost:${PORT}`)
+  if (!hasAdzuna) console.log('  -> Add Adzuna keys to .env to enable job search.')
+  if (!hasOpenAI) console.log('  -> Add VITE_GPT_API_KEY to .env for AI features.')
 })

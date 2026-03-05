@@ -99,8 +99,12 @@ export async function searchJobs(query) {
             cachedJobs = jobs
             return jobs
         }
-    } catch (_) {
-        // Fall through to direct Adzuna
+        const errBody = await res.json().catch(() => ({}))
+        const msg = errBody.message || errBody.error || res.statusText
+        throw new Error(msg)
+    } catch (err) {
+        if (err.message && err.message !== 'Failed to fetch') throw err
+        // Network error or unknown: fall through to direct Adzuna
     }
 
     // Fallback: direct Adzuna API

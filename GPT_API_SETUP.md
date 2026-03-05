@@ -42,3 +42,21 @@ npm run ai-server
 
 Без ключа GPT API, приложение будет использовать только прямой поиск через Adzuna API.
 
+## Если ИИ всё равно не работает
+
+1. **Запустите AI-сервер** (отдельно от фронтенда):
+   ```bash
+   npm run ai-server
+   ```
+   В консоли должно появиться: `AI Job Search server: http://localhost:3001`
+
+2. **Проверьте `.env` в корне проекта** (рядом с `package.json`):
+   - `VITE_ADZUNA_APP_ID` и `VITE_ADZUNA_APP_KEY` — без них поиск вакансий не работает. Ключи: https://developer.adzuna.com/
+   - `VITE_GPT_API_KEY` — для умного разбора запроса и суммаризации. Ключ: https://platform.openai.com/api-keys
+
+3. **Перезапустите после изменения `.env`**:
+   - Остановите AI-сервер (Ctrl+C), снова выполните `npm run ai-server`.
+   - При необходимости перезапустите фронтенд (`npm run dev`).
+
+4. **Ошибка «Job search not configured»** — в `.env` не заданы ключи Adzuna. Добавьте их и перезапустите AI-сервер.
+
