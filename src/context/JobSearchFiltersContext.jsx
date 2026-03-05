@@ -4,13 +4,25 @@ const JobSearchFiltersContext = createContext(null)
 
 export const JobSearchFiltersProvider = ({ children }) => {
     const [jobFilters, setJobFilters] = useState([])
+    const [jobSearchQuery, setJobSearchQuery] = useState('')
+    const [jobSearchResults, setJobSearchResults] = useState([])
+    const [jobSearchHasSearched, setJobSearchHasSearched] = useState(false)
+    const [jobSearchCurrentPage, setJobSearchCurrentPage] = useState(1)
 
     const value = useMemo(
         () => ({
             jobFilters,
             setJobFilters,
+            jobSearchQuery,
+            setJobSearchQuery,
+            jobSearchResults,
+            setJobSearchResults,
+            jobSearchHasSearched,
+            setJobSearchHasSearched,
+            jobSearchCurrentPage,
+            setJobSearchCurrentPage,
         }),
-        [jobFilters]
+        [jobFilters, jobSearchQuery, jobSearchResults, jobSearchHasSearched, jobSearchCurrentPage]
     )
 
     return (
@@ -20,13 +32,22 @@ export const JobSearchFiltersProvider = ({ children }) => {
     )
 }
 
+const noop = () => { }
+
 export const useJobSearchFilters = () => {
     const ctx = useContext(JobSearchFiltersContext)
     if (!ctx) {
         return {
             jobFilters: [],
-            // no-op setter so components don't crash if provider is missing
-            setJobFilters: () => {},
+            setJobFilters: noop,
+            jobSearchQuery: '',
+            setJobSearchQuery: noop,
+            jobSearchResults: [],
+            setJobSearchResults: noop,
+            jobSearchHasSearched: false,
+            setJobSearchHasSearched: noop,
+            jobSearchCurrentPage: 1,
+            setJobSearchCurrentPage: noop,
         }
     }
     return ctx

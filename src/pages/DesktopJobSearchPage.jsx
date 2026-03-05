@@ -20,19 +20,21 @@ const RESULTS_PER_PAGE = 6
 
 const DesktopJobSearchPage = () => {
     const navigate = useNavigate()
-    const { jobFilters, setJobFilters } = useJobSearchFilters()
-    const [query, setQuery] = useState('')
-    const [jobs, setJobs] = useState([])
+    const {
+        jobFilters, setJobFilters,
+        jobSearchQuery: query, setJobSearchQuery: setQuery,
+        jobSearchResults: jobs, setJobSearchResults: setJobs,
+        jobSearchHasSearched: hasSearched, setJobSearchHasSearched: setHasSearched,
+        jobSearchCurrentPage: currentPage, setJobSearchCurrentPage: setCurrentPage,
+    } = useJobSearchFilters()
     const [isLoading, setIsLoading] = useState(false)
-    const [hasSearched, setHasSearched] = useState(false)
     const [error, setError] = useState(null)
     const [validationMsg, setValidationMsg] = useState('')
     const [starredIds, setStarredIds] = useState(() => new Set(getStarredJobs().map((j) => j.id)))
     const [isFilterOpen, setIsFilterOpen] = useState(false)
-    const [currentPage, setCurrentPage] = useState(1)
-    const [showSearchInput, setShowSearchInput] = useState(true)
-    const [introVisible, setIntroVisible] = useState(true)
-    const [introMounted, setIntroMounted] = useState(true)
+    const [showSearchInput, setShowSearchInput] = useState(() => !hasSearched)
+    const [introVisible, setIntroVisible] = useState(() => !hasSearched)
+    const [introMounted, setIntroMounted] = useState(() => !hasSearched)
     const filterRef = useRef(null)
 
     useEffect(() => {

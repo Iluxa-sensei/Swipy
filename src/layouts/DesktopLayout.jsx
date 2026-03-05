@@ -403,7 +403,7 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                                 <h1>Startups</h1>
                             </>
                         )}
-                        {currentScreen === 'chat' && (
+                        {(currentScreen === 'chat' || currentScreen === 'chat-detail') && (
                             <>
                                 <p className="desktop-header-eyebrow">Messages</p>
                                 <h1>Your Conversations</h1>
@@ -445,10 +445,10 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                                 <h1>Find Jobs</h1>
                             </>
                         )}
-                        {!['home', 'chat', 'saved', 'notifications', 'activity-dashboard', 'profile', 'settings', 'jobs'].includes(currentScreen) && (
+                        {!['home', 'chat', 'chat-detail', 'saved', 'notifications', 'activity-dashboard', 'profile', 'settings', 'jobs'].includes(currentScreen) && (
                             <>
-                                <p className="desktop-header-eyebrow">Swipy</p>
-                                <h1>Dashboard</h1>
+                                <p className="desktop-header-eyebrow">Innovation Hub</p>
+                                <h1>Launch Your Startup</h1>
                             </>
                         )}
                     </div>
@@ -686,8 +686,8 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                                 type="button"
                                 onClick={() => setActiveHomeTab(key)}
                                 className={`flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-medium whitespace-nowrap transition-all duration-200 border-b-2 ${activeHomeTab === key
-                                        ? 'border-[#5a8ceb] text-[#5a8ceb]'
-                                        : 'border-transparent text-text-secondary hover:text-text-primary'
+                                    ? 'border-[#5a8ceb] text-[#5a8ceb]'
+                                    : 'border-transparent text-text-secondary hover:text-text-primary'
                                     }`}
                             >
                                 <i className={`${cat.icon} text-[10px]`}></i>
@@ -743,8 +743,8 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                                         type="button"
                                         onClick={() => toggleHomeFilterItem(activeHomeTab, item)}
                                         className={`px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 border ${active
-                                                ? 'border-[#5a8ceb] bg-[#5a8ceb]/20 text-[#5a8ceb] shadow-[0_0_0_1px_rgba(90,140,235,0.3)]'
-                                                : 'border-white/8 bg-white/4 text-text-secondary hover:border-white/15 hover:bg-white/8 hover:text-text-primary'
+                                            ? 'border-[#5a8ceb] bg-[#5a8ceb]/20 text-[#5a8ceb] shadow-[0_0_0_1px_rgba(90,140,235,0.3)]'
+                                            : 'border-white/8 bg-white/4 text-text-secondary hover:border-white/15 hover:bg-white/8 hover:text-text-primary'
                                             }`}
                                     >
                                         {item}

@@ -79,6 +79,42 @@ function App() {
     setCurrentScreen(path)
   }, [location.pathname])
 
+  // Always reset scroll position when navigating between routes
+  useEffect(() => {
+    // Try to reset the main browser scroll first
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    } catch {
+      window.scrollTo(0, 0)
+    }
+
+    // Also reset the document scrolling element (works differently across browsers)
+    const scrollingElement = document.scrollingElement || document.documentElement || document.body
+    if (scrollingElement && typeof scrollingElement.scrollTop === 'number') {
+      scrollingElement.scrollTop = 0
+    }
+
+    // Reset common app-level scroll containers that may own their own scroll
+    const selectors = [
+      '.desktop-main',
+      '.desktop-content-area',
+      '.desktop-page',
+      '.chat-unified-layout',
+      '.notifications-content',
+      '.screen',
+      '.mobile-container .flex-1'
+    ]
+
+    selectors.forEach((selector) => {
+      const nodes = document.querySelectorAll(selector)
+      nodes.forEach((el) => {
+        if (el && typeof el.scrollTop === 'number') {
+          el.scrollTop = 0
+        }
+      })
+    })
+  }, [location.pathname])
+
   const handleScreenChange = (screen) => {
     setCurrentScreen(screen)
     navigate(`/${screen}`)
@@ -126,6 +162,7 @@ function App() {
         <Route path="/jobs/:id" element={isDesktop ? <DesktopJobDetailsPage /> : <JobDetailsPage />} />
         <Route path="/notifications" element={isDesktop ? <DesktopNotificationsPage /> : <NotificationsPage />} />
         <Route path="/chat" element={isDesktop ? <DesktopChatPage /> : <ChatPage />} />
+        <Route path="/chat/*" element={isDesktop ? <DesktopChatPage /> : <ChatPage />} />
         <Route path="/profile/edit" element={isDesktop ? <DesktopProfileEditPage /> : <ProfileEditPage />} />
         <Route path="/profile/:nickname" element={isDesktop ? <DesktopPublicProfilePage /> : <PublicProfilePage />} />
         <Route path="/profile/:id" element={isDesktop ? <DesktopPublicProfilePage /> : <PublicProfilePage />} />
@@ -135,9 +172,9 @@ function App() {
         <Route path="/activity-dashboard" element={<ActivityDashboardPage />} />
         <Route path="/add" element={isDesktop ? <DesktopAddPage /> : <AddPage />} />
         <Route path="/filters" element={<FiltersPage />} />
-        <Route path="/chat-detail/:chatId" element={isDesktop ? <DesktopChatDetailPage /> : <ChatDetailPage />} />
-        <Route path="/chat-detail/:nickname" element={isDesktop ? <DesktopChatDetailPage /> : <ChatDetailPage />} />
-        <Route path="/chat-detail/:nickname/:startup_name" element={isDesktop ? <DesktopChatDetailPage /> : <ChatDetailPage />} />
+        <Route path="/chat-detail/:chatId" element={isDesktop ? <DesktopChatPage /> : <ChatDetailPage />} />
+        <Route path="/chat-detail/:nickname" element={isDesktop ? <DesktopChatPage /> : <ChatDetailPage />} />
+        <Route path="/chat-detail/:nickname/:startup_name" element={isDesktop ? <DesktopChatPage /> : <ChatDetailPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
       </Route>
     </Routes>

@@ -19,11 +19,13 @@ const MAX_JOB_FILTERS = 5
 
 const JobSearchPage = () => {
     const navigate = useNavigate()
-    const { jobFilters, setJobFilters } = useJobSearchFilters()
-    const [query, setQuery] = useState('')
-    const [jobs, setJobs] = useState([])
+    const {
+        jobFilters, setJobFilters,
+        jobSearchQuery: query, setJobSearchQuery: setQuery,
+        jobSearchResults: jobs, setJobSearchResults: setJobs,
+        jobSearchHasSearched: hasSearched, setJobSearchHasSearched: setHasSearched,
+    } = useJobSearchFilters()
     const [isLoading, setIsLoading] = useState(false)
-    const [hasSearched, setHasSearched] = useState(false)
     const [error, setError] = useState(null)
     const [validationMsg, setValidationMsg] = useState('')
     const [starredIds, setStarredIds] = useState(() => new Set(getStarredJobs().map((j) => j.id)))
