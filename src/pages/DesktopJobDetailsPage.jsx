@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { getJobById } from '../services/jobService'
+import { JobSummaryContent } from '../components/JobSummaryContent'
 
 const DesktopJobDetailsPage = () => {
     const navigate = useNavigate()
@@ -146,8 +147,10 @@ const DesktopJobDetailsPage = () => {
                         {/* Description */}
                         <div className="desktop-card">
                             <h2 className="text-xl font-semibold text-text-primary mb-4">About this role</h2>
-                            <div className="text-text-secondary leading-relaxed whitespace-pre-line">
-                                {summaryLoading ? 'Fetching full job details from the vacancy site…' : summary}
+                            <div className="text-text-secondary">
+                                {summaryLoading
+                                    ? 'Fetching full job details from the vacancy site…'
+                                    : <JobSummaryContent text={summary} />}
                             </div>
                             {summaryError && (
                                 <p className="text-xs text-accent-warning mt-3">{summaryError}</p>
