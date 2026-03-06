@@ -114,6 +114,16 @@
     unique(user_id, startup_id)
   );
 
+  -- Starred jobs (user bookmarks external jobs)
+  create table if not exists public.starred_jobs (
+    id uuid primary key default uuid_generate_v4(),
+    user_id uuid not null references auth.users(id) on delete cascade,
+    job_id text not null,
+    job_data jsonb not null,
+    created_at timestamp with time zone default now(),
+    unique(user_id, job_id)
+  );
+
   -- Passes (user passes startup)
   create table if not exists public.passes (
     id uuid primary key default uuid_generate_v4(),
@@ -164,6 +174,7 @@
   alter table public.startups enable row level security;
   alter table public.likes enable row level security;
   alter table public.passes enable row level security;
+  alter table public.starred_jobs enable row level security;
   alter table public.chats enable row level security;
   alter table public.chat_participants enable row level security;
   alter table public.messages enable row level security;
@@ -209,6 +220,11 @@
   create policy "Users can manage their likes" on public.likes
     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
   create policy "Users can manage their passes" on public.passes
+    for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+  -- Policies: starred jobs (user-owned)
+  DROP POLICY IF EXISTS "Users can manage their starred jobs" ON public.starred_jobs;
+  create policy "Users can manage their starred jobs" on public.starred_jobs
     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
   -- Policies: chats

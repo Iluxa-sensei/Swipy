@@ -120,30 +120,6 @@ const DesktopJobDetailsPage = () => {
                 <div className="grid grid-cols-3 gap-6">
                     {/* Left Column - Main Content */}
                     <div className="col-span-2 space-y-6">
-                        {/* Hero Image */}
-                        <div className="desktop-card !p-0 overflow-hidden">
-                            <div className={`h-64 ${job.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'} relative`}>
-                                <div className="w-full h-full flex items-center justify-center">
-                                    <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center">
-                                        <i className="fas fa-briefcase text-4xl text-white"></i>
-                                    </div>
-                                </div>
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-                                <div className="absolute top-4 right-4 flex gap-2">
-                                    {job.type && (
-                                        <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-bold text-white border border-white/30">
-                                            {job.type}
-                                        </span>
-                                    )}
-                                    {job.experience && (
-                                        <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-bold text-white border border-white/30">
-                                            {job.experience}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Description */}
                         <div className="desktop-card">
                             <h2 className="text-xl font-semibold text-text-primary mb-4">About this role</h2>

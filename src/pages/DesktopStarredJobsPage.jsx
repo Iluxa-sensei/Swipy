@@ -1,17 +1,42 @@
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getStarredJobs, removeStarredJob } from '../services/starredJobsService'
+import { useAuth } from '../hooks'
 
 const DesktopStarredJobsPage = () => {
     const navigate = useNavigate()
-    const [jobs, setJobs] = useState(getStarredJobs())
+    const { user } = useAuth()
+    const [jobs, setJobs] = useState([])
 
-    const refresh = () => setJobs(getStarredJobs())
+    const refresh = useCallback(async () => {
+        if (!user?.id) {
+            setJobs([])
+            return
+        }
+        const data = await getStarredJobs(user.id)
+        setJobs(data)
+    }, [user?.id])
 
-    const handleUnstar = (jobId, e) => {
+    useEffect(() => {
+        let isMounted = true
+        const load = async () => {
+            await refresh()
+            if (!isMounted) return
+        }
+        load()
+        return () => {
+            isMounted = false
+        }
+    }, [refresh])
+
+    const handleUnstar = async (jobId, e) => {
         e?.stopPropagation()
-        removeStarredJob(jobId)
-        refresh()
+        if (!user?.id) {
+            console.warn('handleUnstar: user not available')
+            return
+        }
+        await removeStarredJob(user.id, jobId)
+        setJobs((prev) => prev.filter((job) => job.id !== jobId))
     }
 
     const openJob = (job) => {

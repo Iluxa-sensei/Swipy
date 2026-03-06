@@ -101,29 +101,7 @@ const JobDetailsPage = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto pb-6">
-                {/* Hero Gradient */}
-                <div className={`w-full h-44 ${job.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'} relative`}>
-                    <div className="w-full h-full flex items-center justify-center">
-                        <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center">
-                            <i className="fas fa-briefcase text-3xl text-white"></i>
-                        </div>
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-                    <div className="absolute bottom-3 left-4 flex gap-2">
-                        {job.type && (
-                            <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-bold text-white border border-white/30">
-                                {job.type}
-                            </span>
-                        )}
-                        {job.experience && (
-                            <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-bold text-white border border-white/30">
-                                {job.experience}
-                            </span>
-                        )}
-                    </div>
-                </div>
-
-                <div className="p-5 space-y-5">
+            <div className="p-5 space-y-5">
                     {/* Title & Company */}
                     <div>
                         <h2 className="text-xl font-bold text-text-primary mb-1">{job.title}</h2>

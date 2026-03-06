@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { searchJobs } from '../services/jobService'
 import { getStarredJobs, addStarredJob, removeStarredJob } from '../services/starredJobsService'
 import { useJobSearchFilters } from '../context/JobSearchFiltersContext.jsx'
+import { useAuth } from '../hooks'
 import Loader from '../components/Loader.jsx'
 
 const JOB_FILTER_OPTIONS = [
@@ -19,6 +20,7 @@ const MAX_JOB_FILTERS = 5
 
 const JobSearchPage = () => {
     const navigate = useNavigate()
+    const { user } = useAuth()
     const {
         jobFilters, setJobFilters,
         jobSearchQuery: query, setJobSearchQuery: setQuery,
@@ -28,7 +30,7 @@ const JobSearchPage = () => {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState(null)
     const [validationMsg, setValidationMsg] = useState('')
-    const [starredIds, setStarredIds] = useState(() => new Set(getStarredJobs().map((j) => j.id)))
+    const [starredIds, setStarredIds] = useState(() => new Set())
     const [isFilterOpen, setIsFilterOpen] = useState(false)
     const filterRef = useRef(null)
 
@@ -41,6 +43,23 @@ const JobSearchPage = () => {
         return () => document.removeEventListener('mousedown', handler)
     }, [isFilterOpen])
 
+    useEffect(() => {
+        let isMounted = true
+        const loadStarred = async () => {
+            if (!user?.id) {
+                setStarredIds(new Set())
+                return
+            }
+            const jobs = await getStarredJobs(user.id)
+            if (!isMounted) return
+            setStarredIds(new Set(jobs.map((job) => job.id)))
+        }
+        loadStarred()
+        return () => {
+            isMounted = false
+        }
+    }, [user?.id])
+
     const toggleFilter = (id) => {
         setJobFilters((prev) => {
             if (prev.includes(id)) return prev.filter((f) => f !== id)
@@ -49,17 +68,21 @@ const JobSearchPage = () => {
         })
     }
 
-    const toggleStar = (job, e) => {
+    const toggleStar = async (job, e) => {
         e?.stopPropagation()
+        if (!user?.id) {
+            console.warn('toggleStar: user not available')
+            return
+        }
         if (starredIds.has(job.id)) {
-            removeStarredJob(job.id)
+            await removeStarredJob(user.id, job.id)
             setStarredIds((prev) => {
                 const next = new Set(prev)
                 next.delete(job.id)
                 return next
             })
         } else {
-            addStarredJob(job)
+            await addStarredJob(user.id, job)
             setStarredIds((prev) => new Set([...prev, job.id]))
         }
     }
