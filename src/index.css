@@ -1532,11 +1532,6 @@
     width: 100%;
   }
 
-  /* Every nav button fills the sidebar width — sidebar overflow:hidden clips the label */
-  .desktop-nav-icon {
-    overflow: hidden;
-  }
-
   /* Fixed-width slot — icon never moves during expand/collapse */
   .desktop-nav-icon-slot {
     width: 48px;
@@ -1546,11 +1541,14 @@
     justify-content: center;
     flex-shrink: 0;
     border-radius: 14px;
-    border: 1px solid transparent;
-    transition: border-color 0.2s ease, background 0.2s ease;
+    /* FIX: box-shadow вместо border — всегда существует (просто прозрачный),
+       переходит плавно без flash, не влияет на layout */
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0);
+    background: transparent;
+    transition: box-shadow 0.2s ease-in-out, background 0.2s ease-in-out;
   }
 
-  /* Label — opacity only, no max-width animation to prevent layout reflow */
+  /* Label — только opacity, без max-width → нет reflow при закрытии */
   .desktop-nav-icon .desktop-nav-label {
     font-size: 0.875rem;
     font-weight: 500;
@@ -1561,13 +1559,15 @@
     padding-left: 8px;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.16s ease;
+    /* FIX: текст исчезает за 0.14s — успевает до того, как сайдбар сузится */
+    transition: opacity 0.14s ease-in-out;
   }
 
   .desktop-sidebar.expanded .desktop-nav-icon .desktop-nav-label {
     opacity: 1;
     pointer-events: auto;
-    transition-delay: 0.12s;
+    /* Появляется с задержкой, когда сайдбар уже достаточно открылся */
+    transition-delay: 0.14s;
   }
 
   /* ── Expand / collapse button at the bottom ── */
@@ -1584,12 +1584,20 @@
     justify-content: flex-start;
     overflow: hidden;
     gap: 0;
-    transition: color 0.2s ease;
+    /* FIX: убираем flash при клике — outline и tap highlight */
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.2s ease-in-out;
     cursor: pointer;
   }
 
+  /* FIX: кастомный focus-visible вместо дефолтной рамки браузера */
+  .desktop-sidebar-expand-btn:focus-visible .desktop-nav-icon-slot {
+    box-shadow: inset 0 0 0 2px rgba(90, 140, 235, 0.8);
+  }
+
   .desktop-sidebar-expand-btn:hover .desktop-nav-icon-slot {
-    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.04);
   }
 
@@ -1607,13 +1615,13 @@
     padding-left: 8px;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.16s ease;
+    transition: opacity 0.14s ease-in-out;
   }
 
   .desktop-sidebar.expanded .desktop-sidebar-expand-btn .desktop-nav-label {
     opacity: 1;
     pointer-events: auto;
-    transition-delay: 0.12s;
+    transition-delay: 0.14s;
   }
 
   .desktop-sidebar-expand-btn .desktop-nav-icon-slot {
@@ -1629,7 +1637,9 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-    transition: all 0.2s ease;
+    /* FIX: заменяем transition:all → конкретные свойства, чтобы не анимировались
+       невидимые свойства (outline, border и т.д.) */
+    transition: background 0.2s ease-in-out, transform 0.2s ease-in-out;
   }
 
   .sidebar-logo:hover {
@@ -1661,11 +1671,20 @@
     justify-content: flex-start;
     gap: 0;
     overflow: hidden;
-    transition: color 0.2s ease;
+    /* FIX: убираем flash при клике — outline и tap highlight */
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.2s ease-in-out;
   }
 
+  /* FIX: кастомный focus-visible — видимый только при навигации с клавиатуры */
+  .desktop-nav-icon:focus-visible .desktop-nav-icon-slot {
+    box-shadow: inset 0 0 0 2px rgba(90, 140, 235, 0.8);
+  }
+
+  /* Hover: box-shadow на icon-slot — всегда одинаково в compact и expanded */
   .desktop-nav-icon:hover .desktop-nav-icon-slot {
-    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.04);
   }
 
@@ -1673,8 +1692,9 @@
     color: #ffffff;
   }
 
+  /* Active: box-shadow на icon-slot — не зависит от режима сайдбара */
   .desktop-nav-icon.active .desktop-nav-icon-slot {
-    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
     background: rgba(255, 255, 255, 0.08);
   }
 
