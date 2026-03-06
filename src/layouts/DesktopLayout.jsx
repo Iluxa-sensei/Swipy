@@ -7,9 +7,9 @@ import { searchService } from '../services/searchService.js'
 
 const NAV_ITEMS = [
     { id: 'home', label: 'News', icon: 'fa-regular fa-newspaper', path: '/home' },
+    { id: 'jobs', label: 'Jobs', icon: 'fa-solid fa-briefcase', path: '/jobs' },
     { id: 'chat', label: 'Chats', icon: 'fa-regular fa-comments', path: '/chat' },
     { id: 'saved', label: 'Saved', icon: 'fa-regular fa-bookmark', path: '/saved' },
-    { id: 'jobs', label: 'Jobs', icon: 'fa-solid fa-briefcase', path: '/jobs' },
     { id: 'notifications', label: 'Alerts', icon: 'fa-regular fa-bell', path: '/notifications' },
     { id: 'activity-dashboard', label: 'Insights', icon: 'fa-solid fa-chart-simple', path: '/activity-dashboard' },
     { id: 'profile', label: 'Profile', icon: 'fa-regular fa-user', path: '/profile' },
@@ -136,6 +136,9 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
     const [jobFilterPos, setJobFilterPos] = useState({ top: 0, right: 0 })
     const jobFilterRef = useRef(null)
     const jobFilterBtnRef = useRef(null)
+
+    // Sidebar expanded state (show labels)
+    const [sidebarExpanded, setSidebarExpanded] = useState(false)
 
     const handleNavClick = (item) => {
         if (onScreenChange) {
@@ -371,26 +374,37 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
     ]
 
     return (
-        <div className="desktop-shell">
-            <aside className="desktop-sidebar compact">
+        <div className={`desktop-shell ${sidebarExpanded ? 'sidebar-expanded' : ''}`}>
+            <aside className={`desktop-sidebar ${sidebarExpanded ? 'expanded' : 'compact'}`}>
                 <div className="sidebar-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
                     <img src="/Vector.png" alt="Swipy" />
                 </div>
-                <nav className="desktop-nav compact">
+                <nav className={`desktop-nav ${sidebarExpanded ? 'expanded' : 'compact'}`}>
                     {navItems.map(item => (
                         <button
                             key={item.id}
                             type="button"
-                            className={`desktop-nav-icon ${currentScreen === item.id || (item.id === 'add' && currentScreen === 'add') || currentScreen?.startsWith(item.id)
+                            className={`desktop-nav-icon ${sidebarExpanded ? 'with-label' : ''} ${currentScreen === item.id || (item.id === 'add' && currentScreen === 'add') || currentScreen?.startsWith(item.id)
                                 ? 'active'
                                 : ''}`}
                             onClick={() => handleNavClick(item)}
                             title={item.label}
                         >
-                            <i className={item.icon}></i>
+                            <span className="desktop-nav-icon-slot"><i className={item.icon}></i></span>
+                            <span className="desktop-nav-label">{item.label}</span>
                         </button>
                     ))}
                 </nav>
+                <button
+                    type="button"
+                    className="desktop-sidebar-expand-btn"
+                    onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                    title={sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+                    aria-label={sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+                >
+                    <span className="desktop-nav-icon-slot"><i className={`fas fa-chevron-${sidebarExpanded ? 'left' : 'right'}`}></i></span>
+                    <span className="desktop-nav-label">Collapse</span>
+                </button>
             </aside>
 
             <div className="desktop-main">

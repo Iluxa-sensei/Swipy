@@ -1505,9 +1505,10 @@
     gap: 32px;
     background: linear-gradient(180deg, rgba(18, 19, 24, 0.95), rgba(8, 9, 14, 0.98));
     z-index: 1000;
-    overflow-y: auto;
+    overflow: hidden;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .desktop-sidebar::-webkit-scrollbar {
@@ -1515,7 +1516,118 @@
   }
 
   .desktop-sidebar.compact {
-    /* Свойства перенесены в основной класс */
+    /* icon-only, width stays 96px */
+  }
+
+  /* Expand sidebar to show labels — icons stay pinned at their original position */
+  .desktop-sidebar.expanded {
+    width: 180px;
+    /* keep align-items: center so the logo stays centered; nav items handle their own alignment */
+  }
+
+  /* Nav takes up remaining vertical space so expand button sits at the bottom */
+  .desktop-sidebar .desktop-nav {
+    flex: 1;
+    width: 100%;
+  }
+
+  /* Every nav button: icon is always 48×48 centred in its column; label grows to the right */
+  .desktop-nav-icon {
+    /* already defined above, ensure overflow is hidden so label clips neatly */
+    overflow: hidden;
+  }
+
+  /* In compact mode buttons are already centred (48px wide). No extra rules needed. */
+
+  /* Fixed-width slot that keeps the icon pinned at centre — never moves during expand/collapse */
+  .desktop-nav-icon-slot {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* In expanded mode the button grows to full width */
+  .desktop-nav.expanded .desktop-nav-icon {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+    overflow: hidden;
+  }
+
+  /* Label — always in the DOM, hidden in compact via max-width + opacity */
+  .desktop-nav-icon .desktop-nav-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .desktop-sidebar.expanded .desktop-nav-icon .desktop-nav-label {
+    opacity: 1;
+    max-width: 120px;
+    transition-delay: 0.06s;
+  }
+
+  /* ── Expand / collapse button at the bottom ── */
+  .desktop-sidebar-expand-btn {
+    margin-top: auto;
+    /* Same size & shape as a nav icon */
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    gap: 14px;
+    transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                padding 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+  }
+
+  .desktop-sidebar-expand-btn:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+  }
+
+  /* In expanded mode the button stretches to full width */
+  .desktop-sidebar.expanded .desktop-sidebar-expand-btn {
+    width: 180px;
+    justify-content: flex-start;
+  }
+
+  .desktop-sidebar-expand-btn .desktop-nav-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Always in DOM — visible only when expanded */
+  }
+
+  .desktop-sidebar.expanded .desktop-sidebar-expand-btn .desktop-nav-label {
+    opacity: 1;
+    max-width: 80px;
+    transition-delay: 0.06s;
+  }
+
+  .desktop-sidebar-expand-btn .desktop-nav-icon-slot {
+    flex-shrink: 0;
   }
 
   .sidebar-logo {
@@ -1544,7 +1656,7 @@
   .desktop-nav.compact {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 8px;
     align-items: center;
   }
 
@@ -1558,7 +1670,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1), padding 0.28s cubic-bezier(0.4, 0, 0.2, 1), gap 0.28s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
   }
 
   .desktop-nav-icon:hover {
@@ -1604,6 +1716,13 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+  }
+
+  /* Ensure all sidebar icons take the same horizontal space so labels align perfectly */
+  .desktop-nav-icon i {
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
   }
 
   .desktop-nav-item {
@@ -1705,6 +1824,14 @@
     margin-left: 96px;
     overflow-x: hidden;
     min-height: 100vh;
+    transition: margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* When sidebar is expanded, gently push content to the right */
+  .desktop-shell.sidebar-expanded .desktop-main {
+    margin-left: 180px;
+    width: calc(100% - 180px);
   }
 
   /* Auth pages desktop wrapper - Premium Design */
@@ -2346,7 +2473,7 @@
     height: 300px;
     position: relative;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
     padding-top: 24px;
     overflow: visible !important;
