@@ -57,8 +57,8 @@ const StarredJobsPage = () => {
                 <div className="p-4 space-y-4">
                     {jobs.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16">
-                            <div className="w-20 h-20 bg-gradient-to-br from-accent-primary/80 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                                <i className="far fa-star text-2xl text-white"></i>
+                            <div className="state-icon state-icon-sm state-icon-blue">
+                                <i className="far fa-star"></i>
                             </div>
                             <h2 className="text-xl font-bold text-text-primary mb-3">No starred jobs yet</h2>
                             <p className="text-text-secondary text-sm max-w-xs text-center mb-6">

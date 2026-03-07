@@ -43,8 +43,8 @@ const SupportPage = () => {
                 <div className="p-6">
                     {/* Header Section */}
                     <div className="text-center mb-8">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <i className="fas fa-headset text-white text-2xl"></i>
+                        <div className="state-icon state-icon-sm state-icon-blue">
+                            <i className="fas fa-headset"></i>
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-2">Support Center</h2>
                         <p className="text-text-secondary text-sm">
@@ -55,8 +55,8 @@ const SupportPage = () => {
                     {/* Contact Email Section */}
                     <div className="bg-glass-bg border border-glass-border rounded-2xl p-6 mb-6">
                         <div className="text-center">
-                            <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <i className="fas fa-envelope text-white text-2xl"></i>
+                            <div className="state-icon state-icon-sm state-icon-blue">
+                                <i className="fas fa-envelope"></i>
                             </div>
                             <h3 className="text-xl font-bold text-text-primary mb-3">Contact Us</h3>
                             <p className="text-text-secondary text-sm mb-6">Send us an email and we'll respond as soon as possible.</p>
@@ -70,7 +70,7 @@ const SupportPage = () => {
                                     className={`w-full py-3.5 rounded-xl font-semibold transition-all duration-200 ${
                                         copied 
                                             ? 'bg-green-500/20 border border-green-500/30 text-green-400' 
-                                            : 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white'
+                                            : 'btn-icon-style'
                                     }`}
                                 >
                                     {copied ? (

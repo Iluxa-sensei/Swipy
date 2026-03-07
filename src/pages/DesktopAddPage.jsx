@@ -723,8 +723,8 @@ const DesktopAddPage = () => {
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="w-full max-w-md bg-bg-secondary rounded-[40px] p-10 text-center shadow-2xl animate-scale-up border border-glass-border">
-            <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
-              <i className="fas fa-check text-4xl text-white"></i>
+            <div className="state-icon state-icon-green" style={{marginBottom: '32px'}}>
+              <i className="fas fa-check"></i>
             </div>
             <h2 className="text-3xl font-bold text-text-primary mb-4">Successfully Launched!</h2>
             <p className="text-text-secondary mb-10 leading-relaxed">

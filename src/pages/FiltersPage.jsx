@@ -215,7 +215,7 @@ const FiltersPage = () => {
                 <button
                   key={industry}
                   className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${filters.industries.includes(industry)
-                    ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                    ? 'btn-icon-style shadow-lg'
                     : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                     }`}
                   onClick={() => toggleIndustry(industry)}
@@ -236,7 +236,7 @@ const FiltersPage = () => {
                 <button
                   key={stage}
                   className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${filters.stages.includes(stage)
-                    ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                    ? 'btn-icon-style shadow-lg'
                     : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                     }`}
                   onClick={() => toggleStage(stage)}
@@ -257,7 +257,7 @@ const FiltersPage = () => {
                 <button
                   key={location}
                   className={`p-3 rounded-2xl border transition-all duration-200 text-left hover:scale-105 ${filters.locations.includes(location)
-                    ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                    ? 'btn-icon-style shadow-lg'
                     : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                     }`}
                   onClick={() => toggleLocation(location)}
@@ -283,7 +283,7 @@ const FiltersPage = () => {
                   <button
                     key={size}
                     className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${filters.teamSize === size
-                      ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                      ? 'btn-icon-style shadow-lg'
                       : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                       }`}
                     onClick={() => setTeamSize(size)}
@@ -302,7 +302,7 @@ const FiltersPage = () => {
                   <button
                     key={funding}
                     className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${filters.funding === funding
-                      ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                      ? 'btn-icon-style shadow-lg'
                       : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                       }`}
                     onClick={() => setFunding(funding)}
@@ -321,7 +321,7 @@ const FiltersPage = () => {
                   <button
                     key={amount}
                     className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${filters.investmentRequired === amount
-                      ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                      ? 'btn-icon-style shadow-lg'
                       : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                       }`}
                     onClick={() => setInvestmentRequired(amount)}
@@ -346,7 +346,7 @@ const FiltersPage = () => {
             Save Preset
           </button>
           <button
-            className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white hover:scale-105 transition-transform duration-200 font-semibold rounded-2xl py-4 shadow-lg hover:shadow-xl"
+            className="btn-icon-style hover:scale-105 transition-transform duration-200 font-semibold rounded-2xl py-4"
             onClick={applyFilters}
           >
             <i className="fas fa-search"></i>

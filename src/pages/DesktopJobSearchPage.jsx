@@ -393,8 +393,8 @@ const DesktopJobSearchPage = () => {
 
                 {!isLoading && hasSearched && jobs.length === 0 && !error && (
                     <div className="flex flex-col items-center justify-center py-20">
-                        <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <i className="fas fa-search text-3xl text-white"></i>
+                        <div className="state-icon state-icon-blue">
+                            <i className="fas fa-search"></i>
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-4">No jobs found for "{query}"</h2>
                         <p className="text-text-secondary mb-6 max-w-md text-center">

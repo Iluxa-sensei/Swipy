@@ -322,8 +322,8 @@ const JobSearchPage = () => {
 
                     {!isLoading && hasSearched && jobs.length === 0 && !error && (
                         <div className="flex flex-col items-center justify-center py-16">
-                            <div className="w-20 h-20 bg-gradient-to-br from-accent-primary/80 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-5">
-                                <i className="fas fa-search text-2xl text-white"></i>
+                            <div className="state-icon state-icon-sm state-icon-blue">
+                                <i className="fas fa-search"></i>
                             </div>
                             <h2 className="text-xl font-bold text-text-primary mb-3">No jobs found for "{query}"</h2>
                             <p className="text-text-secondary text-sm max-w-xs text-center">
@@ -334,8 +334,8 @@ const JobSearchPage = () => {
 
                     {!isLoading && !hasSearched && (
                         <div className="flex flex-col items-center justify-center py-16">
-                            <div className="w-20 h-20 bg-gradient-to-br from-accent-primary/80 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                                <i className="fas fa-briefcase text-2xl text-white"></i>
+                            <div className="state-icon state-icon-sm state-icon-blue">
+                                <i className="fas fa-briefcase"></i>
                             </div>
                             <h2 className="text-xl font-bold text-text-primary mb-3">Find Your Next Job</h2>
                             <p className="text-text-secondary text-sm max-w-xs text-center">

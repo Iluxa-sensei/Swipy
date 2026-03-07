@@ -37,8 +37,8 @@ const DesktopSupportPage = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl font-bold text-text-primary mb-2 flex items-center gap-3">
-                                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center">
-                                    <i className="fas fa-headset text-white text-xl"></i>
+                                <div className="state-icon state-icon-sm state-icon-blue" style={{marginBottom: 0}}>
+                                    <i className="fas fa-headset"></i>
                                 </div>
                                 Support Center
                             </h1>
@@ -57,8 +57,8 @@ const DesktopSupportPage = () => {
                 {/* Contact Email Section */}
                 <div className="desktop-card">
                     <div className="text-center py-8">
-                        <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                            <i className="fas fa-envelope text-white text-3xl"></i>
+                        <div className="state-icon state-icon-blue">
+                            <i className="fas fa-envelope"></i>
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-4">Contact Us</h2>
                         <p className="text-text-secondary mb-6">Send us an email and we'll respond as soon as possible.</p>

@@ -370,18 +370,18 @@ export const useChats = (userId) => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
-    const fetchChats = useCallback(async () => {
+    const fetchChats = useCallback(async (silent = false) => {
         if (!userId) return
 
         try {
-            setLoading(true)
+            if (!silent) setLoading(true)
             setError(null)
             const data = await chatService.getUserChats(userId)
             setChats(data)
         } catch (err) {
             setError(err.message)
         } finally {
-            setLoading(false)
+            if (!silent) setLoading(false)
         }
     }, [userId])
 
@@ -410,14 +410,14 @@ export const useChats = (userId) => {
         fetchChats()
     }, [fetchChats])
 
-    // Realtime subscription: refresh chats when new messages arrive
+    // Realtime subscription: refresh chats list silently when new messages arrive
     useEffect(() => {
         if (!userId) return
 
         const channel = chatService.subscribeToUserMessages(userId, (payload) => {
             if (payload.eventType === 'INSERT') {
-                // A new message was created in one of the user's chats -> refresh list
-                fetchChats()
+                // A new message was created — refresh list WITHOUT showing loading spinner
+                fetchChats(true)
             }
         })
 

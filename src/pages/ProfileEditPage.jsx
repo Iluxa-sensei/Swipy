@@ -456,8 +456,8 @@ const ProfileEditPage = () => {
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 max-w-md mx-4">
                         <div className="text-center">
-                            <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <i className="fas fa-check text-white text-3xl"></i>
+                            <div className="state-icon state-icon-green">
+                                <i className="fas fa-check"></i>
                             </div>
                             <h3 className="text-2xl font-bold text-white mb-4">Profile Updated!</h3>
                             <p className="text-white/70 mb-6">Your profile has been successfully updated.</p>
@@ -941,8 +941,8 @@ const PortfolioTab = ({ startups, setStartups, userId, navigate }) => {
 
                 {startups.length === 0 ? (
                     <div className="text-center py-16">
-                        <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-8">
-                            <i className="fas fa-rocket text-white text-3xl"></i>
+                        <div className="state-icon state-icon-green" style={{marginBottom: '32px'}}>
+                            <i className="fas fa-rocket"></i>
                         </div>
                         <h4 className="text-2xl font-bold text-white mb-4">No Startups Yet</h4>
                         <p className="text-white/60 mb-8 text-lg">Create your first startup to showcase your entrepreneurial journey</p>
@@ -1006,8 +1006,8 @@ const PortfolioTab = ({ startups, setStartups, userId, navigate }) => {
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 max-w-md mx-4">
                         <div className="text-center">
-                            <div className="w-20 h-20 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <i className="fas fa-exclamation-triangle text-white text-3xl"></i>
+                            <div className="state-icon state-icon-red">
+                                <i className="fas fa-exclamation-triangle"></i>
                             </div>
                             <h3 className="text-2xl font-bold text-white mb-4">Delete Startup</h3>
                             <p className="text-white/70 mb-6">
@@ -1070,8 +1070,8 @@ const AchievementsTab = ({ achievements, setAchievements, userId }) => {
 
                 {achievements.length === 0 ? (
                     <div className="text-center py-16">
-                        <div className="w-24 h-24 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-8">
-                            <i className="fas fa-trophy text-white text-3xl"></i>
+                        <div className="state-icon state-icon-yellow" style={{marginBottom: '32px'}}>
+                            <i className="fas fa-trophy"></i>
                         </div>
                         <h4 className="text-2xl font-bold text-white mb-4">No Achievements Yet</h4>
                         <p className="text-white/60 mb-8 text-lg">Start building your profile to unlock achievements and badges</p>
@@ -1084,8 +1084,8 @@ const AchievementsTab = ({ achievements, setAchievements, userId }) => {
                         {achievements.map((achievement, index) => (
                             <div key={index} className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center">
-                                        <i className="fas fa-trophy text-white text-2xl"></i>
+                                    <div className="state-icon state-icon-sm state-icon-yellow" style={{marginBottom: 0}}>
+                                        <i className="fas fa-trophy"></i>
                                     </div>
                                     <div className="flex-1">
                                         <h4 className="text-xl font-bold text-white mb-2">{achievement.title}</h4>

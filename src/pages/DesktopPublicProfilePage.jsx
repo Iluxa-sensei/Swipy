@@ -113,8 +113,8 @@ const DesktopPublicProfilePage = () => {
         <div className="desktop-page-section">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                <i className="fas fa-user text-2xl text-white"></i>
+              <div className="state-icon state-icon-sm state-icon-blue animate-pulse">
+                <i className="fas fa-user"></i>
               </div>
               <div className="text-text-secondary">Loading profile...</div>
             </div>
@@ -130,8 +130,8 @@ const DesktopPublicProfilePage = () => {
         <div className="desktop-page-section">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+              <div className="state-icon state-icon-red">
+                <i className="fas fa-exclamation-triangle"></i>
               </div>
               <h2 className="text-2xl font-bold text-text-primary mb-4">{error}</h2>
               <p className="text-text-secondary mb-6">The profile you're looking for doesn't exist or has been removed.</p>

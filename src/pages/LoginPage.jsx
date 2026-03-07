@@ -509,7 +509,7 @@ const LoginPage = () => {
           <div className="bg-bg-secondary rounded-3xl max-w-sm w-full shadow-2xl border border-glass-border overflow-hidden animate-slide-up">
             <div className="p-8 text-center">
               {/* Success Icon */}
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-3xl">
+              <div className="state-icon state-icon-green">
                 <i className="fas fa-envelope"></i>
               </div>
 
@@ -526,7 +526,7 @@ const LoginPage = () => {
               {/* OK Button */}
               <button
                 onClick={handleEmailModalOK}
-                className="w-full py-3 px-6 bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white rounded-2xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="w-full py-3 px-6 btn-icon-style rounded-2xl font-semibold"
               >
                 OK
               </button>
@@ -686,7 +686,7 @@ const LoginPage = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white w-full font-semibold rounded-2xl py-4 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+            className="btn-icon-style w-full font-semibold rounded-2xl py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i className={`fas ${isLogin ? 'fa-sign-in-alt' : 'fa-user-plus'} mr-2 text-lg`}></i>
             {isSubmitting ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
@@ -796,7 +796,7 @@ const LoginPage = () => {
         <div className="bg-bg-secondary rounded-3xl max-w-sm w-full shadow-2xl border border-glass-border overflow-hidden animate-slide-up">
           <div className="p-8 text-center">
             {/* Success Icon */}
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-3xl">
+            <div className="state-icon state-icon-green">
               <i className="fas fa-envelope"></i>
             </div>
 
@@ -813,7 +813,7 @@ const LoginPage = () => {
             {/* OK Button */}
             <button
               onClick={handleEmailModalOK}
-              className="w-full py-3 px-6 bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white rounded-2xl font-semibold hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="w-full py-3 px-6 btn-icon-style rounded-2xl font-semibold"
             >
               OK
             </button>

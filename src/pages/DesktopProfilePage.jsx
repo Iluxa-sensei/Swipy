@@ -82,8 +82,8 @@ const DesktopProfilePage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+                            <div className="state-icon state-icon-red">
+                                <i className="fas fa-exclamation-triangle"></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Profile</h2>
                             <p className="text-text-secondary mb-6">{profileError}</p>
@@ -103,8 +103,8 @@ const DesktopProfilePage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-32 h-32 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <i className="fas fa-user-plus text-5xl text-white"></i>
+                            <div className="state-icon state-icon-blue">
+                                <i className="fas fa-user-plus"></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">Create Your Profile</h2>
                             <p className="text-text-secondary mb-8">Build your professional profile to connect with amazing startups.</p>
@@ -551,8 +551,8 @@ const DesktopProfilePage = () => {
                             <div className="grid grid-cols-3 gap-4">
                                 {completeProfile.achievements.map((achievement, index) => (
                                     <div key={index} className="desktop-card flex flex-col items-center text-center p-6">
-                                        <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-yellow-500/20">
-                                            <i className="fas fa-trophy text-white text-2xl"></i>
+                                        <div className="state-icon state-icon-sm state-icon-yellow" style={{marginBottom: '16px'}}>
+                                            <i className="fas fa-trophy"></i>
                                         </div>
                                         <h4 className="text-lg font-bold text-text-primary mb-2">{achievement.title}</h4>
                                         <p className="text-sm text-text-secondary mb-3 leading-relaxed">{achievement.description}</p>

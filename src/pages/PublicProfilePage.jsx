@@ -117,8 +117,8 @@ const PublicProfilePage = () => {
         </div>
         <div className="flex-1 flex items-center justify-center px-6">
           <div className="text-center max-w-md">
-            <div className="w-32 h-32 bg-gradient-to-br from-red-300 to-red-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
-              <i className="fas fa-exclamation-triangle text-5xl text-white"></i>
+            <div className="state-icon state-icon-red">
+              <i className="fas fa-exclamation-triangle"></i>
             </div>
             <h2 className="text-3xl font-bold text-text-primary mb-4">
               {error}
@@ -263,8 +263,8 @@ const PublicProfilePage = () => {
               </div>
             ) : startups.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <i className="fas fa-rocket text-3xl text-white"></i>
+                <div className="state-icon state-icon-blue">
+                  <i className="fas fa-rocket"></i>
                 </div>
                 <h3 className="text-xl font-bold text-text-primary mb-2">No Startups Yet</h3>
                 <p className="text-text-secondary">This user hasn't created any startups yet.</p>

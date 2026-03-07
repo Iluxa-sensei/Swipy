@@ -171,8 +171,8 @@ const DesktopNotificationsPage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+                            <div className="state-icon state-icon-red">
+                                <i className="fas fa-exclamation-triangle"></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Notifications</h2>
                             <p className="text-text-secondary mb-6">{error}</p>
@@ -205,8 +205,8 @@ const DesktopNotificationsPage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center flex flex-col items-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <i className="fas fa-bell text-3xl text-white"></i>
+                            <div className="state-icon state-icon-blue">
+                                <i className="fas fa-bell"></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">No Notifications</h2>
                             <p className="text-text-secondary mb-8">Notifications will appear here when you interact with startups.</p>
@@ -226,10 +226,10 @@ const DesktopNotificationsPage = () => {
                         >
                             <div className="flex items-start gap-4">
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${!notification.read
-                                    ? 'bg-gradient-to-r from-blue-300 to-blue-700'
+                                    ? 'btn-icon-style'
                                     : 'bg-bg-secondary/80 border border-glass-border'
                                     }`}>
-                                    <i className={`${getNotificationIcon(notification.type)} ${!notification.read ? 'text-white' : 'text-text-secondary'}`}></i>
+                                    <i className={getNotificationIcon(notification.type)}></i>
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-start mb-2">

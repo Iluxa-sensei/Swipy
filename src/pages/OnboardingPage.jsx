@@ -245,8 +245,8 @@ const OnboardingPage = () => {
         {currentStep === 1 && (
           <div className="pt-2 space-y-6 animate-fade-in">
             <div className="text-center mb-8">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <i className="fas fa-user text-3xl text-white"></i>
+              <div className="state-icon state-icon-blue">
+                <i className="fas fa-user"></i>
               </div>
               <h2 className="text-2xl font-bold text-text-primary mb-2">Tell us about yourself</h2>
               <p className="text-text-secondary">Let's start with the basics</p>
@@ -333,8 +333,8 @@ const OnboardingPage = () => {
                     }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center">
-                      <i className={`${role.icon} text-white text-xl`}></i>
+                    <div className="state-icon state-icon-sm state-icon-blue" style={{marginBottom: 0}}>
+                      <i className={role.icon}></i>
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-text-primary mb-1">{role.label}</h3>
@@ -370,7 +370,7 @@ const OnboardingPage = () => {
                       key={interest}
                       onClick={() => handleInterestToggle(interest)}
                       className={`p-3 rounded-2xl border ${userData.interests.includes(interest)
-                        ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white shadow-lg'
+                        ? 'btn-icon-style shadow-lg'
                         : 'bg-glass-bg border-glass-border text-text-primary'
                         }`}
                     >

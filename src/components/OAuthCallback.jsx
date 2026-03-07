@@ -135,7 +135,7 @@ const OAuthCallback = () => {
                         </p>
                         <button
                             onClick={() => navigate('/login')}
-                            className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white font-semibold rounded-2xl px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-200"
+                            className="btn-icon-style font-semibold rounded-2xl px-6 py-3"
                         >
                             Back to Login
                         </button>

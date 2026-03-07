@@ -367,7 +367,7 @@ const AddPage = () => {
                     key={funding}
                     type="button"
                     className={`p-3 rounded-2xl border transition-all duration-200 hover:scale-105 ${formData.startup.fundingAmount === funding
-                      ? 'bg-gradient-to-r from-blue-300 to-blue-700 border-blue-700 text-white'
+                      ? 'btn-icon-style'
                       : 'bg-glass-bg border-glass-border text-text-primary hover:bg-glass-border'
                       }`}
                     onClick={() => handleInputChange('startup', 'fundingAmount', funding)}
@@ -632,7 +632,7 @@ const AddPage = () => {
         {/* Submit Button */}
         <div className="p-6 border-t border-glass-border bg-bg-primary/80 backdrop-blur-sm sticky bottom-0">
           <button
-            className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white w-full hover:scale-[1.02] transition-transform duration-300 shadow-lg shadow-blue-700/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 font-semibold rounded-2xl py-4"
+            className="btn-icon-style w-full font-semibold rounded-2xl py-4 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!formData.startup.name || !formData.startup.category || formData.startup.description.length > 100 || formData.startup.name.length > 15 || isSubmitting}
             onClick={async () => {
               if (!user?.id) {
@@ -931,8 +931,8 @@ const AddPage = () => {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowSuccessModal(false)}>
           <div className="w-full max-w-md bg-bg-secondary rounded-3xl p-8 shadow-2xl animate-scale-up" onClick={(e) => e.stopPropagation()}>
             {/* Success Icon */}
-            <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
-              <i className="fas fa-check text-3xl text-white"></i>
+            <div className="state-icon state-icon-green animate-bounce">
+              <i className="fas fa-check"></i>
             </div>
 
             {/* Success Message */}
@@ -969,7 +969,7 @@ const AddPage = () => {
                 Stay Here
               </button>
               <button
-                className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl font-medium hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                className="flex-1 py-3 px-4 btn-icon-style rounded-xl font-medium"
                 onClick={() => {
                   setShowSuccessModal(false)
                   navigate('/home')

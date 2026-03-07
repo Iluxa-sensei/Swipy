@@ -177,21 +177,21 @@ const DesktopChatDetailPage = () => {
             if (payload.eventType === 'INSERT') {
                 const newMsg = payload.new
                 console.log('Realtime message received:', newMsg)
-                
+
                 setMessages(prev => {
                     // Avoid duplicates - check if message already exists
                     if (prev.some(m => m.id === newMsg.id)) {
                         console.log('Message already exists, skipping')
                         return prev
                     }
-                    
+
                     // Find sender profile from participants
                     const senderProfile = participants.find(p => p.id === newMsg.sender_id)
                     const messageWithProfile = {
                         ...newMsg,
                         profiles: senderProfile || null
                     }
-                    
+
                     console.log('Adding new realtime message to state')
                     return [...prev, messageWithProfile]
                 })
@@ -222,7 +222,10 @@ const DesktopChatDetailPage = () => {
 
     // Handle message sending
     const handleSendMessage = async (e) => {
-        e.preventDefault()
+        if (e) {
+            e.preventDefault()
+            e.stopPropagation()
+        }
         if (!newMessage.trim() || !user?.id || !chatId) return
 
         try {
@@ -321,8 +324,8 @@ const DesktopChatDetailPage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+                            <div className="state-icon state-icon-red">
+                                <i className="fas fa-exclamation-triangle"></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Chat</h2>
                             <p className="text-text-secondary mb-6">{error}</p>
@@ -349,8 +352,8 @@ const DesktopChatDetailPage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+                            <div className="state-icon state-icon-red">
+                                <i className="fas fa-exclamation-triangle"></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">Chat Not Found</h2>
                             <p className="text-text-secondary mb-8">The chat you're looking for doesn't exist or has been removed.</p>
@@ -417,8 +420,8 @@ const DesktopChatDetailPage = () => {
                     {messageGroups.length === 0 ? (
                         <div className="flex items-center justify-center h-full">
                             <div className="text-center">
-                                <div className="w-20 h-20 bg-gradient-to-br from-blue-300 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                    <i className="fas fa-comments text-2xl text-white"></i>
+                                <div className="state-icon state-icon-sm state-icon-blue">
+                                    <i className="fas fa-comments"></i>
                                 </div>
                                 <p className="text-text-secondary text-lg">No messages yet</p>
                                 <p className="text-text-secondary text-sm mt-2">Start the conversation!</p>
@@ -509,7 +512,7 @@ const DesktopChatDetailPage = () => {
                             </button>
                         </div>
                     )}
-                    <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+                    <form onSubmit={handleSendMessage} className="flex items-center gap-3" noValidate>
                         <div className="flex-1 relative">
                             <input
                                 type="text"
@@ -521,7 +524,8 @@ const DesktopChatDetailPage = () => {
                             />
                         </div>
                         <button
-                            type="submit"
+                            type="button"
+                            onClick={handleSendMessage}
                             disabled={!newMessage.trim() || sending}
                             className="desktop-icon-btn"
                             style={{ width: '48px', height: '48px' }}

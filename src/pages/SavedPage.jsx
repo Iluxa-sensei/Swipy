@@ -38,13 +38,13 @@ const SavedPage = () => {
                 </div>
                 <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                        <div className="w-24 h-24 bg-gradient-to-br from-gray-300 to-gray-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <i className="fas fa-user-slash text-3xl text-white"></i>
+                        <div className="state-icon state-icon-gray">
+                            <i className="fas fa-user-slash"></i>
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-4">Please Login</h2>
                         <p className="text-text-secondary mb-8">You need to be logged in to view saved startups.</p>
                         <button
-                            className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                            className="btn-icon-style px-8 py-3 rounded-2xl font-semibold"
                             onClick={() => navigate('/login')}
                         >
                             Go to Login
@@ -122,13 +122,13 @@ const SavedPage = () => {
 
                 <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                        <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+                        <div className="state-icon state-icon-red">
+                            <i className="fas fa-exclamation-triangle"></i>
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Saved Startups</h2>
                         <p className="text-text-secondary mb-6">{error}</p>
                         <button
-                            className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                            className="btn-icon-style px-8 py-3 rounded-2xl font-semibold"
                             onClick={() => window.location.reload()}
                         >
                             Retry
@@ -169,14 +169,14 @@ const SavedPage = () => {
 
                 {list.length === 0 ? (
                     <div className="text-center mt-10">
-                        <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <i className="fas fa-heart text-3xl text-white"></i>
+                        <div className="state-icon state-icon-blue">
+                            <i className="fas fa-heart"></i>
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-4">No Saved Startups</h2>
                         <p className="text-text-secondary mb-8">Startups you like or pass will appear here.</p>
                         <div className="flex justify-center">
                             <button
-                                className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-full font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                                className="btn-icon-style px-8 py-3 rounded-full font-semibold"
                                 onClick={() => navigate('/home')}
                             >
                                 Browse Startups

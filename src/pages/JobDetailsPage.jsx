@@ -73,13 +73,13 @@ const JobDetailsPage = () => {
                 </div>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
-                        <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+                        <div className="state-icon state-icon-red">
+                            <i className="fas fa-exclamation-triangle"></i>
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-4">Job Not Found</h2>
                         <p className="text-text-secondary mb-8">This position may have been removed or the link is invalid.</p>
                         <button
-                            className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                            className="btn-icon-style px-8 py-3 rounded-2xl font-semibold"
                             onClick={() => navigate('/jobs')}
                         >
                             Back to Job Search
@@ -157,7 +157,7 @@ const JobDetailsPage = () => {
 
                     {/* Action Button */}
                     <button
-                        className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-2xl font-semibold text-base hover:from-blue-600 hover:to-blue-800 transition-all flex items-center justify-center gap-2"
+                        className="w-full py-3.5 btn-icon-style rounded-2xl font-semibold text-base flex items-center justify-center gap-2"
                         onClick={() => {
                             // TODO: Replace with real external job URL when available
                             // The URL should come from job.urlPlaceholder (or a real URL field)

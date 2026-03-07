@@ -187,7 +187,21 @@
 
 
   .btn-primary {
-    @apply bg-gradient-primary text-white px-6 py-3 rounded-full font-semibold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.1)) !important;
+    border: 1px solid rgba(59, 130, 246, 0.2) !important;
+    color: rgba(59, 130, 246, 0.8) !important;
+    @apply px-6 py-3 rounded-full font-semibold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(99, 102, 241, 0.15)) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+    color: rgba(59, 130, 246, 1) !important;
+  }
+  
+  .btn-primary i,
+  .btn-primary * {
+    color: inherit !important;
   }
 
   .btn-secondary {
@@ -4006,6 +4020,135 @@
   color: rgba(59, 130, 246, 0.5);
 }
 
+/* ==========================================
+   STATE ICONS (empty / error states)
+   Matches chat-main-empty-icon style
+   ========================================== */
+
+.state-icon {
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  flex-shrink: 0;
+}
+
+.state-icon i {
+  font-size: 36px;
+}
+
+.state-icon-sm {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  margin-bottom: 16px;
+}
+
+.state-icon-sm i {
+  font-size: 24px;
+}
+
+.state-icon-blue {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.1));
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.state-icon-blue i {
+  color: rgba(59, 130, 246, 0.7);
+}
+
+.state-icon-red {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1));
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.state-icon-red i {
+  color: rgba(239, 68, 68, 0.7);
+}
+
+.state-icon-green {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.1));
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.state-icon-green i {
+  color: rgba(34, 197, 94, 0.7);
+}
+
+.state-icon-gray {
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.15), rgba(100, 116, 139, 0.1));
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.state-icon-gray i {
+  color: rgba(148, 163, 184, 0.7);
+}
+
+.state-icon-yellow {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(202, 138, 4, 0.1));
+  border: 1px solid rgba(234, 179, 8, 0.2);
+}
+
+.state-icon-yellow i {
+  color: rgba(234, 179, 8, 0.7);
+}
+
+/* ==========================================
+   BUTTONS IN CHAT-MAIN-EMPTY-ICON STYLE
+   ========================================== */
+
+button.btn-icon-style,
+.btn-icon-style {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.1)) !important;
+  border: 1px solid rgba(59, 130, 246, 0.2) !important;
+  color: rgba(59, 130, 246, 0.8) !important;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button.btn-icon-style:hover,
+.btn-icon-style:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(99, 102, 241, 0.15)) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: rgba(59, 130, 246, 1) !important;
+}
+
+button.btn-icon-style:active,
+.btn-icon-style:active {
+  transform: scale(0.98);
+}
+
+button.btn-icon-style:disabled,
+.btn-icon-style:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed;
+}
+
+button.btn-icon-style i,
+.btn-icon-style i,
+button.btn-icon-style *,
+.btn-icon-style * {
+  color: inherit !important;
+}
+
+/* Override any Tailwind text color classes */
+button.btn-icon-style.text-white,
+.btn-icon-style.text-white,
+button.btn-icon-style .text-white,
+.btn-icon-style .text-white {
+  color: rgba(59, 130, 246, 0.8) !important;
+}
+
+button.btn-icon-style:hover .text-white,
+.btn-icon-style:hover .text-white {
+  color: rgba(59, 130, 246, 1) !important;
+}
+
 .chat-date-separator {
   display: flex;
   align-items: center;
@@ -4162,10 +4305,10 @@
   align-items: center;
   gap: 6px;
   padding: 10px 20px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  border: none;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.1)) !important;
+  border: 1px solid rgba(59, 130, 246, 0.2) !important;
   border-radius: 12px;
-  color: #fff;
+  color: rgba(59, 130, 246, 0.8) !important;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -4174,8 +4317,10 @@
 }
 
 .chat-send-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(99, 102, 241, 0.15)) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: rgba(59, 130, 246, 1) !important;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
   transform: translateY(-1px);
 }
 
@@ -4184,7 +4329,9 @@
   cursor: not-allowed;
 }
 
-.chat-send-btn i {
+.chat-send-btn i,
+.chat-send-btn * {
+  color: inherit !important;
   font-size: 12px;
 }
 
@@ -4193,10 +4340,10 @@
   align-items: center;
   gap: 6px;
   padding: 10px 22px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  border: none;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.1)) !important;
+  border: 1px solid rgba(59, 130, 246, 0.2) !important;
   border-radius: 12px;
-  color: #fff;
+  color: rgba(59, 130, 246, 0.8) !important;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -4204,8 +4351,15 @@
 }
 
 .chat-btn-primary:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(99, 102, 241, 0.15)) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: rgba(59, 130, 246, 1) !important;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+}
+
+.chat-btn-primary i,
+.chat-btn-primary * {
+  color: inherit !important;
 }
 
 /* Responsive */

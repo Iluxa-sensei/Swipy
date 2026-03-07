@@ -48,8 +48,8 @@ const DesktopSavedPage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+                            <div className="state-icon state-icon-red">
+                                <i className="fas fa-exclamation-triangle"></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Saved Startups</h2>
                             <p className="text-text-secondary mb-6">{error}</p>
@@ -70,7 +70,7 @@ const DesktopSavedPage = () => {
                 <div className="flex gap-3 mb-6">
                     <button
                         className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${activeTab === 'liked'
-                            ? 'bg-gradient-to-r from-blue-300 to-blue-700 text-white shadow-lg'
+                            ? 'btn-icon-style shadow-lg'
                             : 'bg-bg-secondary/80 text-text-secondary hover:bg-bg-secondary border border-glass-border'
                             }`}
                         onClick={() => setActiveTab('liked')}
@@ -80,7 +80,7 @@ const DesktopSavedPage = () => {
                     </button>
                     <button
                         className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${activeTab === 'passed'
-                            ? 'bg-gradient-to-r from-blue-300 to-blue-700 text-white shadow-lg'
+                            ? 'btn-icon-style shadow-lg'
                             : 'bg-bg-secondary/80 text-text-secondary hover:bg-bg-secondary border border-glass-border'
                             }`}
                         onClick={() => setActiveTab('passed')}
@@ -93,8 +93,8 @@ const DesktopSavedPage = () => {
                 {list.length === 0 ? (
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                <i className={`fas ${activeTab === 'liked' ? 'fa-heart' : 'fa-times'} text-3xl text-white`}></i>
+                            <div className="state-icon state-icon-blue">
+                                <i className={`fas ${activeTab === 'liked' ? 'fa-heart' : 'fa-times'}`}></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">
                                 No {activeTab === 'liked' ? 'Liked' : 'Passed'} Startups
@@ -104,7 +104,7 @@ const DesktopSavedPage = () => {
                             </p>
                             <div className="flex justify-center">
                                 <button
-                                    className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-full font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                                    className="btn-icon-style px-8 py-3 rounded-full font-semibold"
                                     onClick={() => navigate('/home')}
                                 >
                                     Browse Startups

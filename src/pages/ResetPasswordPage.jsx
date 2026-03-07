@@ -172,7 +172,7 @@ const ResetPasswordPage = () => {
                         <button
                             type="submit"
                             disabled={isSubmitting || !validatePassword(newPassword) || newPassword !== confirmPassword}
-                            className="w-full bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white font-semibold rounded-2xl py-4 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full btn-icon-style font-semibold rounded-2xl py-4 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <i className="fas fa-key mr-2"></i>
                             {isSubmitting ? 'Updating Password...' : 'Update Password'}
@@ -246,7 +246,7 @@ const ResetPasswordPage = () => {
                     <button
                         type="submit"
                         disabled={isSubmitting || !email.trim()}
-                        className="w-full bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white font-semibold rounded-2xl py-4 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full btn-icon-style font-semibold rounded-2xl py-4 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <i className="fas fa-paper-plane mr-2"></i>
                         {isSubmitting ? 'Sending...' : 'Send Reset Link'}

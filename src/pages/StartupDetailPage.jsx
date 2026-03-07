@@ -145,13 +145,13 @@ const StartupDetailPage = () => {
                 </div>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
-                        <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+                        <div className="state-icon state-icon-red">
+                            <i className="fas fa-exclamation-triangle"></i>
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Startup</h2>
                         <p className="text-text-secondary mb-6">{startupsError}</p>
                         <button
-                            className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                            className="btn-icon-style px-8 py-3 rounded-2xl font-semibold"
                             onClick={() => window.location.reload()}
                         >
                             Retry
@@ -196,13 +196,13 @@ const StartupDetailPage = () => {
                 </div>
                 <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
-                        <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+                        <div className="state-icon state-icon-red">
+                            <i className="fas fa-exclamation-triangle"></i>
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-4">Startup Not Found</h2>
                         <p className="text-text-secondary mb-8">The startup you're looking for doesn't exist or has been removed.</p>
                         <button
-                            className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                            className="btn-icon-style px-8 py-3 rounded-2xl font-semibold"
                             onClick={() => navigate('/home')}
                         >
                             Back to Home

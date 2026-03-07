@@ -100,8 +100,8 @@ const ProfilePage = () => {
 
         <div className="flex-1 flex items-center justify-center px-6">
           <div className="text-center max-w-md">
-            <div className="w-32 h-32 bg-gradient-to-br from-red-300 to-red-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
-              <i className="fas fa-exclamation-triangle text-5xl text-white"></i>
+            <div className="state-icon state-icon-red">
+              <i className="fas fa-exclamation-triangle"></i>
             </div>
 
             <h2 className="text-3xl font-bold text-text-primary mb-4">
@@ -507,8 +507,8 @@ const ProfilePage = () => {
               Investment Portfolio
             </h3>
             <div className="text-center py-12">
-              <div className="w-24 h-24 bg-gradient-to-br from-green-300 to-green-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <i className="fas fa-chart-line text-3xl text-white"></i>
+              <div className="state-icon state-icon-green">
+                <i className="fas fa-chart-line"></i>
               </div>
               <h3 className="text-xl font-bold text-text-primary mb-2">Investment Dashboard</h3>
               <p className="text-text-secondary">Track your startup investments and performance here</p>
@@ -529,8 +529,8 @@ const ProfilePage = () => {
               </div>
             ) : completeProfile?.achievements?.length === 0 ? (
               <div className="text-center flex flex-col items-center py-12">
-                <div className="w-24 h-24 bg-gradient-to-br from-yellow-300 to-yellow-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <i className="fas fa-trophy text-3xl text-white"></i>
+                <div className="state-icon state-icon-yellow">
+                  <i className="fas fa-trophy"></i>
                 </div>
                 <h3 className="text-xl font-bold text-text-primary mb-2">No Achievements Yet</h3>
                 <p className="text-text-secondary mb-6">Start building your profile to unlock achievements and badges</p>
@@ -546,8 +546,8 @@ const ProfilePage = () => {
               <div className="grid grid-cols-1 gap-4">
                 {completeProfile?.achievements?.map((achievement, index) => (
                   <div key={index} className="flex items-center gap-4 p-5 border border-glass-border rounded-2xl transition-all duration-300 hover:scale-[1.02] bg-bg-secondary/80">
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-br from-yellow-300 to-yellow-700 shadow-lg">
-                      <i className="fas fa-trophy text-white text-2xl"></i>
+                    <div className="state-icon state-icon-sm state-icon-yellow" style={{marginBottom: 0}}>
+                      <i className="fas fa-trophy"></i>
                     </div>
                     <div className="flex-1">
                       <h4 className="text-text-primary font-bold text-lg mb-1">{achievement.title}</h4>
@@ -568,7 +568,7 @@ const ProfilePage = () => {
         <div className="p-6 border-t border-glass-border">
           <div className="grid grid-cols-1 gap-3">
             <button
-              className="bg-gradient-to-r from-blue-300 to-blue-700 hover:from-blue-400 hover:to-blue-800 text-white hover:scale-105 transition-all duration-200 text-lg py-4 font-semibold rounded-2xl shadow-lg hover:shadow-xl"
+              className="btn-icon-style text-lg py-4 font-semibold rounded-2xl"
               onClick={() => navigate('/profile/edit')}
             >
               <i className="fas fa-edit text-xl"></i>

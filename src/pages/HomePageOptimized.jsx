@@ -258,8 +258,8 @@ const HomePageOptimized = () => {
 
                 <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                        <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
-                            <i className="fas fa-spinner fa-spin text-3xl text-white"></i>
+                        <div className="state-icon state-icon-blue animate-pulse">
+                            <i className="fas fa-spinner fa-spin"></i>
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-4">Loading Startups</h2>
                         <p className="text-text-secondary">Please wait while we fetch the latest opportunities...</p>
@@ -287,13 +287,13 @@ const HomePageOptimized = () => {
 
                 <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                        <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+                        <div className="state-icon state-icon-red">
+                            <i className="fas fa-exclamation-triangle"></i>
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Startups</h2>
                         <p className="text-text-secondary mb-6">{startupsError}</p>
                         <button
-                            className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-2xl font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200"
+                            className="btn-icon-style px-8 py-3 rounded-2xl font-semibold"
                             onClick={() => window.location.reload()}
                         >
                             Retry
@@ -322,8 +322,8 @@ const HomePageOptimized = () => {
 
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-pulse">
-                                <i className="fas fa-spinner fa-spin text-3xl text-white"></i>
+                            <div className="state-icon state-icon-blue animate-pulse">
+                                <i className="fas fa-spinner fa-spin"></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">Loading More Startups</h2>
                             <p className="text-text-secondary">Finding more opportunities for you...</p>
@@ -352,8 +352,8 @@ const HomePageOptimized = () => {
 
                 <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
-                        <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-3xl flex items-center justify-center mx-auto mb-6 animate-float animate-glow">
-                            <i className="fas fa-heart text-3xl text-white"></i>
+                        <div className="state-icon state-icon-blue animate-float animate-glow">
+                            <i className="fas fa-heart"></i>
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-4">
                             {hasMore ? 'Loading More...' : 'No More Startups'}

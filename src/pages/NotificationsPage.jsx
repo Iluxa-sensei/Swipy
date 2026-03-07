@@ -184,13 +184,13 @@ const NotificationsPage = () => {
 
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-full flex items-center justify-center mx-auto mb-6">
-              <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+            <div className="state-icon state-icon-red">
+              <i className="fas fa-exclamation-triangle"></i>
             </div>
             <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Notifications</h2>
             <p className="text-text-secondary mb-6">{error}</p>
             <button
-              className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-full font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200 hover:scale-100 active:scale-100"
+              className="btn-icon-style px-8 py-3 rounded-full font-semibold"
               onClick={() => window.location.reload()}
             >
               Retry
@@ -217,13 +217,13 @@ const NotificationsPage = () => {
         {notificationsList.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center flex flex-col items-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i className="fas fa-bell text-3xl text-white"></i>
+              <div className="state-icon state-icon-blue">
+                <i className="fas fa-bell"></i>
               </div>
               <h2 className="text-2xl font-bold text-text-primary mb-4">No Notifications</h2>
               <p className="text-text-secondary mb-8">Notifications will appear here when you interact with startups.</p>
               <button
-                className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-full font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-200 hover:scale-100 active:scale-100"
+                className="btn-icon-style px-8 py-3 rounded-full font-semibold"
                 onClick={() => navigate('/home')}
               >
                 Browse Startups

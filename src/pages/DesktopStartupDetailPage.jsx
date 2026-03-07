@@ -158,8 +158,8 @@ const DesktopStartupDetailPage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+                            <div className="state-icon state-icon-red">
+                                <i className="fas fa-exclamation-triangle"></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">Error Loading Startup</h2>
                             <p className="text-text-secondary mb-6">{startupsError}</p>
@@ -198,8 +198,8 @@ const DesktopStartupDetailPage = () => {
                 <div className="desktop-page-section">
                     <div className="flex items-center justify-center py-20">
                         <div className="text-center">
-                            <div className="w-24 h-24 bg-gradient-to-br from-red-300 to-red-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                <i className="fas fa-exclamation-triangle text-3xl text-white"></i>
+                            <div className="state-icon state-icon-red">
+                                <i className="fas fa-exclamation-triangle"></i>
                             </div>
                             <h2 className="text-2xl font-bold text-text-primary mb-4">Startup Not Found</h2>
                             <p className="text-text-secondary mb-8">The startup you're looking for doesn't exist or has been removed.</p>

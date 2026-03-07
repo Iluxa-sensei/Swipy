@@ -31,6 +31,7 @@ const DesktopChatPage = () => {
     const [sending, setSending] = useState(false)
     const messagesEndRef = useRef(null)
     const messagesContainerRef = useRef(null)
+    const isLoadingChatRef = useRef(false)
 
     const [participantProfiles, setParticipantProfiles] = useState({})
 
@@ -264,10 +265,21 @@ const DesktopChatPage = () => {
     const unreadTotal = chatList.filter(c => c.unread || c.unreadCount > 0).length
 
     // --- Chat detail logic ---
-    const loadChatDetail = useCallback(async (chatId) => {
+    const loadChatDetail = useCallback(async (chatId, showLoading = true) => {
         if (!chatId || !user?.id || !isValidUUID(chatId)) return
+        // Don't reload if this chat is already loaded and active
+        if (activeChatId === chatId && activeChat && messages.length > 0) {
+            return
+        }
+        // Prevent concurrent loads of the same chat
+        if (isLoadingChatRef.current && activeChatId === chatId) {
+            return
+        }
+        isLoadingChatRef.current = true
         try {
-            setChatLoading(true)
+            if (showLoading) {
+                setChatLoading(true)
+            }
             setChatError(null)
             let chatInfo = await chatService.getChatInfo(chatId)
             if (!chatInfo) {
@@ -296,9 +308,12 @@ const DesktopChatPage = () => {
         } catch (err) {
             setChatError(err.message)
         } finally {
-            setChatLoading(false)
+            isLoadingChatRef.current = false
+            if (showLoading) {
+                setChatLoading(false)
+            }
         }
-    }, [user?.id])
+    }, [user?.id, activeChatId, activeChat, messages.length])
 
     useEffect(() => {
         if (!activeChatId) return
@@ -329,34 +344,60 @@ const DesktopChatPage = () => {
         const m = path.match(/\/chat-detail\/(.+)/)
         if (m) {
             const parts = m[1].split('/')
+            let targetChatId = null
+
             if (parts.length === 2) {
+                // Two parts: nickname/startup-slug
+                if (!user?.id) return
                 (async () => {
-                    if (!user?.id) return
-                    setChatLoading(true)
                     try {
                         const id = await chatService.getChatByPrettyParams(user.id, parts[0], parts[1])
-                        if (id) { setActiveChatId(id); loadChatDetail(id) }
-                    } catch { setChatError('Failed to load chat') }
+                        // Only load if it's a different chat and not already loading
+                        if (id && id !== activeChatId && !isLoadingChatRef.current) {
+                            setChatLoading(true)
+                            setActiveChatId(id)
+                            loadChatDetail(id)
+                        }
+                    } catch {
+                        if (!activeChatId) setChatError('Failed to load chat')
+                    }
                 })()
             } else if (isValidUUID(parts[0])) {
-                setActiveChatId(parts[0])
-                loadChatDetail(parts[0])
+                // Valid UUID
+                targetChatId = parts[0]
+                // Only load if it's a different chat and not already loading
+                if (targetChatId !== activeChatId && !isLoadingChatRef.current) {
+                    setActiveChatId(targetChatId)
+                    loadChatDetail(targetChatId)
+                }
             } else {
+                // Single part: nickname
+                if (!user?.id) return
                 (async () => {
-                    if (!user?.id) return
-                    setChatLoading(true)
                     try {
                         const id = await chatService.getChatByPrettyParams(user.id, parts[0])
-                        if (id) { setActiveChatId(id); loadChatDetail(id) }
-                    } catch { setChatError('Failed to load chat') }
+                        // Only load if it's a different chat and not already loading
+                        if (id && id !== activeChatId && !isLoadingChatRef.current) {
+                            setChatLoading(true)
+                            setActiveChatId(id)
+                            loadChatDetail(id)
+                        }
+                    } catch {
+                        if (!activeChatId) setChatError('Failed to load chat')
+                    }
                 })()
             }
         }
-    }, [location.pathname, user?.id, loadChatDetail])
+    }, [location.pathname, user?.id, activeChatId, loadChatDetail])
 
     const handleSendMessage = async (e) => {
-        e.preventDefault()
+        if (e) {
+            e.preventDefault()
+            e.stopPropagation()
+        }
         if (!newMessage.trim() || !user?.id || !activeChatId) return
+        // Prevent any loading state changes during message sending
+        const wasLoading = isLoadingChatRef.current
         try {
             setSending(true)
             const message = await chatService.sendMessage(activeChatId, user.id, newMessage.trim())
@@ -369,6 +410,10 @@ const DesktopChatPage = () => {
             setTimeout(() => setChatError(null), 5000)
         } finally {
             setSending(false)
+            // Ensure loading state is not changed after sending
+            if (!wasLoading && chatLoading) {
+                setChatLoading(false)
+            }
         }
     }
 
@@ -438,8 +483,8 @@ const DesktopChatPage = () => {
             <div className="chat-unified-layout">
                 <div className="flex items-center justify-center w-full h-full">
                     <div className="text-center">
-                        <div className="w-20 h-20 bg-gradient-to-br from-red-400 to-red-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                            <i className="fas fa-exclamation-triangle text-2xl text-white"></i>
+                        <div className="state-icon state-icon-red">
+                            <i className="fas fa-exclamation-triangle"></i>
                         </div>
                         <h2 className="text-xl font-bold text-text-primary mb-3">Error Loading Chats</h2>
                         <p className="text-text-secondary mb-6 text-sm">{error}</p>
@@ -696,7 +741,7 @@ const DesktopChatPage = () => {
 
                         {/* Input */}
                         <div className="chat-input-area">
-                            <form onSubmit={handleSendMessage} className="chat-input-form">
+                            <form onSubmit={handleSendMessage} className="chat-input-form" noValidate>
                                 <input
                                     type="text"
                                     value={newMessage}
@@ -705,7 +750,7 @@ const DesktopChatPage = () => {
                                     className="chat-input"
                                     disabled={sending}
                                 />
-                                <button type="submit" disabled={!newMessage.trim() || sending} className="chat-send-btn" title="Send">
+                                <button type="button" onClick={handleSendMessage} disabled={!newMessage.trim() || sending} className="chat-send-btn" title="Send">
                                     {sending ? <i className="fa-solid fa-spinner fa-spin"></i> : <>Send <i className="fa-solid fa-paper-plane"></i></>}
                                 </button>
                             </form>
