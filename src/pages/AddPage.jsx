@@ -183,6 +183,16 @@ const AddPage = () => {
     return gradientMap[gradientClass] || '#2196f3'
   }
 
+  const isValidUrl = (url) => {
+    if (!url || !url.trim()) return true
+    try {
+      new URL(url.trim())
+      return true
+    } catch {
+      return false
+    }
+  }
+
   const handleImageUpload = (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -544,7 +554,6 @@ const AddPage = () => {
                 placeholder="https://drive.google.com/... or https://docs.google.com/..."
                 value={formData.startup.pitchDeckUrl}
                 onChange={(e) => handleInputChange('startup', 'pitchDeckUrl', e.target.value)}
-                pattern="https?://.+"
               />
             </div>
           </div>
@@ -646,6 +655,11 @@ const AddPage = () => {
                 return
               }
 
+              if (!isValidUrl(formData.startup.pitchDeckUrl)) {
+                alert('Please enter a valid Pitch Deck URL, or leave it blank.')
+                return
+              }
+
               setIsSubmitting(true)
 
               try {
@@ -655,7 +669,7 @@ const AddPage = () => {
                   name: formData.startup.name,
                   description: formData.startup.description,
                   website: formData.startup.website,
-                  pitch_deck_url: formData.startup.pitchDeckUrl || null,
+                pitch_deck_url: formData.startup.pitchDeckUrl?.trim() ? formData.startup.pitchDeckUrl.trim() : null,
                   logo_url: formData.startup.image,
                   industry: formData.startup.category,
                   stage: formData.startup.stage,

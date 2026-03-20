@@ -1646,7 +1646,7 @@
     width: 56px;
     height: 56px;
     min-width: 56px;
-    min-height: 56px;
+    min-height: 56px; 
     flex-shrink: 0;
     border-radius: 18px;
     background: #15161c;

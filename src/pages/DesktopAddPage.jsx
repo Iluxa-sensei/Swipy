@@ -150,6 +150,16 @@ const DesktopAddPage = () => {
     return gradientMap[gradientClass] || '#2196f3'
   }
 
+  const isValidUrl = (url) => {
+    if (!url || !url.trim()) return true
+    try {
+      new URL(url.trim())
+      return true
+    } catch {
+      return false
+    }
+  }
+
   const handleImageUpload = (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -178,6 +188,11 @@ const DesktopAddPage = () => {
       return
     }
 
+    if (!isValidUrl(formData.startup.pitchDeckUrl)) {
+      alert('Please enter a valid Pitch Deck URL, or leave it blank.')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -186,7 +201,7 @@ const DesktopAddPage = () => {
         name: formData.startup.name,
         description: formData.startup.description,
         website: formData.startup.website,
-        pitch_deck_url: formData.startup.pitchDeckUrl || null,
+      pitch_deck_url: formData.startup.pitchDeckUrl?.trim() ? formData.startup.pitchDeckUrl.trim() : null,
         logo_url: formData.startup.image,
         industry: formData.startup.category,
         stage: formData.startup.stage,
@@ -217,8 +232,6 @@ const DesktopAddPage = () => {
   return (
     <div className="desktop-page">
       <div className="desktop-page-header">
-        <p>Innovation Hub</p>
-        <h1>Launch Your Startup</h1>
       </div>
 
       <div className="desktop-grid desktop-grid-3">

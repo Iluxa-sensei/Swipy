@@ -36,6 +36,7 @@
     teamSize text,
     location text,
     gradient text default 'bg-gradient-to-br from-blue-300 to-blue-700',
+    pitch_deck_url text,
     investment_required text,
     investment_percentage numeric(5,2), -- percentage of company (e.g., 10.50 for 10.5%)
     ebitda numeric(12,2), -- EBITDA in USD/month
@@ -49,6 +50,7 @@
   alter table public.startups add column if not exists investment_required text;
   alter table public.startups add column if not exists investment_percentage numeric(5,2);
   alter table public.startups add column if not exists ebitda numeric(12,2);
+  alter table public.startups add column if not exists pitch_deck_url text;
 
   -- Ensure unique slug per owner (avoids chat URL collisions)
   create unique index if not exists startups_owner_slug_unique
@@ -666,6 +668,9 @@
   -- OPTIMIZED FUNCTION FOR STARTUP PAGINATION
   -- ============================================
   
+  -- to avoid return-type mismatch on redeploy, drop existing function first
+  DROP FUNCTION IF EXISTS public.get_startups_paginated(integer, integer, text[], text[], text[], text, text);
+
   -- Function to get startups with exclusions and filters (secure and fast)
   CREATE OR REPLACE FUNCTION public.get_startups_paginated(
     p_limit integer DEFAULT 5,
@@ -694,6 +699,7 @@
     "teamSize" text,
     location text,
     gradient text,
+    pitch_deck_url text,
     investment_required text,
     investment_percentage numeric(5,2),
     ebitda numeric(12,2),
@@ -765,6 +771,7 @@
   -- FUNCTION TO GET STARTUP COUNT (for hasMore)
   -- ============================================
   
+  DROP FUNCTION IF EXISTS public.get_startups_count(text[], text[], text[], text, text);
   CREATE OR REPLACE FUNCTION public.get_startups_count(
     p_industry text[] DEFAULT NULL,
     p_stage text[] DEFAULT NULL,
@@ -836,6 +843,7 @@
   -- LIGHTWEIGHT FUNCTION FOR STARTUP LISTING
   -- ============================================
   
+  DROP FUNCTION IF EXISTS public.get_startups_lightweight(integer, integer, text[], text[], text[], text, text);
   -- Function to get only essential fields for faster loading
   CREATE OR REPLACE FUNCTION public.get_startups_lightweight(
     p_limit integer DEFAULT 5,
