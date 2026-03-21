@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks'
 import { startupService } from '../services'
 import CustomDropdown from '../components/CustomDropdown'
+import { normalizeExternalUrl } from '../utils/security.js'
 
 const AddPage = () => {
   const navigate = useNavigate()
@@ -867,7 +868,7 @@ const AddPage = () => {
                             Website
                           </h4>
                           <a
-                            href={formData.startup.website}
+                            href={normalizeExternalUrl(formData.startup.website) || '#'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-accent-primary text-sm hover:underline break-all"

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks'
 import { profileService, chatService } from '../services'
 import { supabase } from '../services/supabaseClient'
+import { normalizeExternalUrl } from '../utils/security.js'
 
 const DesktopPublicProfilePage = () => {
   const { id, nickname } = useParams()
@@ -318,25 +319,25 @@ const DesktopPublicProfilePage = () => {
                     <h3 className="text-xl font-bold text-text-primary mb-4">Connect</h3>
                     <div className="grid grid-cols-2 gap-2">
                       {userProfile.github_url && (
-                        <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-accent-primary/30 transition-all group" href={userProfile.github_url} target="_blank" rel="noreferrer">
+                        <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-accent-primary/30 transition-all group" href={normalizeExternalUrl(userProfile.github_url) || '#'} target="_blank" rel="noreferrer">
                           <i className="fab fa-github text-lg text-text-primary group-hover:text-accent-primary transition-colors"></i>
                           <span className="font-medium text-sm text-text-primary">GitHub</span>
                         </a>
                       )}
                       {userProfile.linkedin_url && (
-                        <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-blue-500/30 transition-all group" href={userProfile.linkedin_url} target="_blank" rel="noreferrer">
+                        <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-blue-500/30 transition-all group" href={normalizeExternalUrl(userProfile.linkedin_url) || '#'} target="_blank" rel="noreferrer">
                           <i className="fab fa-linkedin text-lg text-blue-400 group-hover:scale-110 transition-transform"></i>
                           <span className="font-medium text-sm text-text-primary">LinkedIn</span>
                         </a>
                       )}
                       {userProfile.instagram_url && (
-                        <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-pink-500/30 transition-all group" href={userProfile.instagram_url} target="_blank" rel="noreferrer">
+                        <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-pink-500/30 transition-all group" href={normalizeExternalUrl(userProfile.instagram_url) || '#'} target="_blank" rel="noreferrer">
                           <i className="fab fa-instagram text-lg text-pink-400 group-hover:scale-110 transition-transform"></i>
                           <span className="font-medium text-sm text-text-primary">Instagram</span>
                         </a>
                       )}
                       {userProfile.website && (
-                        <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-accent-primary/30 transition-all group" href={userProfile.website} target="_blank" rel="noreferrer">
+                        <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-accent-primary/30 transition-all group" href={normalizeExternalUrl(userProfile.website) || '#'} target="_blank" rel="noreferrer">
                           <i className="fas fa-globe text-lg text-accent-primary group-hover:scale-110 transition-transform"></i>
                           <span className="font-medium text-sm text-text-primary">Website</span>
                         </a>

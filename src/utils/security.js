@@ -67,6 +67,20 @@ export const validateEmail = (email) => {
 }
 
 /**
+ * Use in <a href> when the value may omit scheme (e.g. "example.com" → "https://example.com").
+ * Without this, the browser treats the URL as relative (e.g. localhost:3000/example.com).
+ */
+export const normalizeExternalUrl = (raw) => {
+  if (typeof raw !== 'string') return null
+  const s = raw.trim()
+  if (!s) return null
+  if (/^mailto:/i.test(s) || /^tel:/i.test(s)) return s
+  if (/^https?:\/\//i.test(s)) return s
+  if (s.startsWith('//')) return `https:${s}`
+  return `https://${s.replace(/^\/+/, '')}`
+}
+
+/**
  * Validate password strength
  * @param {string} password - Password to validate
  * @returns {object} - Validation result with details

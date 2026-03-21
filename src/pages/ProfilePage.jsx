@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth, useProfile } from '../hooks'
 import { profileServiceEnhanced } from '../services/profileServiceEnhanced'
 import Loader from '../components/Loader.jsx'
+import { normalizeExternalUrl } from '../utils/security.js'
 
 const ProfilePage = () => {
   const navigate = useNavigate()
@@ -301,22 +302,22 @@ const ProfilePage = () => {
                 <div className="bg-bg-secondary/80 border border-glass-border rounded-2xl p-6">
                   <div className="flex items-center justify-center gap-3">
                     {profile?.github_url && (
-                      <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-gray-600 hover:text-white transition-all duration-200 hover:scale-110" href={profile.github_url} target="_blank" rel="noreferrer">
+                      <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-gray-600 hover:text-white transition-all duration-200 hover:scale-110" href={normalizeExternalUrl(profile.github_url) || '#'} target="_blank" rel="noreferrer">
                         <i className="fab fa-github text-lg"></i>
                       </a>
                     )}
                     {profile?.linkedin_url && (
-                      <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-blue-600 hover:text-white transition-all duration-200 hover:scale-110" href={profile.linkedin_url} target="_blank" rel="noreferrer">
+                      <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-blue-600 hover:text-white transition-all duration-200 hover:scale-110" href={normalizeExternalUrl(profile.linkedin_url) || '#'} target="_blank" rel="noreferrer">
                         <i className="fab fa-linkedin text-lg"></i>
                       </a>
                     )}
                     {profile?.instagram_url && (
-                      <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-pink-600 hover:text-white transition-all duration-200 hover:scale-110" href={profile.instagram_url} target="_blank" rel="noreferrer">
+                      <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-pink-600 hover:text-white transition-all duration-200 hover:scale-110" href={normalizeExternalUrl(profile.instagram_url) || '#'} target="_blank" rel="noreferrer">
                         <i className="fab fa-instagram text-lg"></i>
                       </a>
                     )}
                     {profile?.website && (
-                      <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-accent-primary hover:text-white transition-all duration-200 hover:scale-110" href={profile.website} target="_blank" rel="noreferrer">
+                      <a className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-accent-primary hover:text-white transition-all duration-200 hover:scale-110" href={normalizeExternalUrl(profile.website) || '#'} target="_blank" rel="noreferrer">
                         <i className="fas fa-globe text-lg"></i>
                       </a>
                     )}

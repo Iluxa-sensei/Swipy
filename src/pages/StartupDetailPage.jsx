@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react'
+import { normalizeExternalUrl } from '../utils/security.js'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth, useStartups, useSwipes } from '../hooks'
 import { chatService, startupService } from '../services'
@@ -288,7 +289,7 @@ const StartupDetailPage = () => {
                                     Website
                                 </div>
                                 <a
-                                    href={startup.website}
+                                    href={normalizeExternalUrl(startup.website) || '#'}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-accent-primary hover:text-accent-primary/80 text-sm font-medium hover:underline break-all"

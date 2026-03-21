@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth, useProfile } from '../hooks'
 import { profileServiceEnhanced } from '../services/profileServiceEnhanced'
 import Loader from '../components/Loader.jsx'
+import { normalizeExternalUrl } from '../utils/security.js'
 
 const DesktopProfilePage = () => {
     const navigate = useNavigate()
@@ -367,25 +368,25 @@ const DesktopProfilePage = () => {
                                     {(profile?.github_url || profile?.linkedin_url || profile?.website || profile?.instagram_url) ? (
                                         <div className="space-y-2">
                                             {profile?.github_url && (
-                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2.5 hover:border-accent-primary/30 transition-all group" href={profile.github_url} target="_blank" rel="noreferrer">
+                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2.5 hover:border-accent-primary/30 transition-all group" href={normalizeExternalUrl(profile.github_url) || '#'} target="_blank" rel="noreferrer">
                                                     <i className="fab fa-github text-lg text-text-primary group-hover:text-accent-primary transition-colors"></i>
                                                     <span className="font-medium text-sm text-text-primary">GitHub</span>
                                                 </a>
                                             )}
                                             {profile?.linkedin_url && (
-                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2.5 hover:border-blue-500/30 transition-all group" href={profile.linkedin_url} target="_blank" rel="noreferrer">
+                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2.5 hover:border-blue-500/30 transition-all group" href={normalizeExternalUrl(profile.linkedin_url) || '#'} target="_blank" rel="noreferrer">
                                                     <i className="fab fa-linkedin text-lg text-blue-400 group-hover:scale-110 transition-transform"></i>
                                                     <span className="font-medium text-sm text-text-primary">LinkedIn</span>
                                                 </a>
                                             )}
                                             {profile?.instagram_url && (
-                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2.5 hover:border-pink-500/30 transition-all group" href={profile.instagram_url} target="_blank" rel="noreferrer">
+                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2.5 hover:border-pink-500/30 transition-all group" href={normalizeExternalUrl(profile.instagram_url) || '#'} target="_blank" rel="noreferrer">
                                                     <i className="fab fa-instagram text-lg text-pink-400 group-hover:scale-110 transition-transform"></i>
                                                     <span className="font-medium text-sm text-text-primary">Instagram</span>
                                                 </a>
                                             )}
                                             {profile?.website && (
-                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2.5 hover:border-accent-primary/30 transition-all group" href={profile.website} target="_blank" rel="noreferrer">
+                                                <a className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2.5 hover:border-accent-primary/30 transition-all group" href={normalizeExternalUrl(profile.website) || '#'} target="_blank" rel="noreferrer">
                                                     <i className="fas fa-globe text-lg text-accent-primary group-hover:scale-110 transition-transform"></i>
                                                     <span className="font-medium text-sm text-text-primary">Website</span>
                                                 </a>
