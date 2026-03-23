@@ -21,8 +21,9 @@ const HomePageFixed = () => {
     const [currentCardIndex, setCurrentCardIndex] = useState(0)
     const [isAnimating, setIsAnimating] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
-    const [startPos, setStartPos] = useState({ x: 0, y: 0 })
-    const [offset, setOffset] = useState({ x: 0, y: 0 })
+    const dragStartRef = useRef({ x: 0, y: 0 })
+    const dragDeltaRef = useRef({ x: 0, y: 0 })
+    const dragActiveRef = useRef(false)
     const [showTutorial, setShowTutorial] = useState(false)
 
     // Search state
@@ -211,13 +212,28 @@ const HomePageFixed = () => {
 
     // Function to reset card styles
     const resetCardStyles = () => {
-        setOffset({ x: 0, y: 0 })
+        if (cardRef.current) {
+            cardRef.current.style.transition = 'transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+            cardRef.current.style.transform = 'translateX(0px) translateY(0px) rotate(0deg) scale(1)'
+            cardRef.current.style.opacity = ''
+            cardRef.current.style.boxShadow = ''
+        }
+        dragDeltaRef.current = { x: 0, y: 0 }
+        dragActiveRef.current = false
+        setIsDragging(false)
     }
 
     // Function for swipe right (like)
     const handleLike = async () => {
+        if (!cardRef.current || isAnimating || !currentStartup?.id) return
         setIsAnimating(true)
-        setOffset({ x: 1000, y: 0 })
+
+        cardRef.current.style.transition = 'transform 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 200ms ease'
+        cardRef.current.style.transform = 'translateX(1000px) rotate(30deg) scale(0.8)'
+        cardRef.current.style.opacity = '0'
+        cardRef.current.style.boxShadow = ''
+        dragActiveRef.current = false
+        setIsDragging(false)
 
         setTimeout(async () => {
             try {
@@ -233,14 +249,21 @@ const HomePageFixed = () => {
 
             setCurrentCardIndex(prev => prev + 1)
             setIsAnimating(false)
-            setOffset({ x: 0, y: 0 })
+            resetCardStyles()
         }, 400)
     }
 
     // Function for swipe left (pass)
     const handlePass = async () => {
+        if (!cardRef.current || isAnimating || !currentStartup?.id) return
         setIsAnimating(true)
-        setOffset({ x: -1000, y: 0 })
+
+        cardRef.current.style.transition = 'transform 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 200ms ease'
+        cardRef.current.style.transform = 'translateX(-1000px) rotate(-30deg) scale(0.8)'
+        cardRef.current.style.opacity = '0'
+        cardRef.current.style.boxShadow = ''
+        dragActiveRef.current = false
+        setIsDragging(false)
 
         setTimeout(async () => {
             try {
@@ -256,7 +279,7 @@ const HomePageFixed = () => {
 
             setCurrentCardIndex(prev => prev + 1)
             setIsAnimating(false)
-            setOffset({ x: 0, y: 0 })
+            resetCardStyles()
         }, 400)
     }
 
@@ -582,50 +605,74 @@ const HomePageFixed = () => {
                         className={`startup-card-container ${isDragging ? 'isDragging' : ''}`}
                         style={{
                             cursor: isDragging ? 'grabbing' : 'grab',
-                            transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                            transition: isDragging ? 'none' : 'transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 300ms ease',
                             zIndex: 10,
                             position: 'relative',
                             touchAction: 'none',
                             borderRadius: '32px',
-                            transform: `translateX(${offset.x}px) translateY(${offset.y}px) rotate(${offset.x * 0.1}deg) scale(${isDragging ? 1.02 : 1})`,
-                            boxShadow: offset.x > 40 ? `0 0 50px rgba(34, 197, 94, ${Math.min(0.6, Math.abs(offset.x) / 300)})` :
-                                offset.x < -40 ? `0 0 50px rgba(239, 68, 68, ${Math.min(0.6, Math.abs(offset.x) / 300)})` :
-                                    offset.y > 60 ? `0 0 50px rgba(59, 130, 246, ${Math.min(0.6, Math.abs(offset.y) / 300)})` :
-                                        '0 20px 50px rgba(0,0,0,0.5)'
                         }}
                         onPointerDown={(e) => {
+                            if (isAnimating) return
                             e.currentTarget.setPointerCapture(e.pointerId)
-                            setStartPos({ x: e.clientX, y: e.clientY })
-                            setOffset({ x: 0, y: 0 })
+                            e.preventDefault()
+                            dragStartRef.current = { x: e.clientX, y: e.clientY }
+                            dragDeltaRef.current = { x: 0, y: 0 }
+                            dragActiveRef.current = false
                             setIsDragging(false)
+
+                            if (cardRef.current) {
+                                cardRef.current.style.transition = 'none'
+                                cardRef.current.style.transform = 'translateX(0px) translateY(0px) rotate(0deg) scale(1)'
+                                cardRef.current.style.opacity = ''
+                                cardRef.current.style.boxShadow = ''
+                            }
                         }}
                         onPointerMove={(e) => {
-                            if (!isDragging) {
-                                const deltaX = e.clientX - startPos.x
-                                const deltaY = e.clientY - startPos.y
-                                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-                                if (distance > 5) {
-                                    setIsDragging(true)
-                                }
-                                return
+                            if (isAnimating) return
+                            if (!cardRef.current) return
+
+                            const deltaX = e.clientX - dragStartRef.current.x
+                            const deltaY = e.clientY - dragStartRef.current.y
+                            const distance = Math.hypot(deltaX, deltaY)
+
+                            if (!dragActiveRef.current && distance > 5) {
+                                dragActiveRef.current = true
+                                setIsDragging(true)
                             }
 
-                            const deltaX = e.clientX - startPos.x
-                            const deltaY = e.clientY - startPos.y
-                            setOffset({ x: deltaX, y: deltaY })
+                            if (!dragActiveRef.current) return
+
+                            dragDeltaRef.current = { x: deltaX, y: deltaY }
+
+                            // Tinder-like: mainly X, minimal Y to avoid "floating"
+                            const limitedDy = Math.max(-40, Math.min(40, deltaY * 0.12))
+                            const rotation = deltaX * 0.08
+                            const scale = 1.02
+
+                            cardRef.current.style.transition = 'none'
+                            cardRef.current.style.transform =
+                                `translateX(${deltaX}px) translateY(${limitedDy}px) rotate(${rotation}deg) scale(${scale})`
+
+                            if (deltaX > 40) {
+                                cardRef.current.style.boxShadow = `0 0 50px rgba(34, 197, 94, ${Math.min(0.6, Math.abs(deltaX) / 300)})`
+                            } else if (deltaX < -40) {
+                                cardRef.current.style.boxShadow = `0 0 50px rgba(239, 68, 68, ${Math.min(0.6, Math.abs(deltaX) / 300)})`
+                            } else {
+                                cardRef.current.style.boxShadow = ''
+                            }
                         }}
                         onPointerUp={(e) => {
-                            if (!isDragging) return
                             setIsDragging(false)
-                            
-                            const deltaX = offset.x
-                            const deltaY = offset.y
+                            if (!dragActiveRef.current) return
+                            dragActiveRef.current = false
+
+                            const { x: deltaX, y: deltaY } = dragDeltaRef.current
 
                             if (deltaX > 100) {
                                 handleLike()
                             } else if (deltaX < -100) {
                                 handlePass()
-                            } else if (deltaY > 120) {
+                            } else if (deltaY > 140 && Math.abs(deltaX) < 80) {
                                 // Down for details
                                 if (currentStartup.owner_nickname && currentStartup.slug) {
                                     navigate(`/${currentStartup.owner_nickname}/startup/${currentStartup.slug}`)
@@ -634,8 +681,13 @@ const HomePageFixed = () => {
                                 }
                             } else {
                                 // Reset
-                                setOffset({ x: 0, y: 0 })
+                                resetCardStyles()
                             }
+                        }}
+                        onPointerCancel={() => {
+                            setIsDragging(false)
+                            dragActiveRef.current = false
+                            resetCardStyles()
                         }}
                     >
                         <div className="startup-card h-full w-full rounded-[32px] overflow-hidden border border-glass-border bg-glass-bg shadow-2xl relative flex flex-col">

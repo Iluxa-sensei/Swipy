@@ -256,6 +256,24 @@
     @apply opacity-100 translate-x-0;
   }
 
+  /* Home (swipe) screen: lock height so accidental swipes outside the card
+     don't cause page scroll / layout "flow". */
+  @media (max-width: 767px) {
+    .screen.active:has(.swipe-container) {
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow-y: hidden !important;
+      overflow-x: hidden !important;
+      overscroll-behavior: none;
+    }
+
+    .screen.active:has(.swipe-container) .swipe-container {
+      flex: 1 1 0;
+      min-height: 0;
+      overflow: hidden !important;
+    }
+  }
+
   /* Auth/profile loading overlay: match app dark background, no gray */
   .screen.auth-loading-screen {
     background: #0b0c10;
