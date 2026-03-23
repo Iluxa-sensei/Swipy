@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStartupsLazy, useSwipes, useAuth } from '../hooks'
 import OnboardingTutorial from '../components/OnboardingTutorial'
@@ -34,6 +34,7 @@ const HomePageFixed = () => {
     const searchContainerRef = useRef(null)
 
     const cardRef = useRef(null)
+    const detailsPullIndicatorRef = useRef(null)
     const lastTapRef = useRef(0)
     const navigate = useNavigate()
 
@@ -217,6 +218,10 @@ const HomePageFixed = () => {
             cardRef.current.style.transform = 'translateX(0px) translateY(0px) rotate(0deg) scale(1)'
             cardRef.current.style.opacity = ''
             cardRef.current.style.boxShadow = ''
+        }
+        if (detailsPullIndicatorRef.current) {
+            detailsPullIndicatorRef.current.style.opacity = '0'
+            detailsPullIndicatorRef.current.style.transform = 'translate(-50%, 0px) scale(0.98)'
         }
         dragDeltaRef.current = { x: 0, y: 0 }
         dragActiveRef.current = false
@@ -620,6 +625,11 @@ const HomePageFixed = () => {
                             dragActiveRef.current = false
                             setIsDragging(false)
 
+                            if (detailsPullIndicatorRef.current) {
+                                detailsPullIndicatorRef.current.style.opacity = '0'
+                                detailsPullIndicatorRef.current.style.transform = 'translate(-50%, 0px) scale(0.98)'
+                            }
+
                             if (cardRef.current) {
                                 cardRef.current.style.transition = 'none'
                                 cardRef.current.style.transform = 'translateX(0px) translateY(0px) rotate(0deg) scale(1)'
@@ -644,21 +654,40 @@ const HomePageFixed = () => {
 
                             dragDeltaRef.current = { x: deltaX, y: deltaY }
 
-                            // Tinder-like: mainly X, minimal Y to avoid "floating"
-                            const limitedDy = Math.max(-40, Math.min(40, deltaY * 0.12))
-                            const rotation = deltaX * 0.08
+                            // Tinder-like:
+                            // - если жест горизонтальный → y почти ноль (без "плавания")
+                            // - если жест вниз (details) → y становится заметным, x приглушаем
+                            const horizontalIntent = Math.abs(deltaX) > Math.abs(deltaY) * 1.2
+                            const detailsProgress = Math.max(0, deltaY) / 180 // 0..~1
+                            const clampedDetails = Math.max(0, Math.min(1, detailsProgress))
+
+                            const limitedDy = horizontalIntent
+                                ? Math.max(-18, Math.min(18, deltaY * 0.08))
+                                : Math.max(0, Math.min(260, deltaY * 0.35))
+
+                            const translateX = horizontalIntent ? deltaX : deltaX * 0.12
+                            const rotation = horizontalIntent ? deltaX * 0.08 : deltaX * 0.04
                             const scale = 1.02
 
                             cardRef.current.style.transition = 'none'
                             cardRef.current.style.transform =
-                                `translateX(${deltaX}px) translateY(${limitedDy}px) rotate(${rotation}deg) scale(${scale})`
+                                `translateX(${translateX}px) translateY(${limitedDy}px) rotate(${rotation}deg) scale(${scale})`
 
-                            if (deltaX > 40) {
+                            // Shadow only for horizontal intent (down-gesture shouldn't look like like/pass)
+                            if (!horizontalIntent) {
+                                cardRef.current.style.boxShadow = `0 10px 40px rgba(59, 130, 246, ${0.15 + clampedDetails * 0.35})`
+                            } else if (deltaX > 40) {
                                 cardRef.current.style.boxShadow = `0 0 50px rgba(34, 197, 94, ${Math.min(0.6, Math.abs(deltaX) / 300)})`
                             } else if (deltaX < -40) {
                                 cardRef.current.style.boxShadow = `0 0 50px rgba(239, 68, 68, ${Math.min(0.6, Math.abs(deltaX) / 300)})`
                             } else {
                                 cardRef.current.style.boxShadow = ''
+                            }
+
+                            if (detailsPullIndicatorRef.current) {
+                                const show = !horizontalIntent && deltaY > 0
+                                detailsPullIndicatorRef.current.style.opacity = show ? String(0.15 + clampedDetails * 0.85) : '0'
+                                detailsPullIndicatorRef.current.style.transform = `translate(-50%, 0px) scale(${0.98 + clampedDetails * 0.04})`
                             }
                         }}
                         onPointerUp={(e) => {
@@ -667,6 +696,9 @@ const HomePageFixed = () => {
                             dragActiveRef.current = false
 
                             const { x: deltaX, y: deltaY } = dragDeltaRef.current
+                            if (detailsPullIndicatorRef.current) {
+                                detailsPullIndicatorRef.current.style.opacity = '0'
+                            }
 
                             if (deltaX > 100) {
                                 handleLike()
@@ -691,6 +723,19 @@ const HomePageFixed = () => {
                         }}
                     >
                         <div className="startup-card h-full w-full rounded-[32px] overflow-hidden border border-glass-border bg-glass-bg shadow-2xl relative flex flex-col">
+                        {/* Visible hint for "pull down for details" gesture */}
+                        <div
+                            ref={detailsPullIndicatorRef}
+                            className="pointer-events-none absolute top-4 left-1/2 z-30 opacity-0"
+                            style={{
+                                transform: 'translate(-50%, 0px) scale(0.98)',
+                                transition: 'opacity 120ms ease',
+                            }}
+                        >
+                            <div className="bg-black/50 backdrop-blur-md text-white/90 text-xs px-3 py-1.5 rounded-full border border-white/10">
+                                Pull down for details
+                            </div>
+                        </div>
                             {/* Image Section - Reduced height */}
                             <div className="relative h-[35%] w-full overflow-hidden">
                                 <div className={`${currentStartup.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'} w-full h-full relative`}>
@@ -731,7 +776,7 @@ const HomePageFixed = () => {
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex-1 overflow-y-auto px-1 custom-scrollbar">
                                     <p className="text-text-secondary text-lg leading-relaxed">
                                         {currentStartup.description}

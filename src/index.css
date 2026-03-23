@@ -963,7 +963,7 @@
   /* Card Flip Animation Styles */
   .startup-card-container {
     perspective: 1000px;
-    @apply absolute w-[90%] h-[95%] top-[2.5%] bg-transparent overflow-hidden;
+    @apply absolute w-[94%] h-full top-0 bg-transparent overflow-hidden;
     cursor: grab;
     position: absolute;
     left: 0;
