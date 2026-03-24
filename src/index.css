@@ -10,7 +10,6 @@
     padding: 0;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
-    /* Prevent long strings from breaking layout */
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
