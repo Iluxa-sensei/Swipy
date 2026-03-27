@@ -20,6 +20,16 @@ const DesktopHomePage = () => {
     const [likedStartups, setLikedStartups] = useState(new Set())
     // Local state for optimistic likes_count updates
     const [likesCountUpdates, setLikesCountUpdates] = useState({})
+    // Carousel state for news
+    const [currentNewsSlide, setCurrentNewsSlide] = useState(0)
+
+    // Auto-rotate carousel every 4 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentNewsSlide((prev) => (prev + 1) % 2)
+        }, 4000)
+        return () => clearInterval(interval)
+    }, [])
 
     // Calculate profile completeness for smart recommendation
     const getProfileCompleteness = () => {
@@ -454,23 +464,56 @@ const DesktopHomePage = () => {
 
     const recommendation = getSmartRecommendation()
 
+    // News carousel data
+    const newsSlides = [
+        {
+            id: 1,
+            badge: 'Breaking News',
+            title: 'OpenAI raises $110B in one of the largest private funding rounds in history',
+            description: 'The new funding consists of a $50B investment from Amazon, $30B each from Nvidia and SoftBank, against a $730B pre-money valuation.',
+            image: '/news.png',
+            buttonText: 'Read More',
+            link: 'https://techcrunch.com/2026/02/27/openai-raises-110b-in-one-of-the-largest-private-funding-rounds-in-history/'
+        },
+        {
+            id: 2,
+            badge: 'Latest Release',
+            title: 'Lyto AI recently launched',
+            description: 'Discover the new AI research assistant that\'s transforming how professionals conduct research and analysis.',
+            image: '/lyto.png',
+            buttonText: 'Try Now',
+            link: 'https://www.trylyto.com/'
+        }
+    ]
+
+    const nextSlide = () => {
+        setCurrentNewsSlide((prev) => (prev + 1) % newsSlides.length)
+    }
+
+    const prevSlide = () => {
+        setCurrentNewsSlide((prev) => (prev - 1 + newsSlides.length) % newsSlides.length)
+    }
+
+    const currentSlide = newsSlides[currentNewsSlide]
+
     return (
         <div className="desktop-home">
-            {/* News Banner */}
+            {/* News Carousel Banner */}
             <section style={{
                 position: 'relative',
                 borderRadius: '28px',
                 overflow: 'hidden',
-                minHeight: '280px',
+                height: '360px',
                 marginBottom: '24px'
             }}>
                 <div style={{
                     position: 'absolute',
                     inset: 0,
-                    backgroundImage: 'url(/news.png)',
+                    backgroundImage: `url(${currentSlide.image})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
-                    opacity: 0.35
+                    opacity: 0.35,
+                    transition: 'all 0.5s ease'
                 }} />
                 <div style={{
                     position: 'absolute',
@@ -480,70 +523,173 @@ const DesktopHomePage = () => {
                 <div style={{
                     position: 'relative',
                     zIndex: 1,
-                    padding: '40px 48px',
+                    padding: '32px 48px',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'flex-end',
-                    minHeight: '280px',
-                    gap: '16px'
+                    justifyContent: 'space-between',
+                    height: '100%',
+                    gap: '0'
                 }}>
-                    <div style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        background: 'rgba(239, 68, 68, 0.15)',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                        borderRadius: '20px',
-                        padding: '6px 14px',
-                        width: 'fit-content'
-                    }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444', animation: 'pulse 2s infinite' }} />
-                        <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#fca5a5', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Breaking News</span>
-                    </div>
-                    <h2 style={{
-                        fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
-                        fontWeight: '800',
-                        lineHeight: '1.2',
-                        color: '#fff',
-                        maxWidth: '700px',
-                        letterSpacing: '-0.02em'
-                    }}>
-                        OpenAI raises $110B in one of the largest private funding rounds in history
-                    </h2>
-                    <p style={{
-                        fontSize: '0.95rem',
-                        color: 'rgba(255,255,255,0.6)',
-                        maxWidth: '550px',
-                        lineHeight: '1.6'
-                    }}>
-                        The new funding consists of a $50B investment from Amazon, $30B each from Nvidia and SoftBank, against a $730B pre-money valuation.
-                    </p>
-                    <a
-                        href="https://techcrunch.com/2026/02/27/openai-raises-110b-in-one-of-the-largest-private-funding-rounds-in-history/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
+                    <div></div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', paddingBottom: '16px' }}>
+                        <div style={{
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '8px',
-                            background: '#3b82f6',
+                            background: 'rgba(239, 68, 68, 0.15)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            borderRadius: '20px',
+                            padding: '6px 14px',
+                            width: 'fit-content'
+                        }}>
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444', animation: 'pulse 2s infinite' }} />
+                            <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#fca5a5', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{currentSlide.badge}</span>
+                        </div>
+                        <h2 style={{
+                            fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
+                            fontWeight: '800',
+                            lineHeight: '1.2',
                             color: '#fff',
-                            padding: '12px 28px',
-                            borderRadius: '14px',
-                            fontSize: '0.9rem',
-                            fontWeight: '600',
-                            textDecoration: 'none',
-                            width: 'fit-content',
+                            maxWidth: '700px',
+                            letterSpacing: '-0.02em',
+                            transition: 'all 0.3s ease',
+                            margin: '0'
+                        }}>
+                            {currentSlide.title}
+                        </h2>
+                        <p style={{
+                            fontSize: '0.95rem',
+                            color: 'rgba(255,255,255,0.6)',
+                            maxWidth: '550px',
+                            lineHeight: '1.6',
+                            transition: 'all 0.3s ease',
+                            margin: '0'
+                        }}>
+                            {currentSlide.description}
+                        </p>
+                        <a
+                            href={currentSlide.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                background: currentSlide.id === 2 ? '#f59e0b' : '#3b82f6',
+                                color: '#fff',
+                                padding: '12px 28px',
+                                borderRadius: '14px',
+                                fontSize: '0.9rem',
+                                fontWeight: '600',
+                                textDecoration: 'none',
+                                width: 'fit-content',
+                                transition: 'all 0.2s ease',
+                                border: 'none',
+                                cursor: 'pointer'
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = currentSlide.id === 2 ? '#d97706' : '#2563eb'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = currentSlide.id === 2 ? '#f59e0b' : '#3b82f6'; e.currentTarget.style.transform = 'translateY(0)' }}
+                        >
+                            {currentSlide.buttonText}
+                            <i className="fas fa-arrow-right" style={{ fontSize: '0.8rem' }}></i>
+                        </a>
+                    </div>
+                </div>
+
+                {/* Carousel Navigation */}
+                <div style={{
+                    position: 'absolute',
+                    bottom: '24px',
+                    right: '24px',
+                    zIndex: 10,
+                    display: 'flex',
+                    gap: '12px',
+                    alignItems: 'center'
+                }}>
+                    {/* Slide indicators */}
+                    <div style={{
+                        display: 'flex',
+                        gap: '8px',
+                        marginRight: '8px'
+                    }}>
+                        {newsSlides.map((_, index) => (
+                            <button
+                                key={index}
+                                type="button"
+                                onClick={() => setCurrentNewsSlide(index)}
+                                style={{
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    border: 'none',
+                                    background: index === currentNewsSlide ? '#3b82f6' : 'rgba(255, 255, 255, 0.3)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease'
+                                }}
+                                aria-label={`Go to slide ${index + 1}`}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Navigation arrows */}
+                    <button
+                        type="button"
+                        onClick={prevSlide}
+                        style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '10px',
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            color: '#fff',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                             transition: 'all 0.2s ease',
-                            border: 'none',
-                            cursor: 'pointer'
+                            fontSize: '18px'
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.background = '#2563eb'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-                        onMouseLeave={e => { e.currentTarget.style.background = '#3b82f6'; e.currentTarget.style.transform = 'translateY(0)' }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
+                        }}
+                        aria-label="Previous slide"
                     >
-                        Read More
-                        <i className="fas fa-arrow-right" style={{ fontSize: '0.8rem' }}></i>
-                    </a>
+                        <i className="fas fa-chevron-left"></i>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={nextSlide}
+                        style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '10px',
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                            color: '#fff',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s ease',
+                            fontSize: '18px'
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'
+                        }}
+                        aria-label="Next slide"
+                    >
+                        <i className="fas fa-chevron-right"></i>
+                    </button>
                 </div>
             </section>
 
