@@ -5,7 +5,7 @@
 | Field | Content |
 |-------|---------|
 | **Mission** | To connect founders and investors through fast, low-friction discovery and direct conversation—no middlemen—so every conversation starts from mutual interest. |
-| **Vision statement** | To be the default place where people discover and connect with startups: swipe-based discovery as familiar as dating apps, with mutual matching and in-app chat. |
+| **Vision statement** | To be the default place where people discover and connect with startups: swipe-based discovery as familiar as dating apps, with mutual matching andm in-app chat. |
 | **Business Name** | Swipy |
 | **Values** | Speed to first contact; direct connection (no brokers); mutual intent (match only when both sides like); design-led product; two-sided value (founders get discovered, investors discover and connect). |
 | **Business Activity** | Swipe-based matchmaking platform for startups: founders add startups and get discovered; investors and peers discover, like, and match; built-in chat after mutual match. Roadmap: AI for vacancy search (partnership interest), startup promotion feature. |
