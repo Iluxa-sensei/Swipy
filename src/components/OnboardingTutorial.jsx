@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
+import { profileService } from '../services/profileService.js'
+import { markTutorialCompletedLocally } from '../utils/tutorialStorage.js'
 
-const OnboardingTutorial = ({ onComplete }) => {
+const OnboardingTutorial = ({ userId, onComplete }) => {
     const [currentStep, setCurrentStep] = useState(0)
     const [isVisible, setIsVisible] = useState(false)
 
@@ -68,8 +70,10 @@ const OnboardingTutorial = ({ onComplete }) => {
 
     const completeTutorial = () => {
         setIsVisible(false)
-        // Save to localStorage that tutorial is completed
-        localStorage.setItem('tutorial-completed', 'true')
+        if (userId) {
+            markTutorialCompletedLocally(userId)
+            profileService.markTutorialCompleted(userId)
+        }
         onComplete()
     }
 

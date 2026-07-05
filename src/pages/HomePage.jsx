@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useStartupsLazy, useSwipes, useAuth } from '../hooks'
 import OnboardingTutorial from '../components/OnboardingTutorial'
 import { searchService } from '../services/searchService'
+import { profileService } from '../services/profileService.js'
+import { isTutorialCompletedLocally, markTutorialCompletedLocally } from '../utils/tutorialStorage.js'
 
 const HomePageFixed = () => {
     const { user } = useAuth()
@@ -161,12 +163,43 @@ const HomePageFixed = () => {
     }
 
     useEffect(() => {
-        const tutorialCompleted = localStorage.getItem('tutorial-completed')
-        if (!tutorialCompleted) {
-            const timer = setTimeout(() => setShowTutorial(true), 1000)
-            return () => clearTimeout(timer)
+        if (!user?.id) return
+
+        let cancelled = false
+        let timer
+
+        const checkTutorial = async () => {
+            if (isTutorialCompletedLocally(user.id)) return
+
+            // Migrate legacy global key from before per-user storage
+            try {
+                if (localStorage.getItem('tutorial-completed') === 'true') {
+                    markTutorialCompletedLocally(user.id)
+                    profileService.markTutorialCompleted(user.id)
+                    return
+                }
+            } catch {
+                // ignore
+            }
+
+            const profile = await profileService.getProfile(user.id)
+            if (cancelled) return
+
+            if (profile?.tutorial_completed) {
+                markTutorialCompletedLocally(user.id)
+                return
+            }
+
+            timer = setTimeout(() => setShowTutorial(true), 1000)
         }
-    }, [])
+
+        checkTutorial()
+
+        return () => {
+            cancelled = true
+            if (timer) clearTimeout(timer)
+        }
+    }, [user?.id])
 
     useEffect(() => {
         if (currentCardIndex >= displayStartups.length) {
@@ -793,7 +826,7 @@ const HomePageFixed = () => {
 
             {/* Tutorial Modal */}
             {showTutorial && (
-                <OnboardingTutorial onComplete={() => setShowTutorial(false)} />
+                <OnboardingTutorial userId={user?.id} onComplete={() => setShowTutorial(false)} />
             )}
         </div>
     )

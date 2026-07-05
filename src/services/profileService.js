@@ -141,6 +141,16 @@ export const profileService = {
         }
     },
 
+    async markTutorialCompleted(userId) {
+        if (!userId) return null
+        try {
+            return await this.updateProfile(userId, { tutorial_completed: true })
+        } catch (error) {
+            console.error('Error marking tutorial completed:', error)
+            return null
+        }
+    },
+
     // Upload avatar
     async uploadAvatar(userId, file) {
         try {
