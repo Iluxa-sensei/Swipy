@@ -27,6 +27,14 @@ const LandingPage = () => {
         }
     }
 
+    const goToSignUpOrApp = () => {
+        if (!loading && session?.user?.id && session?.access_token) {
+            navigate('/home')
+        } else {
+            navigate('/signup')
+        }
+    }
+
     // Load fonts
     useEffect(() => {
         const link = document.createElement('link')
@@ -802,7 +810,7 @@ const LandingPage = () => {
                             Log In
                         </button>
                         <button
-                            onClick={goToLoginOrApp}
+                            onClick={goToSignUpOrApp}
                             style={{
                                 background: '#4880ff',
                                 color: '#ffffff',
@@ -875,7 +883,7 @@ const LandingPage = () => {
                         </p>
                         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
                             <button
-                                onClick={goToLoginOrApp}
+                                onClick={goToSignUpOrApp}
                                 style={{
                                     background: '#4880ff',
                                     color: '#ffffff',
@@ -1535,7 +1543,7 @@ const LandingPage = () => {
                             Ready to Find Your Next Startup?
                         </h2>
                         <button
-                            onClick={goToLoginOrApp}
+                            onClick={goToSignUpOrApp}
                             style={{
                                 background: '#4880ff',
                                 color: '#ffffff',

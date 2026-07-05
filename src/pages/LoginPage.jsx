@@ -13,7 +13,7 @@ const LoginPage = () => {
   const location = useLocation()
   const { session, loading } = useAuth()
   const { isDesktop } = useDeviceType()
-  const [isLogin, setIsLogin] = useState(true)
+  const isLogin = location.pathname !== '/signup'
 
   // If already logged in (e.g. "Remember this device" + opened app from landing), redirect into the app
   useEffect(() => {
@@ -47,6 +47,16 @@ const LoginPage = () => {
     name: '',
     agreeToTerms: false
   })
+
+  useEffect(() => {
+    setFormData({
+      email: '',
+      password: '',
+      confirmPassword: '',
+      name: '',
+      agreeToTerms: false
+    })
+  }, [location.pathname])
 
   // Input validation functions
   const validateEmail = (email) => {
@@ -245,15 +255,8 @@ const LoginPage = () => {
     navigate('/reset-password')
   }
 
-  const toggleMode = () => {
-    setIsLogin(!isLogin)
-    setFormData({
-      email: '',
-      password: '',
-      confirmPassword: '',
-      name: '',
-      agreeToTerms: false
-    })
+  const switchAuthMode = () => {
+    navigate(isLogin ? '/signup' : '/login')
   }
 
   const handleEmailModalOK = () => {
@@ -494,7 +497,7 @@ const LoginPage = () => {
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               type="button"
-              onClick={toggleMode}
+              onClick={switchAuthMode}
               className="text-blue-400 hover:underline font-medium focus:outline-none transition-colors"
             >
               {isLogin ? 'Sign up' : 'Sign in'}
@@ -775,7 +778,7 @@ const LoginPage = () => {
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               type="button"
-              onClick={toggleMode}
+              onClick={switchAuthMode}
               className="text-blue-400 hover:underline font-medium focus:outline-none"
             >
               {isLogin ? 'Sign up' : 'Sign in'}

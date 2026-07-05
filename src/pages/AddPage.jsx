@@ -37,6 +37,10 @@ const AddPage = () => {
       locationCountry: '', // Add country
       locationCity: '', // Add city
       website: '',
+      linkedinUrl: '',
+      githubUrl: '',
+      instagramUrl: '',
+      twitterUrl: '',
       pitchDeckUrl: '',
       investmentRequired: '', // Replace positions with investmentRequired
       investmentPercentage: '', // percentage of company
@@ -560,6 +564,52 @@ const AddPage = () => {
           </div>
 
           <div className="form-group">
+            <label className="block text-text-primary font-medium mb-2">Links & Socials</label>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-text-secondary mb-2">LinkedIn</label>
+                <input
+                  type="url"
+                  className="w-full px-4 py-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300"
+                  placeholder="https://linkedin.com/company/..."
+                  value={formData.startup.linkedinUrl}
+                  onChange={(e) => handleInputChange('startup', 'linkedinUrl', e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-text-secondary mb-2">GitHub</label>
+                <input
+                  type="url"
+                  className="w-full px-4 py-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300"
+                  placeholder="https://github.com/..."
+                  value={formData.startup.githubUrl}
+                  onChange={(e) => handleInputChange('startup', 'githubUrl', e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-text-secondary mb-2">Instagram</label>
+                <input
+                  type="url"
+                  className="w-full px-4 py-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300"
+                  placeholder="https://instagram.com/..."
+                  value={formData.startup.instagramUrl}
+                  onChange={(e) => handleInputChange('startup', 'instagramUrl', e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-text-secondary mb-2">X / Twitter</label>
+                <input
+                  type="url"
+                  className="w-full px-4 py-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-all duration-300"
+                  placeholder="https://x.com/..."
+                  value={formData.startup.twitterUrl}
+                  onChange={(e) => handleInputChange('startup', 'twitterUrl', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="form-group">
             <label className="block text-text-primary font-medium mb-2">Card Gradient</label>
             <div className="grid grid-cols-5 gap-3">
               {gradientOptions.map((gradient) => (
@@ -661,6 +711,14 @@ const AddPage = () => {
                 return
               }
 
+              if (!isValidUrl(formData.startup.linkedinUrl) ||
+                  !isValidUrl(formData.startup.githubUrl) ||
+                  !isValidUrl(formData.startup.instagramUrl) ||
+                  !isValidUrl(formData.startup.twitterUrl)) {
+                alert('Please enter valid social URLs, or leave them blank.')
+                return
+              }
+
               setIsSubmitting(true)
 
               try {
@@ -670,7 +728,11 @@ const AddPage = () => {
                   name: formData.startup.name,
                   description: formData.startup.description,
                   website: formData.startup.website,
-                pitch_deck_url: formData.startup.pitchDeckUrl?.trim() ? formData.startup.pitchDeckUrl.trim() : null,
+                  linkedin_url: formData.startup.linkedinUrl?.trim() || null,
+                  github_url: formData.startup.githubUrl?.trim() || null,
+                  instagram_url: formData.startup.instagramUrl?.trim() || null,
+                  twitter_url: formData.startup.twitterUrl?.trim() || null,
+                  pitch_deck_url: formData.startup.pitchDeckUrl?.trim() ? formData.startup.pitchDeckUrl.trim() : null,
                   logo_url: formData.startup.image,
                   industry: formData.startup.category,
                   stage: formData.startup.stage,

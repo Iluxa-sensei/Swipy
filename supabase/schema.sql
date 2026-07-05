@@ -51,6 +51,10 @@
   alter table public.startups add column if not exists investment_percentage numeric(5,2);
   alter table public.startups add column if not exists ebitda numeric(12,2);
   alter table public.startups add column if not exists pitch_deck_url text;
+  alter table public.startups add column if not exists linkedin_url text;
+  alter table public.startups add column if not exists github_url text;
+  alter table public.startups add column if not exists instagram_url text;
+  alter table public.startups add column if not exists twitter_url text;
 
   -- Ensure unique slug per owner (avoids chat URL collisions)
   create unique index if not exists startups_owner_slug_unique

@@ -280,23 +280,69 @@ const StartupDetailPage = () => {
                         </div>
                     </div>
 
-                    {/* Website Section */}
-                    {startup.website && (
-                        <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
-                            <div className="flex items-center gap-3">
-                                <div className="text-text-secondary text-sm flex items-center gap-2">
-                                    <i className="fas fa-globe"></i>
-                                    Website
+                    {/* Links Section */}
+                    {(startup.website || startup.linkedin_url || startup.github_url || startup.instagram_url || startup.twitter_url) && (
+                        <div className="bg-glass-bg border border-glass-border rounded-2xl p-4 space-y-3">
+                            {startup.website && (
+                                <div className="flex items-center gap-3">
+                                    <div className="text-text-secondary text-sm flex items-center gap-2">
+                                        <i className="fas fa-globe"></i>
+                                        Website
+                                    </div>
+                                    <a
+                                        href={normalizeExternalUrl(startup.website) || '#'}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-accent-primary hover:text-accent-primary/80 text-sm font-medium hover:underline break-all"
+                                    >
+                                        {startup.website}
+                                    </a>
                                 </div>
-                                <a
-                                    href={normalizeExternalUrl(startup.website) || '#'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-accent-primary hover:text-accent-primary/80 text-sm font-medium hover:underline break-all"
-                                >
-                                    {startup.website}
-                                </a>
-                            </div>
+                            )}
+                            {(startup.linkedin_url || startup.github_url || startup.instagram_url || startup.twitter_url) && (
+                                <div className="flex flex-wrap gap-3 pt-1">
+                                    {startup.linkedin_url && (
+                                        <a
+                                            className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-blue-600 hover:text-white transition-all duration-200 hover:scale-110"
+                                            href={normalizeExternalUrl(startup.linkedin_url) || '#'}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <i className="fab fa-linkedin text-xl"></i>
+                                        </a>
+                                    )}
+                                    {startup.github_url && (
+                                        <a
+                                            className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-gray-600 hover:text-white transition-all duration-200 hover:scale-110"
+                                            href={normalizeExternalUrl(startup.github_url) || '#'}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <i className="fab fa-github text-xl"></i>
+                                        </a>
+                                    )}
+                                    {startup.instagram_url && (
+                                        <a
+                                            className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-pink-600 hover:text-white transition-all duration-200 hover:scale-110"
+                                            href={normalizeExternalUrl(startup.instagram_url) || '#'}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <i className="fab fa-instagram text-xl"></i>
+                                        </a>
+                                    )}
+                                    {startup.twitter_url && (
+                                        <a
+                                            className="w-12 h-12 bg-glass-bg border border-glass-border rounded-xl flex items-center justify-center text-text-primary hover:bg-gray-800 hover:text-white transition-all duration-200 hover:scale-110"
+                                            href={normalizeExternalUrl(startup.twitter_url) || '#'}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <i className="fab fa-x-twitter text-xl"></i>
+                                        </a>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
 

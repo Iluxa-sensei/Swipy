@@ -202,12 +202,19 @@ export const useStartupsLazy = () => {
 
     // Reset and load from beginning
     const refetch = useCallback(() => {
-        fetchStartups(true)
+        return fetchStartups(true)
     }, [fetchStartups])
 
     // Remove a specific startup from the current list (for when it's liked/passed)
     const removeStartupFromList = useCallback((startupId) => {
         setStartups(prev => prev.filter(startup => startup.id !== startupId))
+    }, [])
+
+    // Patch fields on a single startup without refetching the whole list
+    const patchStartupInList = useCallback((startupId, updates) => {
+        setStartups(prev => prev.map(startup =>
+            startup.id === startupId ? { ...startup, ...updates } : startup
+        ))
     }, [])
 
     useEffect(() => {
@@ -263,6 +270,7 @@ export const useStartupsLazy = () => {
         loadMore,
         refetch,
         removeStartupFromList,
+        patchStartupInList,
         createStartup,
         updateStartup,
         deleteStartup
@@ -275,9 +283,16 @@ export const useSwipes = (userId) => {
     const [passes, setPasses] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const swipeRequestVersionRef = useRef(0)
+
+    const markNewSwipeVersion = useCallback(() => {
+        swipeRequestVersionRef.current += 1
+        return swipeRequestVersionRef.current
+    }, [])
 
     const fetchSwipes = useCallback(async () => {
         if (!userId) return
+        const requestVersion = markNewSwipeVersion()
 
         try {
             setLoading(true)
@@ -286,14 +301,17 @@ export const useSwipes = (userId) => {
                 swipeService.getUserLikes(userId),
                 swipeService.getUserPasses(userId)
             ])
+            if (requestVersion !== swipeRequestVersionRef.current) return
             setLikes(likesData)
             setPasses(passesData)
         } catch (err) {
+            if (requestVersion !== swipeRequestVersionRef.current) return
             setError(err.message)
         } finally {
+            if (requestVersion !== swipeRequestVersionRef.current) return
             setLoading(false)
         }
-    }, [userId])
+    }, [userId, markNewSwipeVersion])
 
     const likeStartup = useCallback(async (startupId) => {
         try {
@@ -302,6 +320,7 @@ export const useSwipes = (userId) => {
             const [updatedLikes] = await Promise.all([
                 swipeService.getUserLikes(userId)
             ])
+            markNewSwipeVersion()
             setLikes(updatedLikes)
             setPasses(prev => prev.filter(pass => pass.startup_id !== startupId))
             return like
@@ -309,7 +328,7 @@ export const useSwipes = (userId) => {
             setError(err.message)
             throw err
         }
-    }, [userId])
+    }, [userId, markNewSwipeVersion])
 
     const passStartup = useCallback(async (startupId) => {
         try {
@@ -318,6 +337,7 @@ export const useSwipes = (userId) => {
             const [updatedPasses] = await Promise.all([
                 swipeService.getUserPasses(userId)
             ])
+            markNewSwipeVersion()
             setPasses(updatedPasses)
             setLikes(prev => prev.filter(like => like.startup_id !== startupId))
             return pass
@@ -325,7 +345,7 @@ export const useSwipes = (userId) => {
             setError(err.message)
             throw err
         }
-    }, [userId])
+    }, [userId, markNewSwipeVersion])
 
     const getSwipeStatus = useCallback(async (startupId) => {
         try {
@@ -338,6 +358,7 @@ export const useSwipes = (userId) => {
     const removeSwipe = useCallback(async (startupId) => {
         try {
             await swipeService.removeSwipe(userId, startupId)
+            markNewSwipeVersion()
             setLikes(prev => prev.filter(like => like.startup_id !== startupId))
             setPasses(prev => prev.filter(pass => pass.startup_id !== startupId))
             return true
@@ -345,7 +366,7 @@ export const useSwipes = (userId) => {
             setError(err.message)
             throw err
         }
-    }, [userId])
+    }, [userId, markNewSwipeVersion])
 
     useEffect(() => {
         fetchSwipes()

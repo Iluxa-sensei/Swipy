@@ -306,7 +306,7 @@ const DesktopStartupDetailPage = () => {
                         </div>
 
                         {/* Additional Information */}
-                        {(startup.website || startup.location) && (
+                        {(startup.website || startup.linkedin_url || startup.github_url || startup.instagram_url || startup.twitter_url || startup.location) && (
                             <div className="desktop-card">
                                 <h2 className="text-xl font-bold text-text-primary mb-4">Additional Information</h2>
                                 <div className="space-y-3">
@@ -326,6 +326,54 @@ const DesktopStartupDetailPage = () => {
                                                     {startup.website}
                                                 </a>
                                             </div>
+                                        </div>
+                                    )}
+                                    {(startup.linkedin_url || startup.github_url || startup.instagram_url || startup.twitter_url) && (
+                                        <div className="flex flex-wrap gap-3 p-4 bg-bg-secondary/40 border border-glass-border rounded-xl">
+                                            {startup.linkedin_url && (
+                                                <a
+                                                    className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-blue-500/30 transition-all group"
+                                                    href={normalizeExternalUrl(startup.linkedin_url) || '#'}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    <i className="fab fa-linkedin text-blue-500"></i>
+                                                    <span className="text-sm text-text-primary group-hover:text-blue-500">LinkedIn</span>
+                                                </a>
+                                            )}
+                                            {startup.github_url && (
+                                                <a
+                                                    className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-accent-primary/30 transition-all group"
+                                                    href={normalizeExternalUrl(startup.github_url) || '#'}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    <i className="fab fa-github text-text-primary group-hover:text-accent-primary"></i>
+                                                    <span className="text-sm text-text-primary group-hover:text-accent-primary">GitHub</span>
+                                                </a>
+                                            )}
+                                            {startup.instagram_url && (
+                                                <a
+                                                    className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-pink-500/30 transition-all group"
+                                                    href={normalizeExternalUrl(startup.instagram_url) || '#'}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    <i className="fab fa-instagram text-pink-500"></i>
+                                                    <span className="text-sm text-text-primary group-hover:text-pink-500">Instagram</span>
+                                                </a>
+                                            )}
+                                            {startup.twitter_url && (
+                                                <a
+                                                    className="p-3 bg-bg-secondary/40 border border-glass-border rounded-lg flex items-center gap-2 hover:border-text-primary/30 transition-all group"
+                                                    href={normalizeExternalUrl(startup.twitter_url) || '#'}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    <i className="fab fa-x-twitter text-text-primary"></i>
+                                                    <span className="text-sm text-text-primary">X</span>
+                                                </a>
+                                            )}
                                         </div>
                                     )}
                                     {startup.location && (

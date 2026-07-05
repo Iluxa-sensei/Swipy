@@ -121,9 +121,9 @@ function App() {
   }
 
   // Determine whether to show bottom navigation
-  const showBottomNav = !['onboarding', 'login', 'reset-password', ''].includes(currentScreen) && !currentScreen.startsWith('chat-detail')
-  // Only use minimal layout for login, reset-password, and auth callback pages
-  const desktopMinimal = ['login', 'reset-password'].includes(currentScreen) || currentScreen.startsWith('auth/callback')
+  const showBottomNav = !['onboarding', 'login', 'signup', 'reset-password', ''].includes(currentScreen) && !currentScreen.startsWith('chat-detail')
+  // Only use minimal layout for login, signup, reset-password, and auth callback pages
+  const desktopMinimal = ['login', 'signup', 'reset-password'].includes(currentScreen) || currentScreen.startsWith('auth/callback')
 
   // Don't wrap landing or legal pages in app layouts
   if (location.pathname === '/') {
@@ -149,6 +149,7 @@ function App() {
   const routes = (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<LoginPage />} />
       <Route path="/auth/callback" element={<OAuthCallback />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/legal" element={<LegalPage />} />

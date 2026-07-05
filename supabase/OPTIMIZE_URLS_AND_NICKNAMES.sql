@@ -86,8 +86,8 @@ BEGIN
       s.funding_round, s.funding, s.team_size, s."teamSize", s.location, 
       s.gradient, s.investment_required, s.investment_percentage, s.ebitda, 
       s.image, s.created_at, s.updated_at,
-      (SELECT count(*) FROM public.likes l WHERE l.startup_id = s.id) as likes_count,
-      (SELECT count(*) FROM public.chats c WHERE c.context_startup_id = s.id) as chat_count
+      s.likes_count,
+      s.chat_count
     FROM public.startups s
     LEFT JOIN public.profiles p ON s.owner_id = p.id
     WHERE 1=1';

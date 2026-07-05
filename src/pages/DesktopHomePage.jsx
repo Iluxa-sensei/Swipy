@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth, useStartupsLazy, useSwipes, useProfile } from '../hooks'
-import { chatService, startupService, swipeService } from '../services'
+import { chatService, startupService } from '../services'
 
 const DesktopHomePage = () => {
     const navigate = useNavigate()
@@ -13,11 +13,12 @@ const DesktopHomePage = () => {
         hasMore,
         loadMore,
         loadingMore,
-        refetch
+        refetch,
+        patchStartupInList
     } = useStartupsLazy()
-    const { likeStartup, likes, removeSwipe, refetch: refetchSwipes } = useSwipes(user?.id)
+    const { likeStartup, likes, removeSwipe } = useSwipes(user?.id)
     const { profile } = useProfile(user?.id)
-    const [likedStartups, setLikedStartups] = useState(new Set())
+    const [optimisticLikeOverrides, setOptimisticLikeOverrides] = useState({})
     // Local state for optimistic likes_count updates
     const [likesCountUpdates, setLikesCountUpdates] = useState({})
     // Carousel state for news
@@ -89,19 +90,27 @@ const DesktopHomePage = () => {
         return true
     }
 
-    // Update liked startups set when likes change
-    useEffect(() => {
-        if (likes && Array.isArray(likes)) {
-            const likedIds = new Set(likes.map(like => like.startup_id || like.startup?.id))
-            setLikedStartups(likedIds)
-        }
+    const likedStartups = useMemo(() => {
+        if (!Array.isArray(likes)) return new Set()
+        return new Set(likes.map(like => like.startup_id || like.startup?.id).filter(Boolean))
     }, [likes])
 
     // Clear local likes_count updates when startups data is refreshed
     useEffect(() => {
         // Keep only updates for startups that are still in the list
+        const startupIds = new Set(startups.map(s => s.id))
+
         setLikesCountUpdates(prev => {
-            const startupIds = new Set(startups.map(s => s.id))
+            const filtered = {}
+            Object.keys(prev).forEach(id => {
+                if (startupIds.has(id)) {
+                    filtered[id] = prev[id]
+                }
+            })
+            return filtered
+        })
+
+        setOptimisticLikeOverrides(prev => {
             const filtered = {}
             Object.keys(prev).forEach(id => {
                 if (startupIds.has(id)) {
@@ -112,74 +121,65 @@ const DesktopHomePage = () => {
         })
     }, [startups])
 
-    // Check initial like status for all startups
     useEffect(() => {
-        if (!user?.id || !startups.length) return
+        if (!Object.keys(optimisticLikeOverrides).length) return
 
-        const checkLikes = async () => {
-            try {
-                const startupIds = startups.map(s => s.id).filter(Boolean)
-                if (startupIds.length === 0) return
+        setOptimisticLikeOverrides(prev => {
+            const next = { ...prev }
+            let changed = false
 
-                const statusPromises = startupIds.map(id =>
-                    swipeService.getSwipeStatus(user.id, id)
-                )
-                const statuses = await Promise.all(statusPromises)
+            Object.entries(prev).forEach(([startupId, optimisticValue]) => {
+                if (likedStartups.has(startupId) === optimisticValue) {
+                    delete next[startupId]
+                    changed = true
+                }
+            })
 
-                const likedIds = new Set()
-                statuses.forEach((status, index) => {
-                    if (status === 'liked') {
-                        likedIds.add(startupIds[index])
-                    }
-                })
-                setLikedStartups(likedIds)
-            } catch (err) {
-                console.error('Failed to check like status', err)
-            }
+            return changed ? next : prev
+        })
+    }, [likes, likedStartups, optimisticLikeOverrides])
+
+    const isStartupLiked = (startupId) => {
+        if (optimisticLikeOverrides[startupId] !== undefined) {
+            return optimisticLikeOverrides[startupId]
         }
+        return likedStartups.has(startupId)
+    }
 
-        checkLikes()
-    }, [user?.id, startups])
-
-        const handleLike = async (startupId) => {
+    const handleLike = async (startupId) => {
         if (!ensureAuth()) return
 
-        const isLiked = likedStartups.has(startupId)
+        const isLiked = isStartupLiked(startupId)
         const startup = startups.find(s => s.id === startupId)
-        const currentLikesCount = startup?.likes_count || 0
+        const baseLikesCount = likesCountUpdates[startupId] ?? startup?.likes_count ?? 0
 
         // Optimistic update: update UI immediately
-        setLikedStartups(prev => {
-            const newSet = new Set(prev)
-            if (isLiked) {
-                newSet.delete(startupId)
-            } else {
-                newSet.add(startupId)
-            }
-            return newSet
-        })
+        setOptimisticLikeOverrides(prev => ({ ...prev, [startupId]: !isLiked }))
 
         // Optimistically update likes_count
         setLikesCountUpdates(prev => ({
             ...prev,
             [startupId]: isLiked
-                ? Math.max(0, currentLikesCount - 1)
-                : currentLikesCount + 1
+                ? Math.max(0, baseLikesCount - 1)
+                : baseLikesCount + 1
         }))
 
         try {
             if (isLiked) {
-                // Unlike - remove from database
                 await removeSwipe(startupId)
             } else {
-                // Like
                 await likeStartup(startupId)
             }
 
-            // Refetch swipes in background (non-blocking, don't await)
-            if (refetchSwipes) {
-                refetchSwipes().catch(err => console.warn('Failed to refetch swipes:', err))
-            }
+            const reconciledCount = isLiked
+                ? Math.max(0, baseLikesCount - 1)
+                : baseLikesCount + 1
+            patchStartupInList(startupId, { likes_count: reconciledCount })
+            setLikesCountUpdates(prev => {
+                const next = { ...prev }
+                delete next[startupId]
+                return next
+            })
         } catch (err) {
             console.error('Failed to toggle like:', err)
             console.error('Error details:', {
@@ -194,49 +194,26 @@ const DesktopHomePage = () => {
                 err.message?.includes('unique constraint')
 
             if (isDuplicateError && !isLiked) {
-                // Like already exists in database, sync state without reverting count
+                // Like already exists in database: keep liked=true, rollback count increment.
                 console.log('Like already exists, syncing state')
-                setLikedStartups(prev => new Set(prev).add(startupId))
+                setOptimisticLikeOverrides(prev => ({ ...prev, [startupId]: true }))
                 setLikesCountUpdates(prev => ({
                     ...prev,
-                    [startupId]: Math.max(currentLikesCount + 1, prev[startupId] ?? currentLikesCount + 1)
+                    [startupId]: baseLikesCount
                 }))
-                if (refetchSwipes) {
-                    await refetchSwipes()
-                }
                 return
             }
 
-            // Revert optimistic update on error
-            setLikedStartups(prev => {
-                const newSet = new Set(prev)
-                if (isLiked) {
-                    newSet.add(startupId)
-                } else {
-                    newSet.delete(startupId)
-                }
-                return newSet
-            })
-
-            // Revert likes_count
+            // Revert optimistic updates on non-duplicate errors
+            setOptimisticLikeOverrides(prev => ({ ...prev, [startupId]: isLiked }))
             setLikesCountUpdates(prev => {
-                const newUpdates = { ...prev }
-                delete newUpdates[startupId]
-                return newUpdates
+                return {
+                    ...prev,
+                    [startupId]: baseLikesCount
+                }
             })
 
-            // For other errors, show alert and revert
             alert(`Failed to ${isLiked ? 'unlike' : 'like'} startup: ${err.message || 'Unknown error'}`)
-            // Revert on error
-            if (!isLiked) {
-                setLikedStartups(prev => {
-                    const newSet = new Set(prev)
-                    newSet.delete(startupId)
-                    return newSet
-                })
-            } else {
-                setLikedStartups(prev => new Set(prev).add(startupId))
-            }
         }
     }
 
@@ -333,7 +310,7 @@ const DesktopHomePage = () => {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {startups.map(startup => {
-                    const isLiked = likedStartups.has(startup.id)
+                    const isLiked = isStartupLiked(startup.id)
                     const likesCount = likesCountUpdates[startup.id] !== undefined 
                         ? likesCountUpdates[startup.id] 
                         : (startup.likes_count ?? 0)
