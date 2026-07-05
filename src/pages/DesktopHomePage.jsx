@@ -189,6 +189,24 @@ const DesktopHomePage = () => {
                 hint: err.hint
             })
 
+            const isDuplicateError = err.code === '23505' ||
+                err.message?.includes('duplicate key') ||
+                err.message?.includes('unique constraint')
+
+            if (isDuplicateError && !isLiked) {
+                // Like already exists in database, sync state without reverting count
+                console.log('Like already exists, syncing state')
+                setLikedStartups(prev => new Set(prev).add(startupId))
+                setLikesCountUpdates(prev => ({
+                    ...prev,
+                    [startupId]: Math.max(currentLikesCount + 1, prev[startupId] ?? currentLikesCount + 1)
+                }))
+                if (refetchSwipes) {
+                    await refetchSwipes()
+                }
+                return
+            }
+
             // Revert optimistic update on error
             setLikedStartups(prev => {
                 const newSet = new Set(prev)
@@ -206,22 +224,6 @@ const DesktopHomePage = () => {
                 delete newUpdates[startupId]
                 return newUpdates
             })
-
-            // Check if error is duplicate key (like already exists)
-            const isDuplicateError = err.code === '23505' ||
-                err.message?.includes('duplicate key') ||
-                err.message?.includes('unique constraint')
-
-            if (isDuplicateError && !isLiked) {
-                // Like already exists in database, sync state
-                console.log('Like already exists, syncing state')
-                setLikedStartups(prev => new Set(prev).add(startupId))
-                // Refetch to ensure state is correct
-                if (refetchSwipes) {
-                    await refetchSwipes()
-                }
-                return // Don't show error, just sync state
-            }
 
             // For other errors, show alert and revert
             alert(`Failed to ${isLiked ? 'unlike' : 'like'} startup: ${err.message || 'Unknown error'}`)

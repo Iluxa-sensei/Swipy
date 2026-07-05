@@ -155,7 +155,7 @@ export const startupService = {
             // This returns ALL startups to match the count display
             let query = supabase
                 .from('startups')
-                .select('id, name, description, industry, stage, funding_round, team_size, location, gradient, logo, created_at, slug, owner_id')
+                .select('id, name, description, industry, stage, funding_round, team_size, location, gradient, logo, created_at, slug, owner_id, likes_count, chat_count')
                 .order('created_at', { ascending: false })
                 .range(validatedOffset, validatedOffset + validatedLimit - 1)
 
