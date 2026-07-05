@@ -25,7 +25,7 @@ A modern React application for discovering and connecting with startups, built w
 3. **Set up environment variables**
    ```bash
    # Copy the template file
-   cp .env.local.template .env.local
+   cp .env.local.template .env.loocal
    
    # Edit .env.local with your actual Supabase credentials
    # You need at least:
