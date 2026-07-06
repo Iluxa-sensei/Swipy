@@ -60,7 +60,7 @@ export const chatService = {
                     // Fetch startups without profiles relation (to avoid schema cache error)
                     const { data: startupsData, error: startupsError } = await supabase
                         .from('startups')
-                        .select('id, name, logo_url, logo, gradient, owner_id, slug')
+                        .select('id, name, logo_url, image, logo, gradient, owner_id, slug')
                         .in('id', startupIds)
 
                     if (startupsError) {
@@ -71,7 +71,7 @@ export const chatService = {
                             try {
                                 const { data: singleStartup, error: singleError } = await supabase
                                     .from('startups')
-                                    .select('id, name, logo_url, logo, gradient, owner_id, slug')
+                                    .select('id, name, logo_url, image, logo, gradient, owner_id, slug')
                                     .eq('id', startupId)
                                     .single()
                                 
@@ -129,7 +129,7 @@ export const chatService = {
                     try {
                         const { data: singleStartup, error: singleError } = await supabase
                             .from('startups')
-                            .select('id, name, logo_url, logo, gradient, owner_id, slug')
+                            .select('id, name, logo_url, image, logo, gradient, owner_id, slug')
                             .eq('id', missingId)
                             .single()
                         
@@ -197,7 +197,7 @@ export const chatService = {
                         chat_id: chat.chat_id,
                         startup_id: startup?.id || chat.context_startup_id, // Keep the ID even if startup not found
                         startup_name: startup?.name || null, // null instead of 'Unknown Startup' to know if fetch failed
-                        startup_logo: startup?.logo_url || startup?.logo || null,
+                        startup_logo: startup?.logo_url || startup?.image || null,
                         startup_gradient: startup?.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700',
                         startup_slug: startup?.slug || null,
                         startup_owner_id: startup?.owner_id || null,
@@ -556,6 +556,7 @@ export const chatService = {
                             id,
                             name,
                             logo_url,
+                            image,
                             logo,
                             gradient,
                             owner_id,
@@ -720,7 +721,7 @@ export const chatService = {
         try {
             const { data, error } = await supabase
                 .from('startups')
-                .select('id, name, logo_url, logo, gradient')
+                .select('id, name, logo_url, image, logo, gradient')
                 .eq('owner_id', userId)
                 .order('created_at', { ascending: false })
 

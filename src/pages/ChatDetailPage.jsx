@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks';
 import { chatService, profileService } from '../services';
@@ -309,9 +309,23 @@ const ChatDetailPage = () => {
 
   // Get other participant (not current user)
   const otherParticipant = participants.find(p => p.id !== user?.id);
-  const chatName = chat?.startup_name || otherParticipant?.full_name || otherParticipant?.username || 'Unknown';
-  const chatAvatar = chat?.startup_logo || otherParticipant?.avatar_url;
-  const chatGradient = chat?.startup_gradient || 'bg-gradient-to-br from-blue-300 to-blue-700';
+  const chatName = chat?.startup?.name || chat?.startup_name || otherParticipant?.full_name || otherParticipant?.username || 'Unknown';
+  const chatAvatar = chat?.startup?.logo_url || chat?.startup?.image || chat?.startup_logo || otherParticipant?.avatar_url;
+  const chatGradient = chat?.startup?.gradient || chat?.startup_gradient || 'bg-gradient-to-br from-blue-300 to-blue-700';
+
+  const navigateToOtherProfile = useCallback(() => {
+    if (!otherParticipant?.id) return
+
+    if (otherParticipant.id === user?.id) {
+      navigate('/profile')
+      return
+    }
+    if (otherParticipant.username) {
+      navigate(`/profile/${otherParticipant.username}`)
+      return
+    }
+    navigate(`/profile/${otherParticipant.id}`)
+  }, [otherParticipant, user?.id, navigate])
 
   // Group messages by date (Copied from desktop version for consistency)
   const groupMessagesByDate = (msgs) => {
@@ -491,13 +505,19 @@ const ChatDetailPage = () => {
   return (
     <div className="screen active chat-detail flex flex-col h-full">
       {/* Enhanced Chat Header */}
-      <div className="header shrink-0 bg-bg-primary/95 backdrop-blur-xl border-b border-glass-border/50 shadow-lg">
-        <button className="header-btn hover:bg-glass-bg transition-all duration-200" onClick={() => navigate('/chat')}>
+      <div className="header shrink-0 bg-bg-primary/95 backdrop-blur-xl border-b border-glass-border/50 shadow-lg gap-3">
+        <button className="header-btn hover:bg-glass-bg transition-all duration-200 shrink-0" onClick={() => navigate('/chat')}>
           <i className="fas fa-arrow-left"></i>
         </button>
 
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="relative">
+        <button
+          type="button"
+          onClick={navigateToOtherProfile}
+          disabled={!otherParticipant?.id}
+          className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 active:opacity-70 transition-opacity disabled:cursor-default disabled:hover:opacity-100"
+          aria-label={otherParticipant ? `View ${otherParticipant.full_name || otherParticipant.username || 'user'} profile` : undefined}
+        >
+          <div className="relative shrink-0">
             <div className={`w-10 h-10 ${chatGradient} rounded-xl flex items-center justify-center shadow-lg`}>
               {chatAvatar ? (
                 <img src={chatAvatar} alt={chatName} className="w-full h-full rounded-xl object-cover" />
@@ -507,17 +527,16 @@ const ChatDetailPage = () => {
                 </span>
               )}
             </div>
-            {/* Online status indicator */}
             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 border-2 border-bg-primary rounded-full bg-accent-secondary"></div>
           </div>
 
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-bold text-text-primary truncate">{chatName}</h1>
             <div className="text-xs text-text-secondary truncate">
-              {chat?.startup_name ? `Chat about ${chat.startup_name}` : 'Direct Message'}
+              {(chat?.startup?.name || chat?.startup_name) ? `Chat about ${chat?.startup?.name || chat.startup_name}` : 'Direct Message'}
             </div>
           </div>
-        </div>
+        </button>
 
         <div className="flex items-center gap-2">
           <button className="header-btn hover:bg-glass-bg transition-all duration-200" onClick={() => setShowMessageActions(true)}>

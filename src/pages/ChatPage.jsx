@@ -4,6 +4,18 @@ import { useAuth, useChats, useStartups } from '../hooks'
 import { formatMessageTime } from '../utils/dateUtils'
 import { supabase } from '../services/supabaseClient'
 
+const isImageUrl = (value) => typeof value === 'string' && /^https?:\/\//i.test(value)
+
+const StartupAvatar = ({ logoUrl, logoText, name, gradient, sizeClass = 'w-12 h-12', roundedClass = 'rounded-full' }) => (
+    <div className={`${sizeClass} ${gradient} ${roundedClass} flex items-center justify-center text-white font-bold shadow-lg overflow-hidden shrink-0`}>
+        {logoUrl ? (
+            <img src={logoUrl} alt={name} className="w-full h-full object-cover" />
+        ) : (
+            <span className="text-sm">{logoText || name?.charAt(0)?.toUpperCase() || 'S'}</span>
+        )}
+    </div>
+)
+
 const ChatPageImproved = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
@@ -32,8 +44,16 @@ const ChatPageImproved = () => {
             ? (chat.startup_name || 'Startup') 
             : (otherParticipant?.full_name || (otherParticipant?.username ? `@${otherParticipant.username}` : 'User'))
             
-        const displayAvatar = isStartupChat ? chat.startup_logo : otherParticipant?.avatar_url
-        
+        const startupData = isStartupChat && chat.startup_id
+            ? startups?.find(s => s.id === chat.startup_id)
+            : null
+
+        const startupLogoUrl = isStartupChat
+            ? (isImageUrl(chat.startup_logo) ? chat.startup_logo : (startupData?.logo_url || startupData?.image || null))
+            : null
+
+        const displayAvatarUrl = isStartupChat ? startupLogoUrl : (otherParticipant?.avatar_url || null)
+            
         return {
             id: chat.chat_id,
             name: displayName,
@@ -41,7 +61,7 @@ const ChatPageImproved = () => {
             time: chat.last_message_at ? formatMessageTime(chat.last_message_at) : '',
             unread: chat.last_message_sender_id !== user?.id && chat.unread_count > 0,
             unreadCount: chat.unread_count || 0,
-            avatar: displayAvatar,
+            avatarUrl: displayAvatarUrl,
             initials: (displayName || 'U').charAt(0).toUpperCase(),
             gradient: chat.startup_gradient || 'bg-gradient-to-br from-blue-300 to-blue-700',
             isOnline: false,
@@ -58,20 +78,25 @@ const ChatPageImproved = () => {
     })
 
     // Group chats by startup for better organization
-    const chatsByStartup = chatList.reduce((acc, chat) => {
-        const startupId = chat.startupId
-        if (!acc[startupId]) {
-            acc[startupId] = {
-                startupId,
-                startupName: chat.name,
-                startupLogo: chat.avatar,
-                startupGradient: chat.gradient,
-                chats: []
+    const chatsByStartup = chatList
+        .filter(chat => chat.isStartupChat && chat.startupId)
+        .reduce((acc, chat) => {
+            const startupId = chat.startupId
+            if (!acc[startupId]) {
+                const startupData = startups?.find(s => s.id === startupId)
+                const logoUrl = startupData?.logo_url || startupData?.image || (isImageUrl(chat.avatarUrl) ? chat.avatarUrl : null)
+                acc[startupId] = {
+                    startupId,
+                    startupName: chat.name,
+                    startupLogoUrl: logoUrl,
+                    startupLogoText: startupData?.logo || chat.name?.charAt(0)?.toUpperCase() || 'S',
+                    startupGradient: chat.gradient,
+                    chats: []
+                }
             }
-        }
-        acc[startupId].chats.push(chat)
-        return acc
-    }, {})
+            acc[startupId].chats.push(chat)
+            return acc
+        }, {})
 
     // Mark all as read
     const markAllAsRead = () => {
@@ -403,13 +428,14 @@ const ChatPageImproved = () => {
 
                                 {/* Avatar with status */}
                                 <div className="relative flex-shrink-0">
-                                    <div className={`w-14 h-14 ${chat.gradient} rounded-xl flex items-center justify-center text-white font-bold text-lg overflow-hidden`}>
-                                        {chat.avatar ? (
-                                            <img src={chat.avatar} alt={chat.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span>{chat.initials}</span>
-                                        )}
-                                    </div>
+                                    <StartupAvatar
+                                        logoUrl={chat.avatarUrl}
+                                        logoText={chat.initials}
+                                        name={chat.name}
+                                        gradient={chat.gradient}
+                                        sizeClass="w-14 h-14"
+                                        roundedClass="rounded-xl"
+                                    />
 
                                     {/* Online status indicator */}
                                     <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 border-2 border-bg-primary rounded-full ${chat.isOnline ? 'bg-green-400' : 'bg-gray-500'}`}></div>
@@ -451,12 +477,15 @@ const ChatPageImproved = () => {
             {/* Startup Selector Modal */}
             {showStartupSelector && (
                 <div className="fixed inset-0 bg-black/50 flex items-end z-50" onClick={() => setShowStartupSelector(false)}>
-                    <div className="w-full bg-bg-secondary rounded-t-3xl p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                        <div className="w-12 h-1 bg-glass-border rounded-full mx-auto mb-4"></div>
+                    <div
+                        className="w-full bg-bg-secondary rounded-t-3xl p-6 flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-12 h-1 bg-glass-border rounded-full mx-auto mb-4 shrink-0"></div>
 
-                        <h3 className="text-lg font-bold text-text-primary mb-4">Filter by Startup</h3>
+                        <h3 className="text-lg font-bold text-text-primary mb-4 shrink-0">Filter by Startup</h3>
 
-                        <div className="space-y-3">
+                        <div className="overflow-y-auto max-h-[60vh] pb-24 space-y-3">
                             <button
                                 className={`w-full flex items-center gap-4 p-4 rounded-xl ${!selectedStartup
                                     ? 'bg-accent-primary/20 text-accent-primary border border-accent-primary'
@@ -483,9 +512,12 @@ const ChatPageImproved = () => {
                                         setShowStartupSelector(false)
                                     }}
                                 >
-                                    <div className={`w-12 h-12 ${startupGroup.startupGradient} rounded-full flex items-center justify-center text-white font-bold shadow-lg`}>
-                                        {startupGroup.startupLogo}
-                                    </div>
+                                    <StartupAvatar
+                                        logoUrl={startupGroup.startupLogoUrl}
+                                        logoText={startupGroup.startupLogoText}
+                                        name={startupGroup.startupName}
+                                        gradient={startupGroup.startupGradient}
+                                    />
                                     <div className="flex-1 text-left">
                                         <div className="font-medium">{startupGroup.startupName}</div>
                                         <div className="text-sm text-text-secondary">{startupGroup.chats.length} conversation{startupGroup.chats.length !== 1 ? 's' : ''}</div>
