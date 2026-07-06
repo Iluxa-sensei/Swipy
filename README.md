@@ -6,7 +6,7 @@ A modern React application for discovering and connecting with startups, built w
 
 ### Prerequisites
 
-- Node.js 25.0.0 (use `nvm use` to switch to the correct version)
+- Node.js 25.0.0 (use `nvm use to switch to the correct version)
 - npm or yarn package manager
 
 ### Installation
