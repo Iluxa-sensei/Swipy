@@ -283,6 +283,10 @@
   }
 
   /* Onboarding page: enable proper scrolling and use dark dashboard background */
+  .onboarding-page {
+    -webkit-overflow-scrolling: touch;
+  }
+
   .screen.onboarding-page {
     @apply flex flex-col;
     background: #0b0c10;
@@ -2186,26 +2190,37 @@
   }
 
   /* Mobile Search Styles */
+  .mobile-home-toolbar,
   .mobile-search-container {
     position: relative;
     width: 100%;
-    padding: 12px 16px;
+    padding: 8px 12px;
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 100;
-    display: block !important;
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
     visibility: visible !important;
     opacity: 1 !important;
+    flex-shrink: 0;
+  }
+
+  .mobile-toolbar-btn {
+    @apply w-10 h-10 rounded-full bg-glass-bg border border-glass-border flex items-center justify-center text-text-primary transition-all duration-200 active:scale-95;
+    flex-shrink: 0;
   }
 
   .mobile-search-bar {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    height: 48px;
-    border-radius: 16px;
+    gap: 8px;
+    padding: 0 12px;
+    height: 40px;
+    flex: 1;
+    min-width: 0;
+    border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.05);
     position: relative;
@@ -2255,12 +2270,12 @@
     color: rgba(255, 255, 255, 0.8);
   }
 
+  .mobile-search-field {
+    flex: 1;
+    min-width: 0;
+  }
+
   .mobile-search-results {
-    position: fixed;
-    top: calc(64px + 72px + 8px);
-    /* header height + search bar height + margin */
-    left: 16px;
-    right: 16px;
     max-height: calc(100vh - 200px);
     overflow-y: auto;
     background: rgba(0, 0, 0, 0.95);
@@ -2268,11 +2283,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    z-index: 9999 !important;
     padding: 8px;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
     pointer-events: auto !important;
   }
 

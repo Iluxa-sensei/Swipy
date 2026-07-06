@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useStartupsLazy, useSwipes, useAuth } from '../hooks'
 import OnboardingTutorial from '../components/OnboardingTutorial'
@@ -33,30 +34,21 @@ const HomePageFixed = () => {
     const [searchResults, setSearchResults] = useState({ startups: [], profiles: [] })
     const [isSearching, setIsSearching] = useState(false)
     const [showSearchResults, setShowSearchResults] = useState(false)
-    const searchContainerRef = useRef(null)
+    const searchFieldRef = useRef(null)
+    const searchDropdownRef = useRef(null)
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
 
     const cardRef = useRef(null)
     const detailsPullIndicatorRef = useRef(null)
     const lastTapRef = useRef(0)
     const navigate = useNavigate()
 
-    // Use real data from Supabase only
     const displayStartups = startups || []
 
     // Get current startup
     const currentStartup = displayStartups[currentCardIndex]
 
-    // Debug logging
-    console.log('=== HomePageFixed Debug ===')
-    console.log('user:', user)
-    console.log('startups:', startups)
-    console.log('startupsLoading:', startupsLoading)
-    console.log('startupsError:', startupsError)
-    console.log('displayStartups:', displayStartups)
-    console.log('displayStartups.length:', displayStartups?.length)
-    console.log('============================')
-
-    // Search functionality
+    // Search functionality — same as desktop: API search, dropdown results, cards unchanged
     useEffect(() => {
         const performSearch = async () => {
             if (!searchQuery.trim()) {
@@ -70,7 +62,6 @@ const HomePageFixed = () => {
             const isUserSearch = query.startsWith('@')
             const searchTerm = isUserSearch ? query.substring(1).trim() : query.trim()
 
-            // Require at least 2 characters for search
             if (isUserSearch && searchTerm.length < 2) {
                 setSearchResults({ startups: [], profiles: [] })
                 setShowSearchResults(false)
@@ -87,16 +78,14 @@ const HomePageFixed = () => {
 
             try {
                 if (isUserSearch) {
-                    // Search for users only when @ prefix is used
                     const profiles = await searchService.searchProfiles(searchTerm, 5)
                     setSearchResults({ startups: [], profiles })
                 } else {
-                    // Search both startups and profiles simultaneously
-                    const [startups, profiles] = await Promise.all([
+                    const [startupResults, profiles] = await Promise.all([
                         searchService.searchStartups(searchTerm, 5),
-                        searchService.searchProfiles(searchTerm, 5)
+                        searchService.searchProfiles(searchTerm, 5),
                     ])
-                    setSearchResults({ startups, profiles })
+                    setSearchResults({ startups: startupResults, profiles })
                 }
                 setShowSearchResults(true)
             } catch (error) {
@@ -111,19 +100,49 @@ const HomePageFixed = () => {
         return () => clearTimeout(debounceTimer)
     }, [searchQuery])
 
+    const syncDropdownPosition = useCallback(() => {
+        if (!searchFieldRef.current) return
+        const rect = searchFieldRef.current.getBoundingClientRect()
+        setDropdownPosition({
+            top: rect.bottom + 8,
+            left: 12,
+            width: window.innerWidth - 24,
+        })
+    }, [])
+
+    useLayoutEffect(() => {
+        const shouldShow = (showSearchResults || isSearching) && searchQuery.trim().length >= 2
+        if (shouldShow) {
+            syncDropdownPosition()
+        }
+    }, [showSearchResults, isSearching, searchQuery, syncDropdownPosition])
+
+    useEffect(() => {
+        const shouldShow = (showSearchResults || isSearching) && searchQuery.trim().length >= 2
+        if (!shouldShow) return
+
+        window.addEventListener('resize', syncDropdownPosition)
+        window.addEventListener('scroll', syncDropdownPosition, true)
+
+        return () => {
+            window.removeEventListener('resize', syncDropdownPosition)
+            window.removeEventListener('scroll', syncDropdownPosition, true)
+        }
+    }, [showSearchResults, isSearching, searchQuery, syncDropdownPosition])
+
     // Close search results when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+            const inField = searchFieldRef.current?.contains(event.target)
+            const inDropdown = searchDropdownRef.current?.contains(event.target)
+            if (!inField && !inDropdown) {
                 setShowSearchResults(false)
             }
         }
 
-        document.addEventListener('mousedown', handleClickOutside)
-        document.addEventListener('touchstart', handleClickOutside)
+        document.addEventListener('pointerdown', handleClickOutside)
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside)
-            document.removeEventListener('touchstart', handleClickOutside)
+            document.removeEventListener('pointerdown', handleClickOutside)
         }
     }, [])
 
@@ -132,6 +151,7 @@ const HomePageFixed = () => {
         setSearchQuery(value)
         if (value.trim().length >= 2) {
             setShowSearchResults(true)
+            syncDropdownPosition()
         } else {
             setShowSearchResults(false)
         }
@@ -213,16 +233,8 @@ const HomePageFixed = () => {
 
     // Preload logic: load more startups when we're close to the end
     useEffect(() => {
-        const displayStartups = startups || []
-        // If we have less than 2 startups remaining and there are more to load, preload them
-        if (currentCardIndex >= displayStartups.length - 2 && hasMore && !loadingMore && !startupsLoading) {
-            console.log('Preloading more startups...', {
-                currentCardIndex,
-                displayStartupsLength: displayStartups.length,
-                hasMore,
-                loadingMore,
-                startupsLoading
-            })
+        const list = startups || []
+        if (currentCardIndex >= list.length - 2 && hasMore && !loadingMore && !startupsLoading) {
             loadMore()
         }
     }, [currentCardIndex, startups, hasMore, loadingMore, loadMore, startupsLoading])
@@ -321,21 +333,163 @@ const HomePageFixed = () => {
         }, 400)
     }
 
+    const renderSearchDropdown = () => {
+        const shouldShow = (showSearchResults || isSearching) && searchQuery.trim().length >= 2
+        if (!shouldShow) return null
+
+        return createPortal(
+            <div
+                ref={searchDropdownRef}
+                className="mobile-search-results"
+                style={{
+                    position: 'fixed',
+                    top: dropdownPosition.top,
+                    left: dropdownPosition.left,
+                    width: dropdownPosition.width,
+                    zIndex: 99999,
+                }}
+            >
+                {isSearching ? (
+                    <div className="mobile-search-empty">
+                        <i className="fas fa-spinner fa-spin"></i>
+                        <span>Searching...</span>
+                    </div>
+                ) : searchResults.startups.length === 0 && searchResults.profiles.length === 0 ? (
+                    <div className="mobile-search-empty">
+                        <i className="fas fa-search"></i>
+                        <span>No results for &ldquo;{searchQuery.trim()}&rdquo;</span>
+                    </div>
+                ) : (
+                    <>
+                        {searchResults.startups.length > 0 && (
+                            <div className="mobile-search-section">
+                                <div className="mobile-search-section-header">
+                                    <i className="fas fa-rocket"></i>
+                                    <span>Startups</span>
+                                </div>
+                                {searchResults.startups.map(startup => (
+                                    <div
+                                        key={startup.id}
+                                        className="mobile-search-result-item"
+                                        onClick={() => handleResultClick('startup', startup)}
+                                    >
+                                        <div className="mobile-search-result-avatar">
+                                            {startup.logo_url ? (
+                                                <img src={startup.logo_url} alt={startup.name} />
+                                            ) : (
+                                                <div className={`mobile-search-result-fallback ${startup.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'}`}>
+                                                    <span>{startup.logo || startup.name?.[0] || 'S'}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="mobile-search-result-info">
+                                            <div className="mobile-search-result-name">{startup.name}</div>
+                                            <div className="mobile-search-result-meta">
+                                                {startup.industry && <span>{startup.industry}</span>}
+                                                {startup.stage && <span>{startup.stage}</span>}
+                                            </div>
+                                        </div>
+                                        <i className="fas fa-chevron-right mobile-search-result-arrow"></i>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {searchResults.profiles.length > 0 && (
+                            <div className="mobile-search-section">
+                                <div className="mobile-search-section-header">
+                                    <i className="fas fa-user"></i>
+                                    <span>People</span>
+                                </div>
+                                {searchResults.profiles.map(profile => (
+                                    <div
+                                        key={profile.id}
+                                        className="mobile-search-result-item"
+                                        onClick={() => handleResultClick('profile', profile)}
+                                    >
+                                        <div className="mobile-search-result-avatar">
+                                            {profile.avatar_url ? (
+                                                <img src={profile.avatar_url} alt={profile.full_name || profile.username} />
+                                            ) : (
+                                                <div className="mobile-search-result-fallback bg-gradient-to-br from-blue-300 to-blue-700">
+                                                    <span>{(profile.full_name || profile.username || 'U')?.[0]?.toUpperCase() || '?'}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="mobile-search-result-info">
+                                            <div className="mobile-search-result-name">
+                                                {profile.full_name || profile.username || 'User'}
+                                                {profile.username && <span className="mobile-search-result-username">@{profile.username}</span>}
+                                            </div>
+                                            {profile.role && (
+                                                <div className="mobile-search-result-meta">
+                                                    <span>{profile.role}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <i className="fas fa-chevron-right mobile-search-result-arrow"></i>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>,
+            document.body
+        )
+    }
+
+    const renderMobileToolbar = () => (
+        <>
+            <div className="mobile-home-toolbar">
+                <div className="mobile-search-field" ref={searchFieldRef}>
+                    <div className="mobile-search-bar">
+                        <i className="fas fa-search mobile-search-icon"></i>
+                        <input
+                            type="search"
+                            placeholder="Search startups or @users..."
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                            onFocus={() => {
+                                syncDropdownPosition()
+                                if (searchQuery.trim().length >= 2) setShowSearchResults(true)
+                            }}
+                            className="mobile-search-input"
+                        />
+                        {isSearching && (
+                            <i className="fas fa-spinner fa-spin mobile-search-spinner"></i>
+                        )}
+                        {searchQuery && !isSearching && (
+                            <button
+                                type="button"
+                                className="mobile-search-clear"
+                                onClick={() => {
+                                    setSearchQuery('')
+                                    setShowSearchResults(false)
+                                }}
+                            >
+                                <i className="fas fa-times"></i>
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                <button type="button" className="mobile-toolbar-btn" onClick={() => navigate('/filters')} aria-label="Filters">
+                    <i className="fas fa-filter"></i>
+                </button>
+
+                <button type="button" className="mobile-toolbar-btn" onClick={() => navigate('/saved')} aria-label="Saved">
+                    <i className="fas fa-bookmark"></i>
+                </button>
+            </div>
+            {renderSearchDropdown()}
+        </>
+    )
+
     // Show loading state
     if (startupsLoading) {
         return (
             <div className="screen active">
-                <div className="header">
-                    <button className="header-btn" onClick={() => navigate('/filters')}>
-                        <i className="fas fa-filter"></i>
-                    </button>
-                    <h1 className="text-3xl font-bold animate-super-gradient">
-                        Swipy
-                    </h1>
-                    <button className="header-btn" onClick={() => navigate('/saved')}>
-                        <i className="fas fa-bookmark"></i>
-                    </button>
-                </div>
+                {renderMobileToolbar()}
 
                 <div className="flex items-center justify-center h-full">
                     <div className="text-center">
@@ -354,17 +508,7 @@ const HomePageFixed = () => {
     if (startupsError) {
         return (
             <div className="screen active">
-                <div className="header">
-                    <button className="header-btn" onClick={() => navigate('/filters')}>
-                        <i className="fas fa-filter"></i>
-                    </button>
-                    <h1 className="text-3xl font-bold animate-super-gradient">
-                        Swipy
-                    </h1>
-                    <button className="header-btn" onClick={() => navigate('/saved')}>
-                        <i className="fas fa-bookmark"></i>
-                    </button>
-                </div>
+                {renderMobileToolbar()}
 
                 <div className="flex items-center justify-center h-full">
                     <div className="text-center">
@@ -391,15 +535,7 @@ const HomePageFixed = () => {
         if (loadingMore) {
             return (
                 <div className="screen active">
-                    <div className="header">
-                        <button className="header-btn" onClick={() => navigate('/filters')}>
-                            <i className="fas fa-filter"></i>
-                        </button>
-                        <h1 className="text-3xl font-bold animate-super-gradient">Swipy</h1>
-                        <button className="header-btn" onClick={() => navigate('/saved')}>
-                            <i className="fas fa-bookmark"></i>
-                        </button>
-                    </div>
+                    {renderMobileToolbar()}
 
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center">
@@ -421,15 +557,7 @@ const HomePageFixed = () => {
 
         return (
             <div className="screen active">
-                <div className="header">
-                    <button className="header-btn" onClick={() => navigate('/filters')}>
-                        <i className="fas fa-filter"></i>
-                    </button>
-                    <h1 className="text-3xl font-bold animate-super-gradient">Swipy</h1>
-                    <button className="header-btn" onClick={() => navigate('/saved')}>
-                        <i className="fas fa-bookmark"></i>
-                    </button>
-                </div>
+                {renderMobileToolbar()}
 
                 <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
@@ -442,11 +570,11 @@ const HomePageFixed = () => {
                         <p className="text-text-secondary mb-6">
                             {hasMore
                                 ? 'Loading more startup opportunities for you...'
-                                : 'You\'ve seen all available startups. Check back later for new opportunities!'
-                            }
+                                : 'You\'ve seen all available startups. Check back later for new opportunities!'}
                         </p>
                         {hasMore && (
                             <button
+                                type="button"
                                 className="btn-primary hover:scale-105 transition-transform duration-200"
                                 onClick={loadMore}
                                 disabled={loadingMore}
@@ -457,6 +585,7 @@ const HomePageFixed = () => {
                         )}
                         {!hasMore && (
                             <button
+                                type="button"
                                 className="btn-primary hover:scale-105 transition-transform duration-200"
                                 onClick={() => setCurrentCardIndex(0)}
                             >
@@ -472,138 +601,9 @@ const HomePageFixed = () => {
 
     return (
         <div className="screen active flex flex-col">
-            {/* Mobile Search Bar */}
-            <div className="mobile-search-container" ref={searchContainerRef}>
-                <div className="mobile-search-bar">
-                    <i className="fas fa-search mobile-search-icon"></i>
-                    <input
-                        type="search"
-                        placeholder="Search startups or @users..."
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        onFocus={() => searchQuery.trim().length >= 2 && setShowSearchResults(true)}
-                        className="mobile-search-input"
-                    />
-                    {isSearching && (
-                        <i className="fas fa-spinner fa-spin mobile-search-spinner"></i>
-                    )}
-                    {searchQuery && !isSearching && (
-                        <button
-                            className="mobile-search-clear"
-                            onClick={() => {
-                                setSearchQuery('')
-                                setShowSearchResults(false)
-                            }}
-                        >
-                            <i className="fas fa-times"></i>
-                        </button>
-                    )}
-                </div>
+            {renderMobileToolbar()}
 
-                {/* Search Results Dropdown */}
-                {showSearchResults && searchQuery.trim().length >= 2 && (
-                    <div className="mobile-search-results">
-                        {isSearching ? (
-                            <div className="mobile-search-empty">
-                                <i className="fas fa-spinner fa-spin"></i>
-                                <span>Searching...</span>
-                            </div>
-                        ) : searchResults.startups.length === 0 && searchResults.profiles.length === 0 ? (
-                            <div className="mobile-search-empty">
-                                <i className="fas fa-search"></i>
-                                <span>No results found</span>
-                            </div>
-                        ) : (
-                            <>
-                                {searchResults.startups.length > 0 && (
-                                    <div className="mobile-search-section">
-                                        <div className="mobile-search-section-header">
-                                            <i className="fas fa-rocket"></i>
-                                            <span>Startups</span>
-                                        </div>
-                                        {searchResults.startups.map(startup => (
-                                            <div
-                                                key={startup.id}
-                                                className="mobile-search-result-item"
-                                                onClick={() => handleResultClick('startup', startup)}
-                                            >
-                                                <div className="mobile-search-result-avatar">
-                                                    {startup.logo_url ? (
-                                                        <img src={startup.logo_url} alt={startup.name} />
-                                                    ) : (
-                                                        <div className={`mobile-search-result-fallback ${startup.gradient || 'bg-gradient-to-br from-blue-300 to-blue-700'}`}>
-                                                            <span>{startup.logo || startup.name?.[0] || 'S'}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="mobile-search-result-info">
-                                                    <div className="mobile-search-result-name">{startup.name}</div>
-                                                    <div className="mobile-search-result-meta">
-                                                        {startup.industry && <span>{startup.industry}</span>}
-                                                        {startup.stage && <span>{startup.stage}</span>}
-                                                    </div>
-                                                </div>
-                                                <i className="fas fa-chevron-right mobile-search-result-arrow"></i>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {searchResults.profiles.length > 0 && (
-                                    <div className="mobile-search-section">
-                                        <div className="mobile-search-section-header">
-                                            <i className="fas fa-user"></i>
-                                            <span>People</span>
-                                        </div>
-                                        {searchResults.profiles.map(profile => (
-                                            <div
-                                                key={profile.id}
-                                                className="mobile-search-result-item"
-                                                onClick={() => handleResultClick('profile', profile)}
-                                            >
-                                                <div className="mobile-search-result-avatar">
-                                                    {profile.avatar_url ? (
-                                                        <img src={profile.avatar_url} alt={profile.full_name || profile.username} />
-                                                    ) : (
-                                                        <div className="mobile-search-result-fallback bg-gradient-to-br from-blue-300 to-blue-700">
-                                                            <span>{(profile.full_name || profile.username || 'U')?.[0]?.toUpperCase() || '?'}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="mobile-search-result-info">
-                                                    <div className="mobile-search-result-name">
-                                                        {profile.full_name || profile.username || 'User'}
-                                                        {profile.username && <span className="mobile-search-result-username">@{profile.username}</span>}
-                                                    </div>
-                                                    {profile.role && (
-                                                        <div className="mobile-search-result-meta">
-                                                            <span>{profile.role}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <i className="fas fa-chevron-right mobile-search-result-arrow"></i>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            <div className="header">
-                <button className="header-btn" onClick={() => navigate('/filters')}>
-                    <i className="fas fa-filter"></i>
-                </button>
-                <h1 className="text-3xl font-bold animate-super-gradient">
-                    Swipy
-                </h1>
-                <button className="header-btn" onClick={() => navigate('/saved')}>
-                    <i className="fas fa-bookmark"></i>
-                </button>
-            </div>
-
-            <div className="swipe-container flex-1 w-full flex items-start justify-center overflow-hidden px-2 pt-2">
+            <div className="swipe-container flex-1 w-full flex items-start justify-center overflow-hidden px-2 pt-1">
                 <div className="card-stack relative w-full max-w-[480px] aspect-[3/6] max-h-full">
                     {/* Back card (next) */}
                     {currentCardIndex + 1 < displayStartups.length && (
