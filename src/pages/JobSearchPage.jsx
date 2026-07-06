@@ -205,43 +205,29 @@ const JobSearchPage = () => {
 
             <div className="flex-1 overflow-y-auto pb-6">
                 <div className="p-4 space-y-4">
-                    {/* Search: show big query when searched, else input */}
-                    {hasSearched && query.trim() ? (
-                        <div className="flex items-center gap-3 flex-wrap">
-                            <h2 className="text-xl font-bold text-text-primary flex-1 min-w-0 truncate">{query.trim()}</h2>
-                            <button
-                                type="button"
-                                onClick={handleSearch}
-                                className="w-10 h-10 rounded-full border border-glass-border bg-glass-bg flex items-center justify-center text-text-secondary flex-shrink-0"
-                                aria-label="Edit search"
-                            >
-                                <i className="fas fa-magnifying-glass"></i>
-                            </button>
+                    <div className="flex gap-2">
+                        <div className="flex-1 relative">
+                            <i className="fas fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-sm"></i>
+                            <input
+                                type="text"
+                                placeholder="Search jobs, e.g. designer, react, remote..."
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                aria-label="Job search keyword"
+                                className="w-full pl-10 pr-4 py-3 bg-bg-secondary border border-glass-border rounded-xl text-text-primary placeholder-text-secondary text-sm focus:outline-none focus:border-accent-primary/50 transition-colors"
+                            />
                         </div>
-                    ) : (
-                        <div className="flex gap-2">
-                            <div className="flex-1 relative">
-                                <i className="fas fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-sm"></i>
-                                <input
-                                    type="text"
-                                    placeholder="Search jobs, e.g. designer, react, remote..."
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    aria-label="Job search keyword"
-                                    className="w-full pl-10 pr-4 py-3 bg-bg-secondary border border-glass-border rounded-xl text-text-primary placeholder-text-secondary text-sm focus:outline-none focus:border-accent-primary/50 transition-colors"
-                                />
-                            </div>
-                            <button
-                                onClick={handleSearch}
-                                disabled={isLoading}
-                                aria-label="Search jobs"
-                                className="px-5 py-3 rounded-xl bg-accent-primary text-white font-semibold text-sm hover:opacity-90 disabled:opacity-50 flex items-center justify-center"
-                            >
-                                {isLoading ? <i className="fas fa-spinner fa-spin"></i> : 'Search'}
-                            </button>
-                        </div>
-                    )}
+                        <button
+                            type="button"
+                            onClick={handleSearch}
+                            disabled={isLoading}
+                            aria-label="Search jobs"
+                            className="px-5 py-3 rounded-xl bg-accent-primary text-white font-semibold text-sm hover:opacity-90 disabled:opacity-50 flex items-center justify-center"
+                        >
+                            {isLoading ? <i className="fas fa-spinner fa-spin"></i> : 'Search'}
+                        </button>
+                    </div>
 
                     {validationMsg && <p className="text-sm text-accent-warning px-1">{validationMsg}</p>}
                     {error && (

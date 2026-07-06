@@ -5,6 +5,14 @@ import { profileService } from '../services'
 import LocationSelector from '../components/LocationSelector'
 import { setCachedOnboardingCompleted } from '../components/ProtectedRoute.jsx'
 
+const formatLocationDisplay = ({ locationContinent, locationCountry, locationCity }) => {
+  if (locationContinent === 'Remote') return 'Remote'
+  return [locationCity, locationCountry, locationContinent]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(', ')
+}
+
 const OnboardingPage = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -163,9 +171,7 @@ const OnboardingPage = () => {
         full_name: userData.full_name,
         username: userData.username || null,
         bio: userData.bio || null,
-        location: userData.locationContinent === 'Remote'
-          ? 'Remote'
-          : `${userData.locationCity}, ${userData.locationCountry}, ${userData.locationContinent}`,
+        location: formatLocationDisplay(userData),
         website: userData.website || null,
         role: userData.role || null,
         interests: userData.interests && userData.interests.length > 0 ? userData.interests : null,
@@ -204,44 +210,43 @@ const OnboardingPage = () => {
   const progress = (currentStep / 4) * 100
 
   return (
-    <div className="min-h-screen w-full bg-[#050816] bg-gradient-to-br from-[#050816] via-[#020617] to-black flex flex-col items-center justify-center px-4">
-      {/* Brand & progress */}
-      <div className="w-full max-w-xl mx-auto mb-6">
-        <div className="flex items-center justify-center mb-6">
-          <div className="flex items-center gap-2">
-            <img
-              src="/Vector.png"
-              alt="Swipy logo"
-              className="w-8 h-8"
-            />
-            <span className="text-lg font-semibold tracking-tight text-white">Swipy</span>
+    <div className="onboarding-page h-[100dvh] min-h-[100dvh] w-full overflow-y-auto overscroll-y-contain bg-[#050816] bg-gradient-to-br from-[#050816] via-[#020617] to-black">
+      <div className="flex flex-col items-center px-4 py-6 pb-24 w-full max-w-xl mx-auto">
+        {/* Brand & progress */}
+        <div className="w-full shrink-0 mb-6">
+          <div className="flex items-center justify-center mb-6">
+            <div className="flex items-center gap-2">
+              <img
+                src="/Vector.png"
+                alt="Swipy logo"
+                className="w-8 h-8"
+              />
+              <span className="text-lg font-semibold tracking-tight text-white">Swipy</span>
+            </div>
+          </div>
+          <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-blue-400 via-indigo-500 to-cyan-400 transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            ></div>
           </div>
         </div>
-        <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-blue-400 via-indigo-500 to-cyan-400 transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-      </div>
 
-      {/* Centered onboarding card */}
-      <div className="w-full max-w-xl mx-auto">
-        <div className="bg-bg-secondary/90 border border-glass-border rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.7)] backdrop-blur-xl p-6 sm:p-8">
-          {/* Error Message */}
-          {error && (
-            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/40 rounded-2xl">
-              <div className="flex items-center gap-3 text-red-300">
-                <i className="fas fa-exclamation-circle"></i>
-                <span className="font-medium text-sm">{error}</span>
+        {/* Onboarding card */}
+        <div className="w-full">
+          <div className="bg-bg-secondary/90 border border-glass-border rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.7)] backdrop-blur-xl p-6 sm:p-8">
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-4 bg-red-500/10 border border-red-500/40 rounded-2xl">
+                <div className="flex items-center gap-3 text-red-300">
+                  <i className="fas fa-exclamation-circle"></i>
+                  <span className="font-medium text-sm">{error}</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Step content */}
-          {/* Step 1: Basic Information */}
-          <div className="max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
-        {/* Step 1: Basic Information */}
+            {/* Step content */}
+            <div className="pr-1">
         {currentStep === 1 && (
           <div className="pt-2 space-y-6 animate-fade-in">
             <div className="text-center mb-8">
@@ -434,9 +439,7 @@ const OnboardingPage = () => {
                 <div>
                   <h4 className="font-medium text-text-primary mb-1">Location</h4>
                   <p className="text-text-secondary text-sm">
-                    {userData.locationContinent === 'Remote'
-                      ? 'Remote'
-                      : `${userData.locationCity}, ${userData.locationCountry}, ${userData.locationContinent}`}
+                    {formatLocationDisplay(userData)}
                   </p>
                 </div>
               </div>
@@ -459,7 +462,7 @@ const OnboardingPage = () => {
           </div>
 
           {/* Navigation inside card */}
-          <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="mt-8 pb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <button
               onClick={prevStep}
               disabled={currentStep === 1}
@@ -498,6 +501,7 @@ const OnboardingPage = () => {
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   )
