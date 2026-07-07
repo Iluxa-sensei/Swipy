@@ -10,8 +10,10 @@ const StartupDetailPage = () => {
     const { id, nickname, startup_name } = useParams()
     const { user } = useAuth()
     const { startups, loading: startupsLoading, error: startupsError } = useStartups()
-    const { likeStartup, passStartup, getSwipeStatus } = useSwipes(user?.id)
-    const [swipeStatus, setSwipeStatus] = useState(null)
+    const { likeStartup, removeSwipe, getSwipeStatus } = useSwipes(user?.id)
+    const [isLiked, setIsLiked] = useState(false)
+    const [isLiking, setIsLiking] = useState(false)
+    const [likesCount, setLikesCount] = useState(0)
     const [isLoading, setIsLoading] = useState(false)
     const [fetchedStartup, setFetchedStartup] = useState(null)
     const [fetchingDetail, setFetchingDetail] = useState(false)
@@ -73,6 +75,13 @@ const StartupDetailPage = () => {
         fetchDetail()
     }, [id, nickname, startup_name, startup, startupsLoading])
 
+    // Sync likes count from startup data
+    useEffect(() => {
+        if (startup?.likes_count !== undefined) {
+            setLikesCount(startup.likes_count ?? 0)
+        }
+    }, [startup?.id, startup?.likes_count])
+
     // Load swipe status
     useEffect(() => {
         const loadSwipeStatus = async () => {
@@ -80,7 +89,7 @@ const StartupDetailPage = () => {
 
             try {
                 const status = await getSwipeStatus(startup.id)
-                setSwipeStatus(status)
+                setIsLiked(status === 'liked')
             } catch (error) {
                 console.error('Error loading swipe status:', error)
             }
@@ -88,6 +97,35 @@ const StartupDetailPage = () => {
 
         loadSwipeStatus()
     }, [user?.id, startup?.id, getSwipeStatus])
+
+    const handleLike = async () => {
+        if (!user?.id) {
+            navigate('/login')
+            return
+        }
+
+        setIsLiking(true)
+        const wasLiked = isLiked
+        const previousCount = likesCount
+
+        setIsLiked(!wasLiked)
+        setLikesCount(wasLiked ? Math.max(0, previousCount - 1) : previousCount + 1)
+
+        try {
+            if (wasLiked) {
+                await removeSwipe(startup.id)
+            } else {
+                await likeStartup(startup.id)
+            }
+        } catch (error) {
+            console.error('Error toggling like:', error)
+            setIsLiked(wasLiked)
+            setLikesCount(previousCount)
+            alert('Failed to update like status')
+        } finally {
+            setIsLiking(false)
+        }
+    }
 
     const openChat = async () => {
         if (!user?.id || !startup?.id) {
@@ -221,9 +259,19 @@ const StartupDetailPage = () => {
                     <i className="fas fa-arrow-left"></i>
                 </button>
                 <h1>{startup.name}</h1>
-                <button className="header-btn" onClick={() => navigate('/saved')}>
-                    <i className="fas fa-bookmark"></i>
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        className={`header-btn ${isLiked ? 'text-red-400 border-red-500/30' : ''}`}
+                        onClick={handleLike}
+                        disabled={isLiking}
+                        aria-label={isLiked ? 'Unlike startup' : 'Like startup'}
+                    >
+                        <i className={`fas fa-heart ${isLiked ? 'text-red-400' : ''}`}></i>
+                    </button>
+                    <button className="header-btn" onClick={() => navigate('/saved')}>
+                        <i className="fas fa-bookmark"></i>
+                    </button>
+                </div>
             </div>
 
             <div className="flex-1 overflow-y-auto pb-6">
@@ -277,6 +325,23 @@ const StartupDetailPage = () => {
                         <div className="bg-glass-bg border border-glass-border rounded-2xl p-4">
                             <div className="text-text-secondary text-sm">Stage</div>
                             <div className="text-text-primary font-semibold">{startup.stage || 'N/A'}</div>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                        <div className="flex-1 bg-glass-bg border border-glass-border rounded-2xl p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-text-secondary text-sm">
+                                <i className="fas fa-heart text-red-400"></i>
+                                Likes
+                            </div>
+                            <div className="text-text-primary font-semibold text-lg">{likesCount}</div>
+                        </div>
+                        <div className="flex-1 bg-glass-bg border border-glass-border rounded-2xl p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-text-secondary text-sm">
+                                <i className="fas fa-comments text-accent-primary"></i>
+                                Chats
+                            </div>
+                            <div className="text-text-primary font-semibold text-lg">{startup.chat_count ?? 0}</div>
                         </div>
                     </div>
 

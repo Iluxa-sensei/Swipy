@@ -780,6 +780,11 @@ const HomePageFixed = () => {
                                         )}
                                     </div>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+
+                                    <div className="absolute top-4 right-4 px-2.5 py-1 bg-black/50 backdrop-blur-md border border-white/20 rounded-full text-[11px] font-semibold text-white flex items-center gap-1.5">
+                                        <i className="fas fa-heart text-red-400 text-[10px]"></i>
+                                        <span>{currentStartup.likes_count ?? 0}</span>
+                                    </div>
                                     
                                     {/* Badges on image */}
                                     <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">

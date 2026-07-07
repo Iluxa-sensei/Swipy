@@ -247,261 +247,260 @@ const OnboardingPage = () => {
 
             {/* Step content */}
             <div className="pr-1">
-        {currentStep === 1 && (
-          <div className="pt-2 space-y-6 animate-fade-in">
-            <div className="text-center mb-8">
-              <div className="state-icon state-icon-blue">
-                <i className="fas fa-user"></i>
-              </div>
-              <h2 className="text-2xl font-bold text-text-primary mb-2">Tell us about yourself</h2>
-              <p className="text-text-secondary">Let's start with the basics</p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  value={userData.full_name}
-                  onChange={(e) => handleInputChange('full_name', e.target.value)}
-                  className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
-                  placeholder="Enter your full name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Username *
-                </label>
-                <input
-                  type="text"
-                  placeholder="Username (e.g., @yourname)"
-                  value={userData.username}
-                  onChange={(e) => handleInputChange('username', e.target.value)}
-                  className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-colors duration-200"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-text-primary">
-                    Bio
-                  </label>
-                  <span className={`text-xs ${(userData.bio?.length || 0) > 270 ? 'text-red-400' : 'text-text-secondary'}`}>
-                    {userData.bio?.length || 0}/300
-                  </span>
-                </div>
-                <textarea
-                  value={userData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value.slice(0, 300))}
-                  maxLength={300}
-                  rows={4}
-                  className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200 resize-none"
-                  placeholder="Tell us about yourself..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-2">
-                  Website
-                </label>
-                <input
-                  type="url"
-                  value={userData.website}
-                  onChange={(e) => handleInputChange('website', e.target.value)}
-                  className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
-                  placeholder="https://yourwebsite.com (optional)"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 2: Role Selection */}
-        {currentStep === 2 && (
-          <div className="pt-2 space-y-6 animate-fade-in">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-text-primary mb-2">What's your role?</h2>
-              <p className="text-text-secondary">Choose the role that best describes you</p>
-            </div>
-
-            <div className="space-y-4">
-              {roles.map((role) => (
-                <button
-                  key={role.value}
-                  onClick={() => handleInputChange('role', role.value)}
-                  className={`w-full p-6 text-left border-2 rounded-2xl ${userData.role === role.value
-                    ? 'border-accent-primary bg-accent-primary/10'
-                    : 'border-glass-border bg-glass-bg'
-                    }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="state-icon state-icon-sm state-icon-blue" style={{marginBottom: 0}}>
-                      <i className={role.icon}></i>
+              {currentStep === 1 && (
+                <div className="pt-2 space-y-6 animate-fade-in">
+                  <div className="text-center mb-8">
+                    <div className="state-icon state-icon-blue">
+                      <i className="fas fa-user"></i>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-text-primary mb-1">{role.label}</h3>
-                      <p className="text-text-secondary text-sm">{role.description}</p>
-                    </div>
-                    {userData.role === role.value && (
-                      <div className="w-6 h-6 bg-accent-primary rounded-full flex items-center justify-center">
-                        <i className="fas fa-check text-white text-sm"></i>
-                      </div>
-                    )}
+                    <h2 className="text-2xl font-bold text-text-primary mb-2">Tell us about yourself</h2>
+                    <p className="text-text-secondary">Let's start with the basics</p>
                   </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* Step 3: Interests & Location */}
-        {currentStep === 3 && (
-          <div className="pt-2 space-y-6 animate-fade-in">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-text-primary mb-2">What interests you?</h2>
-              <p className="text-text-secondary">Select industries and set your location</p>
-            </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-text-primary mb-2">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={userData.full_name}
+                        onChange={(e) => handleInputChange('full_name', e.target.value)}
+                        className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
+                        placeholder="Enter your full name"
+                      />
+                    </div>
 
-            <div className="space-y-6">
-              {/* Interests */}
-              <div>
-                <h3 className="text-lg font-semibold text-text-primary mb-4">Industry Interests</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {interestCategories.map((interest) => (
-                    <button
-                      key={interest}
-                      onClick={() => handleInterestToggle(interest)}
-                      className={`p-3 rounded-2xl border ${userData.interests.includes(interest)
-                        ? 'btn-icon-style shadow-lg'
-                        : 'bg-glass-bg border-glass-border text-text-primary'
-                        }`}
-                    >
-                      {interest}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    <div>
+                      <label className="block text-sm font-medium text-text-primary mb-2">
+                        Username *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Without @ (e.g.,yourname)"
+                        value={userData.username}
+                        onChange={(e) => handleInputChange('username', e.target.value)}
+                        className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent-primary transition-colors duration-200"
+                      />
+                    </div>
 
-              {/* Location */}
-              <div>
-                <h3 className="text-lg font-semibold text-text-primary mb-4">Location</h3>
-                <LocationSelector
-                  value={userData.location}
-                  onChange={(value) => handleInputChange('location', value)}
-                  onContinentChange={(value) => handleInputChange('locationContinent', value)}
-                  onCountryChange={(value) => handleInputChange('locationCountry', value)}
-                  onCityChange={(value) => handleInputChange('locationCity', value)}
-                  continentValue={userData.locationContinent}
-                  countryValue={userData.locationCountry}
-                  cityValue={userData.locationCity}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-text-primary">
+                          Bio
+                        </label>
+                        <span className={`text-xs ${(userData.bio?.length || 0) > 270 ? 'text-red-400' : 'text-text-secondary'}`}>
+                          {userData.bio?.length || 0}/300
+                        </span>
+                      </div>
+                      <textarea
+                        value={userData.bio}
+                        onChange={(e) => handleInputChange('bio', e.target.value.slice(0, 300))}
+                        maxLength={300}
+                        rows={4}
+                        className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200 resize-none"
+                        placeholder="Tell us about yourself..."
+                      />
+                    </div>
 
-        {/* Step 4: Review & Complete */}
-        {currentStep === 4 && (
-          <div className="pt-2 space-y-6 animate-fade-in">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-text-primary mb-2">Review Your Profile</h2>
-              <p className="text-text-secondary">Everything looks great! Let's get you started</p>
-            </div>
-
-            <div className="bg-glass-bg border border-glass-border rounded-2xl p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">
-                    {userData.full_name ? userData.full_name.charAt(0).toUpperCase() : 'U'}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-text-primary">{userData.full_name}</h3>
-                  <p className="text-text-secondary">@{userData.username}</p>
-                </div>
-              </div>
-
-              {userData.bio && (
-                <div>
-                  <h4 className="font-medium text-text-primary mb-1">Bio</h4>
-                  <p className="text-text-secondary text-sm">{userData.bio}</p>
+                    <div>
+                      <label className="block text-sm font-medium text-text-primary mb-2">
+                        Website
+                      </label>
+                      <input
+                        type="url"
+                        value={userData.website}
+                        onChange={(e) => handleInputChange('website', e.target.value)}
+                        className="w-full p-4 bg-glass-bg border border-glass-border rounded-2xl text-text-primary placeholder-text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 transition-all duration-200"
+                        placeholder="https://yourwebsite.com (optional)"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-medium text-text-primary mb-1">Role</h4>
-                  <p className="text-text-secondary text-sm capitalize">{userData.role}</p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-text-primary mb-1">Location</h4>
-                  <p className="text-text-secondary text-sm">
-                    {formatLocationDisplay(userData)}
-                  </p>
-                </div>
-              </div>
+              {/* Step 2: Role Selection */}
+              {currentStep === 2 && (
+                <div className="pt-2 space-y-6 animate-fade-in">
+                  <div className="text-center mb-8">
+                    <h2 className="text-2xl font-bold text-text-primary mb-2">What's your role?</h2>
+                    <p className="text-text-secondary">Choose the role that best describes you</p>
+                  </div>
 
-              {userData.interests.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-text-primary mb-2">Interests</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {userData.interests.map((interest) => (
-                      <span key={interest} className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm">
-                        {interest}
-                      </span>
+                  <div className="space-y-4">
+                    {roles.map((role) => (
+                      <button
+                        key={role.value}
+                        onClick={() => handleInputChange('role', role.value)}
+                        className={`w-full p-6 text-left border-2 rounded-2xl ${userData.role === role.value
+                          ? 'border-accent-primary bg-accent-primary/10'
+                          : 'border-glass-border bg-glass-bg'
+                          }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="state-icon state-icon-sm state-icon-blue" style={{ marginBottom: 0 }}>
+                            <i className={role.icon}></i>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-text-primary mb-1">{role.label}</h3>
+                            <p className="text-text-secondary text-sm">{role.description}</p>
+                          </div>
+                          {userData.role === role.value && (
+                            <div className="w-6 h-6 bg-accent-primary rounded-full flex items-center justify-center">
+                              <i className="fas fa-check text-white text-sm"></i>
+                            </div>
+                          )}
+                        </div>
+                      </button>
                     ))}
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-        )}
-          </div>
 
-          {/* Navigation inside card */}
-          <div className="mt-8 pb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <button
-              onClick={prevStep}
-              disabled={currentStep === 1}
-              className={`w-full sm:w-auto px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
-                currentStep === 1
+              {/* Step 3: Interests & Location */}
+              {currentStep === 3 && (
+                <div className="pt-2 space-y-6 animate-fade-in">
+                  <div className="text-center mb-8">
+                    <h2 className="text-2xl font-bold text-text-primary mb-2">What interests you?</h2>
+                    <p className="text-text-secondary">Select industries and set your location</p>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Interests */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-text-primary mb-4">Industry Interests</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        {interestCategories.map((interest) => (
+                          <button
+                            key={interest}
+                            onClick={() => handleInterestToggle(interest)}
+                            className={`p-3 rounded-2xl border ${userData.interests.includes(interest)
+                              ? 'btn-icon-style shadow-lg'
+                              : 'bg-glass-bg border-glass-border text-text-primary'
+                              }`}
+                          >
+                            {interest}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Location */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-text-primary mb-4">Location</h3>
+                      <LocationSelector
+                        value={userData.location}
+                        onChange={(value) => handleInputChange('location', value)}
+                        onContinentChange={(value) => handleInputChange('locationContinent', value)}
+                        onCountryChange={(value) => handleInputChange('locationCountry', value)}
+                        onCityChange={(value) => handleInputChange('locationCity', value)}
+                        continentValue={userData.locationContinent}
+                        countryValue={userData.locationCountry}
+                        cityValue={userData.locationCity}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Review & Complete */}
+              {currentStep === 4 && (
+                <div className="pt-2 space-y-6 animate-fade-in">
+                  <div className="text-center mb-8">
+                    <h2 className="text-2xl font-bold text-text-primary mb-2">Review Your Profile</h2>
+                    <p className="text-text-secondary">Everything looks great! Let's get you started</p>
+                  </div>
+
+                  <div className="bg-glass-bg border border-glass-border rounded-2xl p-6 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-300 to-blue-700 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-lg">
+                          {userData.full_name ? userData.full_name.charAt(0).toUpperCase() : 'U'}
+                        </span>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-text-primary">{userData.full_name}</h3>
+                        <p className="text-text-secondary">@{userData.username}</p>
+                      </div>
+                    </div>
+
+                    {userData.bio && (
+                      <div>
+                        <h4 className="font-medium text-text-primary mb-1">Bio</h4>
+                        <p className="text-text-secondary text-sm">{userData.bio}</p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium text-text-primary mb-1">Role</h4>
+                        <p className="text-text-secondary text-sm capitalize">{userData.role}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-text-primary mb-1">Location</h4>
+                        <p className="text-text-secondary text-sm">
+                          {formatLocationDisplay(userData)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {userData.interests.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-text-primary mb-2">Interests</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {userData.interests.map((interest) => (
+                            <span key={interest} className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-full text-sm">
+                              {interest}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Navigation inside card */}
+            <div className="mt-8 pb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <button
+                onClick={prevStep}
+                disabled={currentStep === 1}
+                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${currentStep === 1
                   ? 'border-transparent text-text-secondary cursor-not-allowed bg-transparent'
                   : 'border-glass-border text-text-secondary hover:bg-bg-tertiary'
-              }`}
-            >
-              <i className="fas fa-arrow-left mr-2"></i>
-              Back
-            </button>
+                  }`}
+              >
+                <i className="fas fa-arrow-left mr-2"></i>
+                Back
+              </button>
 
-            {currentStep < 4 ? (
-              <button
-                onClick={nextStep}
-                disabled={
-                  (currentStep === 1 && (!userData.full_name.trim() || !userData.username.trim())) ||
-                  (currentStep === 2 && !userData.role) ||
-                  (currentStep === 3 && (userData.interests.length === 0 || !userData.locationContinent))
-                }
-                className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-400 to-indigo-600 text-white rounded-xl font-semibold shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-                <i className="fas fa-arrow-right ml-2"></i>
-              </button>
-            ) : (
-              <button
-                onClick={completeOnboarding}
-                disabled={loading}
-                className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-xl font-semibold shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-check'} mr-2`}></i>
-                {loading ? 'Setting up...' : 'Get Started'}
-              </button>
-            )}
+              {currentStep < 4 ? (
+                <button
+                  onClick={nextStep}
+                  disabled={
+                    (currentStep === 1 && (!userData.full_name.trim() || !userData.username.trim())) ||
+                    (currentStep === 2 && !userData.role) ||
+                    (currentStep === 3 && (userData.interests.length === 0 || !userData.locationContinent))
+                  }
+                  className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-400 to-indigo-600 text-white rounded-xl font-semibold shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                  <i className="fas fa-arrow-right ml-2"></i>
+                </button>
+              ) : (
+                <button
+                  onClick={completeOnboarding}
+                  disabled={loading}
+                  className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-xl font-semibold shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-check'} mr-2`}></i>
+                  {loading ? 'Setting up...' : 'Get Started'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   )
