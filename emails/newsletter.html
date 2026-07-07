@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Swipy Newsletter</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f4f6fb;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(26,31,54,0.08);">
+          <tr>
+            <td style="padding:32px 32px 16px;text-align:center;">
+              <span style="font-size:24px;font-weight:700;color:#4880FF;letter-spacing:-0.5px;">Swipy</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 32px 24px;">
+              <h1 style="margin:0 0 16px;font-size:22px;font-weight:600;color:#1a1f36;line-height:1.3;">
+                {{headline}}
+              </h1>
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#5a6278;">
+                {{body_paragraph_1}}
+              </p>
+              <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#5a6278;">
+                {{body_paragraph_2}}
+              </p>
+              <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto 24px;">
+                <tr>
+                  <td style="border-radius:8px;background:#4880FF;">
+                    <a href="{{cta_url}}" target="_blank" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
+                      {{cta_label}}
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 32px 28px;border-top:1px solid #eef1f7;text-align:center;">
+              <p style="margin:0 0 8px;font-size:12px;line-height:1.5;color:#8892b0;">
+                You received this email because you subscribed to Swipy updates.
+              </p>
+              <p style="margin:0;font-size:12px;line-height:1.5;color:#8892b0;">
+                <a href="{{unsubscribe_url}}" style="color:#4880FF;text-decoration:underline;">
+                  Unsubscribe
+                </a>
+                &nbsp;·&nbsp;
+                <a href="mailto:support@swipy.space" style="color:#4880FF;text-decoration:underline;">
+                  support@swipy.space
+                </a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

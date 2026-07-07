@@ -47,6 +47,7 @@ import OAuthCallback from './components/OAuthCallback'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import LandingPage from './pages/LandingPage'
 import LegalPage from './pages/LegalPage.tsx'
+import UnsubscribePage from './pages/UnsubscribePage.jsx'
 
 
 function App() {
@@ -132,6 +133,15 @@ function App() {
 
   if (location.pathname.startsWith('/legal')) {
     return <LegalPage />
+  }
+
+  if (location.pathname === '/unsubscribe') {
+    return (
+      <>
+        <UnsubscribePage />
+        <Analytics />
+      </>
+    )
   }
 
   // Onboarding uses its own full-screen focused layout without the main dashboard shell.
