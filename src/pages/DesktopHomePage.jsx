@@ -456,12 +456,12 @@ const DesktopHomePage = () => {
         },
         {
             id: 2,
-            badge: 'Latest Release',
-            title: 'Lyto AI recently launched',
-            description: 'Discover the new AI research assistant that\'s transforming how professionals conduct research and analysis.',
-            image: '/lyto.png',
-            buttonText: 'Try Now',
-            link: 'https://www.trylyto.com/'
+            badge: 'Giveaway',
+            title: 'FREE CLAUDE CODE',
+            description: '1. Follow @Swipy · 2. Register your startup · 3. Get the most swipes. Most swiped startup wins!',
+            image: '/giveaway.png',
+            buttonText: 'Join Giveaway',
+            link: '/add'
         }
     ]
 
@@ -548,8 +548,7 @@ const DesktopHomePage = () => {
                         </p>
                         <a
                             href={currentSlide.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            {...(currentSlide.link.startsWith('/') ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
                             style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
