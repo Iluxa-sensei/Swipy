@@ -1788,7 +1788,7 @@ const LandingPage = () => {
                                         <i className="fab fa-product-hunt"></i>
                                     </a>
                                     <a
-                                        href="https://www.instagram.com/swipy"
+                                        href="https://www.instagram.com/swipy_space"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         style={{
