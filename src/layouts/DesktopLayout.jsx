@@ -4,10 +4,13 @@ import { useFilters } from '../context/FiltersContext'
 import { useJobSearchFilters } from '../context/JobSearchFiltersContext.jsx'
 import { useState, useEffect, useRef } from 'react'
 import { searchService } from '../services/searchService.js'
+import StatusBadge from '../components/ai-resumer/StatusBadge.jsx'
+import { useAiResumerStatus } from '../context/AiResumerStatusContext.jsx'
 
 const NAV_ITEMS = [
     { id: 'home', label: 'News', icon: 'fa-regular fa-newspaper', path: '/home' },
     { id: 'jobs', label: 'Jobs', icon: 'fa-solid fa-briefcase', path: '/jobs' },
+    { id: 'ai-resumer', label: 'AI Resumer', icon: 'fa-solid fa-file-lines', path: '/ai-resumer' },
     { id: 'chat', label: 'Chats', icon: 'fa-regular fa-comments', path: '/chat' },
     { id: 'saved', label: 'Saved', icon: 'fa-regular fa-bookmark', path: '/saved' },
     { id: 'notifications', label: 'Alerts', icon: 'fa-regular fa-bell', path: '/notifications' },
@@ -113,6 +116,7 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
     } = useFilters()
     const activeFiltersCount = getActiveFiltersCount()
     const { jobFilters: selectedJobFilters, setJobFilters: setSelectedJobFilters } = useJobSearchFilters()
+    const { activeJob } = useAiResumerStatus()
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('')
@@ -459,7 +463,13 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                                 <h1>Find Jobs</h1>
                             </>
                         )}
-                        {!['home', 'chat', 'chat-detail', 'saved', 'notifications', 'activity-dashboard', 'profile', 'settings', 'jobs'].includes(currentScreen) && (
+                        {currentScreen === 'ai-resumer' && (
+                            <>
+                                <p className="desktop-header-eyebrow">AI career matching</p>
+                                <h1>AI Resumer</h1>
+                            </>
+                        )}
+                        {!['home', 'chat', 'chat-detail', 'saved', 'notifications', 'activity-dashboard', 'profile', 'settings', 'jobs', 'ai-resumer'].includes(currentScreen) && (
                             <>
                                 <p className="desktop-header-eyebrow">Innovation Hub</p>
                                 <h1>Launch Your Startup</h1>
@@ -467,6 +477,13 @@ const DesktopLayout = ({ children, currentScreen = 'home', onScreenChange, minim
                         )}
                     </div>
                     <div className="desktop-header-actions wide">
+                        {activeJob && (
+                            <StatusBadge
+                                status={activeJob.status}
+                                message={activeJob.stage_message || 'Matching in progress...'}
+                                onClick={() => navigate('/ai-resumer/results')}
+                            />
+                        )}
                         {currentScreen === 'home' && (
                             <div className="desktop-search wide" ref={searchContainerRef}>
                                 <i className="fa-solid fa-magnifying-glass"></i>

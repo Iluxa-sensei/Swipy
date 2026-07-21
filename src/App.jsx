@@ -48,6 +48,10 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import LandingPage from './pages/LandingPage'
 import LegalPage from './pages/LegalPage.tsx'
 import UnsubscribePage from './pages/UnsubscribePage.jsx'
+import AiResumerPage from './pages/AiResumerPage.jsx'
+import AiResumerManualPage from './pages/AiResumerManualPage.jsx'
+import AiResumerResultsPage from './pages/AiResumerResultsPage.jsx'
+import { AiResumerStatusProvider } from './context/AiResumerStatusContext.jsx'
 
 
 function App() {
@@ -183,6 +187,9 @@ function App() {
         <Route path="/activity-dashboard" element={<ActivityDashboardPage />} />
         <Route path="/add" element={isDesktop ? <DesktopAddPage /> : <AddPage />} />
         <Route path="/filters" element={<FiltersPage />} />
+        <Route path="/ai-resumer" element={<AiResumerPage />} />
+        <Route path="/ai-resumer/manual" element={<AiResumerManualPage />} />
+        <Route path="/ai-resumer/results" element={<AiResumerResultsPage />} />
         <Route path="/chat-detail/:chatId" element={isDesktop ? <DesktopChatPage /> : <ChatDetailPage />} />
         <Route path="/chat-detail/:nickname" element={isDesktop ? <DesktopChatPage /> : <ChatDetailPage />} />
         <Route path="/chat-detail/:nickname/:startup_name" element={isDesktop ? <DesktopChatPage /> : <ChatDetailPage />} />
@@ -194,23 +201,25 @@ function App() {
   return (
     <FiltersProvider>
       <JobSearchFiltersProvider>
-        {isDesktop ? (
-          <DesktopLayout
-            currentScreen={currentScreen}
-            onScreenChange={handleScreenChange}
-            minimal={desktopMinimal}
-          >
-            {routes}
-          </DesktopLayout>
-        ) : (
-          <MobileLayout
-            currentScreen={currentScreen}
-            onScreenChange={handleScreenChange}
-            showBottomNav={showBottomNav}
-          >
-            {routes}
-          </MobileLayout>
-        )}
+        <AiResumerStatusProvider>
+          {isDesktop ? (
+            <DesktopLayout
+              currentScreen={currentScreen}
+              onScreenChange={handleScreenChange}
+              minimal={desktopMinimal}
+            >
+              {routes}
+            </DesktopLayout>
+          ) : (
+            <MobileLayout
+              currentScreen={currentScreen}
+              onScreenChange={handleScreenChange}
+              showBottomNav={showBottomNav}
+            >
+              {routes}
+            </MobileLayout>
+          )}
+        </AiResumerStatusProvider>
         <Analytics />
       </JobSearchFiltersProvider>
     </FiltersProvider>
