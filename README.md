@@ -25,9 +25,9 @@ Users can browse startup profiles, express interest through a swipe-style interf
 | | |
 | --- | --- |
 | **250+** | Registered users |
-| **25** | Countries represented among users |
-| **Top 30** | Product Hunt ranking (among 400+ products, founder-reported) |
-| **#1 Product of the Day** | Peerpush (founder-reported) |
+| **30** | Countries represented among users |
+| [**Top 30**](https://www.producthunt.com/products/swipy?launch=swipy) | Product Hunt ranking (among 400+ products, founder-reported) |
+| [**#1 Product of the Day**](https://peerpush.com/p/swipy) | Peerpush (founder-reported) |
 
 Figures reflect reported project milestones; they are not audited analytics.
 
