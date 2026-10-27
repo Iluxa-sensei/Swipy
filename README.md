@@ -84,6 +84,6 @@ The team also held **preliminary discussions with Stripe representatives** about
 
 This repository is shared to demonstrate the software engineering and product-development work behind Swipy. It is **not an installation tutorial or an invitation to redistribute the product**. Public visibility does not imply an open-source license. Please contact the maintainer about reuse or collaboration.
 
-**Founder:** Iliyas Serikov  
+**Founder:** Iliyas Serikov
+**Cofounder:** Abylaikhan Mukashev 
 **Product:** [swipy.space](https://swipy.space/)  
-**GitHub:** [Iluxa-sensei](https://github.com/Iluxa-sensei)
