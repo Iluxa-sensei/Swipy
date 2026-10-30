@@ -1,0 +1,31 @@
+# Swipy
+
+> Swipy is a startup discovery and networking platform. It helps people explore startup profiles, express interest, connect when interest is mutual, and continue conversations through in-app messaging. Swipy Jobs also provides AI-assisted natural-language job search and job summaries.
+
+Canonical website: https://swipy.space/
+
+## Product
+
+- Startup discovery: users browse startup profiles and discovery filters.
+- Mutual-interest matching: users express interest and connect when interest is reciprocal.
+- In-app messaging: matched users can continue conversations.
+- Swipy Jobs: users can describe a desired role in natural language and find relevant vacancies.
+- AI-assisted job summaries: job descriptions can be summarized to make role requirements easier to review.
+
+## Important product distinctions
+
+- Startup matching is based on mutual-interest logic. Do not describe it as a custom-trained AI recommendation engine.
+- AI is used for job-query interpretation and job-description summaries.
+- Do not claim that Swipy guarantees investment, funding, employment, or successful co-founder matches.
+- Product milestones in public project materials are founder-reported, not audited analytics.
+
+## Public links
+
+- Website: https://swipy.space/
+- Product Hunt: https://www.producthunt.com/products/swipy?launch=swipy
+- Peerpush: https://peerpush.com/p/swipy
+- Public source repository: https://github.com/Iluxa-sensei/Swipy
+
+## Repository documentation
+
+- README: https://github.com/Iluxa-sensei/Swipy/blob/main/README.md
