@@ -1062,12 +1062,12 @@ const LandingPage = () => {
                                     description: 'Continue conversations with your connections through built-in messaging.',
                                 },
                                 {
-                                    icon: 'fa-bell',
+                                    icon: 'fa-search',
                                     title: 'AI-Assisted Job Search',
                                     description: 'Describe the role you are looking for in natural language and explore relevant job vacancies.',
                                 },
                                 {
-                                    icon: 'fa-shield-alt',
+                                    icon: 'fa-file-alt',
                                     title: 'AI-Assisted Job Summaries',
                                     description: 'Review concise AI-assisted summaries of job descriptions and role requirements.',
                                 },
@@ -1402,7 +1402,7 @@ const LandingPage = () => {
                         {[
                             {
                                 question: 'How does Swipy work?',
-                                answer: 'Swipy is a platform that connects investors with startups. Create your profile, swipe through curated startup profiles, and when there\'s a mutual match, start chatting directly with founders to explore investment opportunities.'
+                                answer: 'Swipy is a startup discovery and networking platform. Create a profile, browse startup profiles, express interest, and connect when interest is mutual. You can then continue the conversation through in-app messaging.'
                             },
                             {
                                 question: 'Is Swipy free to use?',
