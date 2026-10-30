@@ -1406,23 +1406,23 @@ const LandingPage = () => {
                             },
                             {
                                 question: 'Is Swipy free to use?',
-                                answer: 'Yes, Swipy offers a free tier that allows you to discover startups and connect with founders. We also offer premium features for investors looking for advanced matching and analytics.'
+                                answer: 'Available plans and feature access may change. Check the current sign-up flow and in-product plan information for the latest details.'
                             },
                             {
                                 question: 'What types of startups are on Swipy?',
-                                answer: 'We feature innovative startups across various industries and stages, from early-stage to growth-stage companies. All startups are carefully curated to ensure quality and relevance for our investor community.'
+                                answer: 'Swipy lets members discover startup profiles across different industries and stages. The profiles available depend on what members have added to the platform.'
                             },
                             {
                                 question: 'How do I get matched with startups?',
-                                answer: 'Our smart matching algorithm learns your preferences based on your profile, investment goals, and swipe behavior. It then suggests startups that align with your interests and investment criteria.'
+                                answer: 'Matching is based on reciprocal interest: when two sides express interest, they can connect and start a conversation. Startup matching is not presented as a custom-trained AI recommendation engine.'
                             },
                             {
                                 question: 'Is my data secure?',
-                                answer: 'Absolutely. We use enterprise-grade security measures to protect your data and investments. Your information is encrypted and we follow strict privacy protocols to ensure your data remains confidential.'
+                                answer: 'For details about how account information is handled, read the privacy and legal information available on Swipy. Avoid sharing sensitive information with people you have not independently verified.'
                             },
                             {
                                 question: 'Can I contact startups directly?',
-                                answer: 'Yes! Once you match with a startup, you can communicate directly with founders through our built-in messaging system. No middlemen, no delays - just direct communication.'
+                                answer: 'Yes. Once interest is mutual and you connect, you can continue the conversation through Swipy's in-app messaging.'
                             }
                         ].map((faq, index) => (
                             <div
