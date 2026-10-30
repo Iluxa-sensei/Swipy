@@ -1,0 +1,32 @@
+# Public discovery pages are available to search engines and AI search crawlers.
+User-agent: *
+Allow: /
+Disallow: /home
+Disallow: /saved
+Disallow: /jobs/
+Disallow: /chat
+Disallow: /notifications
+Disallow: /profile/edit
+Disallow: /settings
+Disallow: /support
+Disallow: /activity-dashboard
+Disallow: /add
+Disallow: /filters
+Disallow: /onboarding
+Disallow: /login
+Disallow: /signup
+Disallow: /auth/
+Disallow: /reset-password
+Disallow: /unsubscribe
+Disallow: /ai-resumer/
+
+# ChatGPT Search crawler. This is separate from GPTBot.
+User-agent: OAI-SearchBot
+Allow: /
+
+# GPTBot is the separate OpenAI crawler used for model training.
+# This does not block OAI-SearchBot or ChatGPT Search.
+User-agent: GPTBot
+Disallow: /
+
+Sitemap: https://swipy.space/sitemap.xml
