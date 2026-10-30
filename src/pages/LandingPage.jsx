@@ -861,12 +861,12 @@ const LandingPage = () => {
                             textAlign: 'center',
                             width: '100%'
                         }}>
-                            <span>Tinder for</span>
+                            <span>Discover</span>
                             <span className="scroller-container">
                                 <span className="scroller-content italic-font" style={{ color: '#4880ff' }}>
                                     <span className="scroller-item">Startups</span>
-                                    <span className="scroller-item">Investors</span>
                                     <span className="scroller-item">Founders</span>
+                                    <span className="scroller-item">Opportunities</span>
                                     <span className="scroller-item">Startups</span>
                                 </span>
                             </span>
@@ -879,7 +879,7 @@ const LandingPage = () => {
                             lineHeight: '1.6',
                             fontWeight: '400'
                         }}>
-                            Discover, connect, and invest in the next generation of innovative startups. Swipe your way to the perfect match.
+                            Explore startup profiles, express interest, and connect when interest is mutual. Continue the conversation with in-app messaging and discover opportunities through Swipy Jobs.
                         </p>
                         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
                             <button
@@ -957,7 +957,7 @@ const LandingPage = () => {
                             lineHeight: '1.6',
                             fontWeight: '400'
                         }}>
-                            Everything you need to discover and invest in innovative startups
+                            Tools to discover startups, build connections, and explore opportunities
                         </p>
                     </div>
 
@@ -1048,33 +1048,33 @@ const LandingPage = () => {
                             {[
                                 {
                                     icon: 'fa-rocket',
-                                    title: 'Curated Startups',
-                                    description: 'Access a carefully selected database of innovative startups across various industries and stages.',
+                                    title: 'Startup Discovery',
+                                    description: 'Explore startup profiles and use discovery filters to find projects that match your interests.',
                                 },
                                 {
-                                    icon: 'fa-brain',
-                                    title: 'Smart Matching',
-                                    description: 'Our algorithm learns your preferences and suggests startups that align with your investment goals.',
+                                    icon: 'fa-handshake',
+                                    title: 'Mutual Matching',
+                                    description: 'Express interest in a startup and connect when interest is reciprocal.',
                                 },
                                 {
                                     icon: 'fa-comments',
-                                    title: 'Direct Communication',
-                                    description: 'Connect directly with founders through our built-in messaging system. No middlemen, no delays.',
+                                    title: 'In-App Messaging',
+                                    description: 'Continue conversations with your connections through built-in messaging.',
                                 },
                                 {
-                                    icon: 'fa-bell',
-                                    title: 'Real-time Updates',
-                                    description: 'Stay informed about new startups, funding rounds, and opportunities as they happen.',
+                                    icon: 'fa-search',
+                                    title: 'AI-Assisted Job Search',
+                                    description: 'Describe the role you are looking for in natural language and explore relevant job vacancies.',
                                 },
                                 {
-                                    icon: 'fa-shield-alt',
-                                    title: 'Secure Platform',
-                                    description: 'Your data and investments are protected with enterprise-grade security and privacy measures.',
+                                    icon: 'fa-file-alt',
+                                    title: 'AI-Assisted Job Summaries',
+                                    description: 'Review concise AI-assisted summaries of job descriptions and role requirements.',
                                 },
                                 {
                                     icon: 'fa-globe',
-                                    title: 'Global Reach',
-                                    description: 'Discover startups from around the world. Expand your investment portfolio beyond borders.',
+                                    title: 'Profile Discovery Filters',
+                                    description: 'Narrow startup discovery with filters and focus on profiles relevant to your goals.',
                                 },
                             ].map((feature, index) => (
                                 <div key={index} style={{
@@ -1164,7 +1164,7 @@ const LandingPage = () => {
                             lineHeight: '1.6',
                             fontWeight: '400'
                         }}>
-                            Simple, fast, and effective way to connect with startups
+                            A simple way to discover startups, express interest, and start conversations
                         </p>
                     </div>
 
@@ -1182,19 +1182,19 @@ const LandingPage = () => {
                                 number: '01',
                                 icon: 'fa-user-plus',
                                 title: 'Create Profile',
-                                description: 'Sign up and build your profile. Tell us about your interests, investment goals, and what you\'re looking for in a startup.',
+                                description: 'Sign up and build your profile. Share your interests and what you are building or looking to discover.',
                             },
                             {
                                 number: '02',
                                 icon: 'fa-hand-pointer',
                                 title: 'Swipe & Discover',
-                                description: 'Browse through curated startup profiles. Swipe right to like, left to pass. Find startups that match your criteria.',
+                                description: 'Browse startup profiles and express interest in the projects you would like to connect with.',
                             },
                             {
                                 number: '03',
                                 icon: 'fa-handshake',
-                                title: 'Connect & Invest',
-                                description: 'When there\'s a mutual match, start chatting directly with founders. Build relationships and make investment decisions.',
+                                title: 'Connect & Chat',
+                                description: 'When interest is mutual, connect and continue the conversation through in-app messaging.',
                             },
                         ].map((step, index) => (
                             <div
@@ -1317,7 +1317,7 @@ const LandingPage = () => {
                             <div style={{ paddingTop: '24px', paddingBottom: '24px' }}>
                                 <h2 className="text-3xl md:text-5xl font-semibold tracking-tight text-white mb-6" style={{ paddingTop: '12px', paddingBottom: '12px' }}>Cut through the noise.</h2>
                                 <p className="text-zinc-400 text-base leading-relaxed max-w-md">
-                                    No recruiters. No outsourcing agencies. Just founders and investors looking to build the next unicorn. Once you match, you can chat directly with verified users and start building your network instantly.
+                                    Discover startup profiles, connect with people through mutual interest, and continue conversations in one place. Swipy also brings AI-assisted job search and job summaries into the same product.
                                 </p>
                             </div>
                             <ul className="space-y-4">
@@ -1325,19 +1325,19 @@ const LandingPage = () => {
                                     <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
                                         <i className="fas fa-check" style={{ fontSize: '10px' }}></i>
                                     </div>
-                                    Verified Github Identity
+                                    Startup Profile Discovery
                                 </li>
                                 <li className="flex items-center gap-3 text-sm text-zinc-300">
                                     <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
                                         <i className="fas fa-check" style={{ fontSize: '10px' }}></i>
                                     </div>
-                                    Direct Founder-to-Investor Chat
+                                    In-App Messaging After a Match
                                 </li>
                                 <li className="flex items-center gap-3 text-sm text-zinc-300">
                                     <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
                                         <i className="fas fa-check" style={{ fontSize: '10px' }}></i>
                                     </div>
-                                    Smart Matching Algorithm
+                                    Mutual-Interest Matching
                                 </li>
                             </ul>
                         </div>
@@ -1402,27 +1402,27 @@ const LandingPage = () => {
                         {[
                             {
                                 question: 'How does Swipy work?',
-                                answer: 'Swipy is a platform that connects investors with startups. Create your profile, swipe through curated startup profiles, and when there\'s a mutual match, start chatting directly with founders to explore investment opportunities.'
+                                answer: 'Swipy is a startup discovery and networking platform. Create a profile, browse startup profiles, express interest, and connect when interest is mutual. You can then continue the conversation through in-app messaging.'
                             },
                             {
                                 question: 'Is Swipy free to use?',
-                                answer: 'Yes, Swipy offers a free tier that allows you to discover startups and connect with founders. We also offer premium features for investors looking for advanced matching and analytics.'
+                                answer: 'Available plans and feature access may change. Check the current sign-up flow and in-product plan information for the latest details.'
                             },
                             {
                                 question: 'What types of startups are on Swipy?',
-                                answer: 'We feature innovative startups across various industries and stages, from early-stage to growth-stage companies. All startups are carefully curated to ensure quality and relevance for our investor community.'
+                                answer: 'Swipy lets members discover startup profiles across different industries and stages. The profiles available depend on what members have added to the platform.'
                             },
                             {
                                 question: 'How do I get matched with startups?',
-                                answer: 'Our smart matching algorithm learns your preferences based on your profile, investment goals, and swipe behavior. It then suggests startups that align with your interests and investment criteria.'
+                                answer: 'Matching is based on reciprocal interest: when two sides express interest, they can connect and start a conversation. Startup matching is not presented as a custom-trained AI recommendation engine.'
                             },
                             {
                                 question: 'Is my data secure?',
-                                answer: 'Absolutely. We use enterprise-grade security measures to protect your data and investments. Your information is encrypted and we follow strict privacy protocols to ensure your data remains confidential.'
+                                answer: 'For details about how account information is handled, read the privacy and legal information available on Swipy. Avoid sharing sensitive information with people you have not independently verified.'
                             },
                             {
                                 question: 'Can I contact startups directly?',
-                                answer: 'Yes! Once you match with a startup, you can communicate directly with founders through our built-in messaging system. No middlemen, no delays - just direct communication.'
+                                answer: 'Yes. Once interest is mutual and you connect, you can continue the conversation through Swipy's in-app messaging.'
                             }
                         ].map((faq, index) => (
                             <div
@@ -1540,7 +1540,7 @@ const LandingPage = () => {
                             marginBottom: '40px',
                             color: '#ffffff'
                         }}>
-                            Ready to Find Your Next Startup?
+                            Ready to Discover Your Next Opportunity?
                         </h2>
                         <button
                             onClick={goToSignUpOrApp}
@@ -1606,7 +1606,7 @@ const LandingPage = () => {
                                     lineHeight: '1.6',
                                     fontWeight: '400'
                                 }}>
-                                    Tinder for Startups. Discover, connect, and invest in innovative startups.
+                                    Discover startups, build connections, and explore opportunities with Swipy.
                                 </p>
                             </div>
 
