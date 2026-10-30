@@ -28,6 +28,9 @@ User-agent: OAI-SearchBot
 Allow: /
 Disallow: /home
 Disallow: /saved
+Disallow: /profile
+Disallow: /startup
+Disallow: /*/startup/
 Disallow: /jobs
 Disallow: /chat
 Disallow: /notifications
