@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 Disallow: /home
 Disallow: /saved
-Disallow: /jobs/
+Disallow: /jobs
 Disallow: /chat
 Disallow: /notifications
 Disallow: /profile/edit
@@ -18,7 +18,7 @@ Disallow: /signup
 Disallow: /auth/
 Disallow: /reset-password
 Disallow: /unsubscribe
-Disallow: /ai-resumer/
+Disallow: /ai-resumer
 
 # ChatGPT Search crawler. This is separate from GPTBot.
 User-agent: OAI-SearchBot
