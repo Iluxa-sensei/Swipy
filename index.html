@@ -1,44 +1,125 @@
 <!doctype html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/favicon.ico" />
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="format-detection" content="telephone=no" />
-    <title>Swipy - Tinder for Startups|Founders|Investors</title>
 
-    <!-- Open Graph / Facebook -->
+    <title>Swipy — Startup Discovery &amp; Networking Platform</title>
+    <meta name="description"
+        content="Discover startups, connect through mutual-interest matching, message people in-app, and explore opportunities with AI-assisted job search on Swipy." />
+    <meta name="author" content="Swipy" />
+    <meta name="application-name" content="Swipy" />
+    <meta name="theme-color" content="#0b0b0f" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://swipy.space/" />
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/favicon.ico" />
+
+    <!-- Open Graph -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Swipy" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:url" content="https://swipy.space/" />
-    <meta property="og:title" content="Swipy" />
-    <meta property="og:description" content="Swipy - Tinder for Startups|Founders|Investors" />
+    <meta property="og:title" content="Swipy — Startup Discovery &amp; Networking Platform" />
+    <meta property="og:description"
+        content="Discover startups, connect through mutual-interest matching, message people in-app, and explore opportunities with AI-assisted job search." />
     <meta property="og:image" content="https://swipy.space/linker.png" />
+    <meta property="og:image:alt" content="Swipy startup discovery and networking platform" />
+    <meta property="og:image:type" content="image/png" />
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://swipy.space/" />
-    <meta property="twitter:title" content="Swipy" />
-    <meta property="twitter:description" content="Swipy - Tinder for Startups|Founders|Investors" />
-    <meta property="twitter:image" content="https://swipy.space/linker.png" />
+    <!-- X / Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Swipy — Startup Discovery &amp; Networking Platform" />
+    <meta name="twitter:description"
+        content="Discover startups, connect through mutual-interest matching, message people in-app, and explore opportunities with AI-assisted job search." />
+    <meta name="twitter:image" content="https://swipy.space/linker.png" />
+    <meta name="twitter:image:alt" content="Swipy startup discovery and networking platform" />
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    <!-- Structured data: describe the product and its actual capabilities. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://swipy.space/#organization",
+          "name": "Swipy",
+          "url": "https://swipy.space/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://swipy.space/linker.png"
+          },
+          "description": "Swipy is a startup discovery and networking platform for exploring startup profiles, connecting through mutual interest, messaging, and discovering opportunities.",
+          "sameAs": [
+            "https://www.producthunt.com/products/swipy?launch=swipy",
+            "https://peerpush.com/p/swipy",
+            "https://github.com/Iluxa-sensei/Swipy"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://swipy.space/#website",
+          "url": "https://swipy.space/",
+          "name": "Swipy",
+          "description": "Discover startups, build connections, and find opportunities.",
+          "inLanguage": "en",
+          "publisher": {
+            "@id": "https://swipy.space/#organization"
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://swipy.space/#application",
+          "name": "Swipy",
+          "url": "https://swipy.space/",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "description": "A startup discovery and networking platform with startup profile discovery, mutual-interest matching, in-app messaging, and AI-assisted job search.",
+          "featureList": [
+            "Startup profile discovery",
+            "Discovery filters",
+            "Mutual-interest matching",
+            "In-app messaging",
+            "Natural-language job search",
+            "AI-assisted job summaries"
+          ],
+          "image": "https://swipy.space/linker.png",
+          "publisher": {
+            "@id": "https://swipy.space/#organization"
+          }
+        }
+      ]
+    }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap"
         rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&amp;display=swap"
         rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
     <div id="root"></div>
+    <noscript>
+        <main>
+            <h1>Discover startups. Build connections. Find opportunities.</h1>
+            <p>Swipy is a startup discovery and networking platform. Explore startup profiles, express interest, connect when interest is mutual, and continue conversations with in-app messaging.</p>
+            <h2>Explore opportunities with Swipy Jobs</h2>
+            <p>Swipy Jobs supports natural-language job search and AI-assisted summaries of job opportunities.</p>
+            <h2>How matching works</h2>
+            <p>Startup connections are based on reciprocal interest. AI assists with job-query interpretation and job summaries; startup matching itself is based on mutual-interest logic.</p>
+            <p><a href="https://swipy.space/">Visit Swipy</a></p>
+        </main>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
 </body>
-
 </html>
